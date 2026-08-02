@@ -1,8 +1,8 @@
 # Publish to PyPI when a GitHub Release is published; run a manual TestPyPI dry
-# run via workflow_dispatch (target: testpypi). Authentication uses PyPI Trusted
-# Publishing (OIDC) — no long-lived API tokens. Before the first release,
-# configure trusted publishers for avitai/simulacrax (workflow publish.yml) on
-# both PyPI (environment pypi) and TestPyPI (environment testpypi).
+# run via workflow_dispatch (target: testpypi). Authentication uses PyPI API
+# tokens stored as environment-scoped secrets (matching the sister repos):
+#   - environment `pypi`     -> secret PYPI_API_TOKEN
+#   - environment `testpypi` -> secret TEST_PYPI_API_TOKEN
 
 name: Publish
 
@@ -59,8 +59,6 @@ jobs:
     environment:
       name: testpypi
       url: https://test.pypi.org/project/simulacrax/
-    permissions:
-      id-token: write # PyPI trusted publishing
 
     steps:
       - name: Download distribution
@@ -72,6 +70,8 @@ jobs:
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
 
@@ -85,8 +85,6 @@ jobs:
     environment:
       name: pypi
       url: https://pypi.org/project/simulacrax/
-    permissions:
-      id-token: write # PyPI trusted publishing
 
     steps:
       - name: Download distribution
@@ -97,3 +95,6 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
