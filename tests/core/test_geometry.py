@@ -1,0 +1,505 @@
+"""Tests for shared geometry utilities.
+
+Verifies the WOSAC signed distance to road-edge polylines against
+reference golden values, the padded polyline packing, the ``RoadEdges``
+container, and the shared off-road hinge penalty, including
+JIT/grad/vmap compatibility.
+"""
+
+from __future__ import annotations
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+import pytest
+
+from simulacrax.core.geometry import (
+    from_agent_frame,
+    mean_offroad_penalty,
+    RoadEdges,
+    signed_distance_to_polylines,
+    stack_polylines,
+    stack_polylines_fixed,
+    to_agent_frame,
+    wrap_angle,
+)
+
+
+# Counterclockwise closed square: the interior is on-road (negative
+# signed distance), the exterior off-road (positive).
+_SQUARE_ROAD_EDGE = np.array(
+    [[0, 0, 0], [10, 0, 0], [10, 10, 0], [0, 10, 0], [0, 0, 0]], dtype=np.float32
+)
+
+
+def _square_edges() -> RoadEdges:
+    return RoadEdges.from_polylines([_SQUARE_ROAD_EDGE])
+
+
+class TestRoadEdges:
+    """Tests for the RoadEdges container."""
+
+    def test_from_polylines_packs_and_flags(self) -> None:
+        """from_polylines packs polylines and detects closed loops."""
+        edges = _square_edges()
+        assert edges.polylines.shape == (1, 5, 4)
+        assert edges.is_cyclic.shape == (1,)
+        assert bool(edges.is_cyclic[0]) is True
+
+    def test_registered_pytree(self) -> None:
+        """RoadEdges flattens to its two arrays and traces through jit."""
+        edges = _square_edges()
+        leaves = jax.tree_util.tree_leaves(edges)
+        assert len(leaves) == 2
+
+        @jax.jit
+        def polyline_sum(road_edges: RoadEdges) -> jax.Array:
+            return jnp.sum(road_edges.polylines)
+
+        assert jnp.allclose(polyline_sum(edges), jnp.sum(edges.polylines))
+
+
+class TestMeanOffroadPenalty:
+    """Tests for the off-road hinge penalty shared by loss and reward."""
+
+    def test_on_road_points_zero(self) -> None:
+        """Positions inside the drivable area incur exactly zero penalty."""
+        positions = jnp.array([[5.0, 5.0], [1.0, 9.0], [9.0, 1.0]])
+        result = mean_offroad_penalty(positions, _square_edges())
+        assert result.shape == ()
+        assert float(result) == 0.0
+
+    def test_off_road_penalty_is_squared_distance(self) -> None:
+        """An off-road position contributes its squared boundary distance."""
+        # 2 m below the bottom edge → signed distance +2 → penalty 4.
+        positions = jnp.array([[5.0, -2.0]])
+        result = mean_offroad_penalty(positions, _square_edges())
+        assert float(result) == pytest.approx(4.0, rel=1e-5)
+
+    def test_mean_over_positions(self) -> None:
+        """The penalty is the mean over all supplied positions."""
+        positions = jnp.array([[5.0, 5.0], [5.0, -2.0]])
+        result = mean_offroad_penalty(positions, _square_edges())
+        assert float(result) == pytest.approx(2.0, rel=1e-5)
+
+    def test_leading_axes_flattened(self) -> None:
+        """(agents, steps, 2) input matches the flattened equivalent."""
+        flat = jnp.array([[5.0, 5.0], [5.0, -2.0], [5.0, -3.0], [2.0, 2.0]])
+        shaped = flat.reshape(2, 2, 2)
+        assert jnp.allclose(
+            mean_offroad_penalty(shaped, _square_edges()),
+            mean_offroad_penalty(flat, _square_edges()),
+        )
+
+    def test_gradient_zero_on_road(self) -> None:
+        """On-road positions sit on the flat part of the hinge."""
+        positions = jnp.array([[5.0, 5.0]])
+        grads = jax.grad(mean_offroad_penalty)(positions, _square_edges())
+        assert float(jnp.max(jnp.abs(grads))) == 0.0
+
+    def test_gradient_points_back_toward_road(self) -> None:
+        """Off-road below the bottom edge, moving up reduces the penalty."""
+        positions = jnp.array([[5.0, -2.0]])
+        grads = jax.grad(mean_offroad_penalty)(positions, _square_edges())
+        assert bool(jnp.all(jnp.isfinite(grads)))
+        # d/dy of (distance)^2 = 2 * 2 * (-1) = -4 at 2 m below the edge.
+        assert float(grads[0, 1]) == pytest.approx(-4.0, rel=1e-4)
+
+    def test_jit_matches_eager(self) -> None:
+        """The penalty compiles under jit with identical results."""
+        positions = jnp.array([[5.0, 5.0], [5.0, -2.0]])
+        edges = _square_edges()
+        jitted = jax.jit(mean_offroad_penalty)
+        assert jnp.allclose(jitted(positions, edges), mean_offroad_penalty(positions, edges))
+
+    def test_vmap_over_batch(self) -> None:
+        """The penalty vmaps over a leading batch axis of position sets."""
+        batch = jnp.array([[[5.0, 5.0], [5.0, 5.0]], [[5.0, -2.0], [5.0, -2.0]]])
+        edges = _square_edges()
+        results = jax.vmap(lambda p: mean_offroad_penalty(p, edges))(batch)
+        assert results.shape == (2,)
+        assert float(results[0]) == 0.0
+        assert float(results[1]) == pytest.approx(4.0, rel=1e-5)
+
+
+# ---------------------------------------------------------------------------
+# signed_distance_to_polylines — golden values generated by executing the
+# official waymo-open-dataset reference (_compute_signed_distance_to_polylines
+# in wdl_limited/sim_agents_metrics/map_metric_features.py) on these inputs.
+# Convention: counterclockwise winding — port side (on-road) is negative,
+# starboard (off-road) positive.
+# ---------------------------------------------------------------------------
+
+
+class TestSignedDistanceToPolylines:
+    """Reference-validated tests for the WOSAC signed-distance primitive."""
+
+    def _straight(self) -> tuple[jax.Array, jax.Array, jax.Array]:
+        polylines = jnp.array([[[0, 0, 0, 1], [10, 0, 0, 1], [20, 0, 0, 1]]], dtype=jnp.float32)
+        cyclic = jnp.array([False])
+        points = jnp.array(
+            [
+                [5.0, 2.0, 0.0],
+                [5.0, -3.0, 0.0],
+                [15.0, 1.5, 0.0],
+                [-4.0, 3.0, 0.0],
+                [24.0, -1.0, 0.0],
+            ],
+            dtype=jnp.float32,
+        )
+        return points, polylines, cyclic
+
+    def test_straight_polyline_matches_reference(self) -> None:
+        """Port side negative, starboard positive, endpoint distances exact."""
+        points, polylines, cyclic = self._straight()
+        result = signed_distance_to_polylines(points, polylines, cyclic)
+        expected = jnp.array([-2.0, 3.0, -1.5, -5.0, 4.123106], dtype=jnp.float32)
+        assert jnp.allclose(result, expected, atol=1e-5)
+
+    def test_cyclic_square_matches_reference(self) -> None:
+        """Inside a CCW square is negative; corner regions handled via wrap."""
+        polylines = jnp.array(
+            [[[0, 0, 0, 1], [10, 0, 0, 1], [10, 10, 0, 1], [0, 10, 0, 1], [0, 0, 0, 1]]],
+            dtype=jnp.float32,
+        )
+        cyclic = jnp.array([True])
+        points = jnp.array(
+            [
+                [5.0, 5.0, 0.0],
+                [5.0, 1.0, 0.0],
+                [5.0, -2.0, 0.0],
+                [12.0, 12.0, 0.0],
+                [11.0, 5.0, 0.0],
+                [-0.5, -0.5, 0.0],
+            ],
+            dtype=jnp.float32,
+        )
+        result = signed_distance_to_polylines(points, polylines, cyclic)
+        expected = jnp.array([-5.0, -1.0, 2.0, 2.828427, 1.0, 0.707107], dtype=jnp.float32)
+        assert jnp.allclose(result, expected, atol=1e-5)
+
+    def test_padded_polylines_matches_reference(self) -> None:
+        """Zero-padded (invalid) points never win the closest-segment search."""
+        polylines = jnp.zeros((2, 4, 4), dtype=jnp.float32)
+        polylines = polylines.at[0, :3].set(
+            jnp.array([[0, 0, 0, 1], [10, 0, 0, 1], [20, 0, 0, 1]], dtype=jnp.float32)
+        )
+        polylines = polylines.at[1].set(
+            jnp.array(
+                [[0, 20, 0, 1], [10, 20, 0, 1], [20, 20, 0, 1], [30, 20, 0, 1]],
+                dtype=jnp.float32,
+            )
+        )
+        cyclic = jnp.array([False, False])
+        points = jnp.array(
+            [[5.0, 3.0, 0.0], [5.0, 18.0, 0.0], [25.0, 21.0, 0.0]], dtype=jnp.float32
+        )
+        result = signed_distance_to_polylines(points, polylines, cyclic)
+        expected = jnp.array([-3.0, 2.0, -1.0], dtype=jnp.float32)
+        assert jnp.allclose(result, expected, atol=1e-5)
+
+    def _overpass(self) -> tuple[jax.Array, jax.Array, jax.Array]:
+        polylines = jnp.zeros((2, 2, 4), dtype=jnp.float32)
+        polylines = polylines.at[0].set(jnp.array([[0, 1, 0, 1], [20, 1, 0, 1]], dtype=jnp.float32))
+        polylines = polylines.at[1].set(
+            jnp.array([[20, 0.2, 0.9, 1], [0, 0.2, 0.9, 1]], dtype=jnp.float32)
+        )
+        points = jnp.array([[10.0, 0.0, 0.0]], dtype=jnp.float32)
+        return points, polylines, jnp.array([False, False])
+
+    def test_z_stretch_selects_correct_level(self) -> None:
+        """z-stretch prevents association with an overpass at another altitude."""
+        points, polylines, cyclic = self._overpass()
+        unstretched = signed_distance_to_polylines(points, polylines, cyclic, z_stretch=1.0)
+        stretched = signed_distance_to_polylines(points, polylines, cyclic, z_stretch=3.0)
+        assert jnp.allclose(unstretched, jnp.array([-0.2]), atol=1e-5)
+        assert jnp.allclose(stretched, jnp.array([1.0]), atol=1e-5)
+
+    def test_concave_corner_matches_reference(self) -> None:
+        """Sign beyond segment ends follows the local-convexity rule."""
+        polylines = jnp.array([[[0, 0, 0, 1], [10, 0, 0, 1], [10, -10, 0, 1]]], dtype=jnp.float32)
+        cyclic = jnp.array([False])
+        points = jnp.array(
+            [[12.0, 1.0, 0.0], [8.0, -2.0, 0.0], [11.0, -5.0, 0.0]], dtype=jnp.float32
+        )
+        result = signed_distance_to_polylines(points, polylines, cyclic)
+        expected = jnp.array([-2.236068, 2.0, -1.0], dtype=jnp.float32)
+        assert jnp.allclose(result, expected, atol=1e-5)
+
+    def test_default_cyclic_is_none(self) -> None:
+        """Omitting is_polyline_cyclic treats all polylines as non-cyclic."""
+        points, polylines, cyclic = self._straight()
+        with_flags = signed_distance_to_polylines(points, polylines, cyclic)
+        without_flags = signed_distance_to_polylines(points, polylines)
+        assert jnp.allclose(with_flags, without_flags)
+
+    def test_jit_and_grad_compatible(self) -> None:
+        """The primitive traces under jit and differentiates w.r.t. points."""
+        points, polylines, cyclic = self._straight()
+        jitted = jax.jit(signed_distance_to_polylines, static_argnames=("z_stretch",))
+        assert jnp.allclose(
+            jitted(points, polylines, cyclic),
+            signed_distance_to_polylines(points, polylines, cyclic),
+        )
+
+        def total(p: jax.Array) -> jax.Array:
+            return jnp.sum(signed_distance_to_polylines(p, polylines, cyclic))
+
+        grads = jax.grad(total)(points)
+        assert grads.shape == points.shape
+        assert bool(jnp.all(jnp.isfinite(grads)))
+        # Moving a port-side point further port decreases signed distance.
+        assert float(grads[0, 1]) < 0.0
+
+    def test_vmap_over_rollouts(self) -> None:
+        """The primitive vmaps over a leading rollout axis of query points."""
+        points, polylines, cyclic = self._straight()
+        batched_points = jnp.stack([points, points + jnp.array([0.0, 1.0, 0.0])])
+        batched = jax.vmap(lambda p: signed_distance_to_polylines(p, polylines, cyclic))(
+            batched_points
+        )
+        assert batched.shape == (2, points.shape[0])
+        assert jnp.allclose(batched[0], signed_distance_to_polylines(points, polylines, cyclic))
+
+    def _multi_polyline(self) -> tuple[jax.Array, jax.Array, jax.Array]:
+        """A boundary of several polylines plus an all-invalid padding row."""
+        polylines = jnp.zeros((4, 5, 4), dtype=jnp.float32)
+        polylines = polylines.at[0, :3].set(
+            jnp.array([[0, 0, 0, 1], [10, 0, 0, 1], [20, 0, 0, 1]], dtype=jnp.float32)
+        )
+        polylines = polylines.at[1].set(
+            jnp.array(
+                [[0, 20, 0, 1], [10, 20, 0, 1], [10, 30, 0, 1], [0, 30, 0, 1], [0, 20, 0, 1]],
+                dtype=jnp.float32,
+            )
+        )
+        polylines = polylines.at[2, :2].set(
+            jnp.array([[30, 0, 0, 1], [30, 10, 0, 1]], dtype=jnp.float32)
+        )
+        cyclic = jnp.array([False, True, False, False])
+        points = jnp.array(
+            [[5.0, 3.0, 0.0], [5.0, 25.0, 0.0], [31.0, 5.0, 0.0], [100.0, 100.0, 0.0]],
+            dtype=jnp.float32,
+        )
+        return points, polylines, cyclic
+
+    @pytest.mark.parametrize("chunk_size", [1, 2, 3, 4, 16])
+    def test_chunked_matches_monolithic(self, chunk_size: int) -> None:
+        """Scanning the polyline axis in chunks leaves the result unchanged.
+
+        Bounding memory by tiling the closest-segment search over polyline
+        chunks must not change the signed distance — the min is associative,
+        so any chunk size yields the monolithic result.
+        """
+        points, polylines, cyclic = self._multi_polyline()
+        monolithic = signed_distance_to_polylines(points, polylines, cyclic)
+        chunked = signed_distance_to_polylines(points, polylines, cyclic, chunk_size=chunk_size)
+        assert jnp.allclose(chunked, monolithic, atol=1e-6)
+
+    def test_chunk_size_none_matches_default(self) -> None:
+        """chunk_size=None is the unchunked monolithic path."""
+        points, polylines, cyclic = self._multi_polyline()
+        assert jnp.allclose(
+            signed_distance_to_polylines(points, polylines, cyclic, chunk_size=None),
+            signed_distance_to_polylines(points, polylines, cyclic),
+        )
+
+    def test_chunked_is_jittable(self) -> None:
+        """The chunked path compiles under jit (chunk_size is static)."""
+        points, polylines, cyclic = self._multi_polyline()
+        jitted = jax.jit(lambda p: signed_distance_to_polylines(p, polylines, cyclic, chunk_size=2))
+        assert jnp.allclose(jitted(points), signed_distance_to_polylines(points, polylines, cyclic))
+
+    def test_all_invalid_polylines_return_zero(self) -> None:
+        """A fully-invalid boundary (no valid segment) yields a neutral zero.
+
+        The fixed-shape assembler pads edge-less scenes to an all-invalid tensor;
+        no valid segment means no off-road claim, so the signed distance must be
+        exactly zero rather than a sentinel-derived magnitude that the boundary
+        penalty would then square.
+        """
+        polylines = jnp.zeros((3, 5, 4), dtype=jnp.float32)  # validity flags all 0
+        cyclic = jnp.array([False, False, False])
+        points = jnp.array([[5.0, 3.0, 0.0], [100.0, -50.0, 0.0]], dtype=jnp.float32)
+        result = signed_distance_to_polylines(points, polylines, cyclic)
+        assert jnp.array_equal(result, jnp.zeros_like(result))
+
+    def test_all_invalid_padding_is_transparent(self) -> None:
+        """Padding a valid boundary with all-invalid polylines changes nothing.
+
+        The fixed-shape assembler pads the polyline axis to a global maximum;
+        those extra all-invalid rows must not perturb the real distances.
+        """
+        points, base, cyclic = self._straight()
+        padding = jnp.zeros((3, base.shape[1], 4), dtype=jnp.float32)
+        padded = jnp.concatenate([base, padding], axis=0)
+        padded_cyclic = jnp.concatenate([cyclic, jnp.array([False, False, False])])
+        result = signed_distance_to_polylines(points, padded, padded_cyclic)
+        expected = signed_distance_to_polylines(points, base, cyclic)
+        assert jnp.allclose(result, expected, atol=1e-6)
+
+
+class TestStackPolylinesFixed:
+    """Packing to a global fixed (max_polylines, max_length, 4) for jit reuse."""
+
+    def _segment(self, length: int = 3) -> np.ndarray:
+        return np.stack([np.arange(length), np.zeros(length), np.zeros(length)], axis=-1).astype(
+            np.float32
+        )
+
+    def test_shape_is_fixed_regardless_of_input(self) -> None:
+        """Output is always (max_polylines, max_length, 4)."""
+        stacked, cyclic = stack_polylines_fixed(
+            [self._segment(), self._segment()], max_polylines=8, max_length=16
+        )
+        assert stacked.shape == (8, 16, 4)
+        assert cyclic.shape == (8,)
+
+    def test_pads_missing_polylines_all_invalid(self) -> None:
+        """Rows beyond the supplied polylines carry validity 0."""
+        stacked, _ = stack_polylines_fixed([self._segment()], max_polylines=4, max_length=8)
+        assert float(jnp.sum(stacked[1:, :, 3])) == 0.0
+        assert jnp.array_equal(stacked[0, :3, 3], jnp.ones(3))
+
+    def test_caps_excess_polylines(self) -> None:
+        """More polylines than max_polylines are dropped to the cap."""
+        stacked, _ = stack_polylines_fixed([self._segment()] * 5, max_polylines=2, max_length=8)
+        assert stacked.shape == (2, 8, 4)
+
+    def test_truncates_overlong_polyline(self) -> None:
+        """A polyline longer than max_length is truncated to the cap."""
+        stacked, _ = stack_polylines_fixed([self._segment(20)], max_polylines=2, max_length=8)
+        assert float(jnp.sum(stacked[0, :, 3])) == 8.0
+
+    def test_empty_yields_all_invalid_without_raising(self) -> None:
+        """No usable polyline yields an all-invalid fixed tensor (no exception)."""
+        stacked, cyclic = stack_polylines_fixed([], max_polylines=4, max_length=8)
+        assert stacked.shape == (4, 8, 4)
+        assert float(jnp.sum(stacked[:, :, 3])) == 0.0
+        assert not bool(jnp.any(cyclic))
+
+
+class TestStackPolylines:
+    """Tests for packing variable-length polylines into the padded tensor."""
+
+    def test_pads_to_longest_and_flags_cycles(self) -> None:
+        """Shorter polylines are zero-padded; near-closed ones flagged cyclic."""
+        square = np.array(
+            [[0, 0, 0], [10, 0, 0], [10, 10, 0], [0, 10, 0], [0.1, 0.1, 0]], dtype=np.float32
+        )
+        segment = np.array([[0, 0, 0], [5, 0, 0]], dtype=np.float32)
+        stacked, cyclic = stack_polylines([square, segment])
+        assert stacked.shape == (2, 5, 4)
+        assert bool(cyclic[0]) is True
+        assert bool(cyclic[1]) is False
+        # Valid flags: all 5 for the square, 2 + 3 padding for the segment.
+        assert jnp.array_equal(stacked[0, :, 3], jnp.ones(5))
+        assert jnp.array_equal(stacked[1, :, 3], jnp.array([1.0, 1.0, 0.0, 0.0, 0.0]))
+
+    def test_skips_degenerate_polylines(self) -> None:
+        """Polylines with fewer than two points are dropped."""
+        lone_point = np.array([[1.0, 2.0, 3.0]], dtype=np.float32)
+        segment = np.array([[0, 0, 0], [5, 0, 0]], dtype=np.float32)
+        stacked, cyclic = stack_polylines([lone_point, segment])
+        assert stacked.shape == (1, 2, 4)
+        assert cyclic.shape == (1,)
+
+    def test_empty_raises(self) -> None:
+        """No usable polylines is an error (missing road edges)."""
+        with pytest.raises(ValueError, match="polyline"):
+            stack_polylines([])
+
+    def test_round_trip_with_signed_distance(self) -> None:
+        """Packed output feeds signed_distance_to_polylines directly."""
+        edge = np.array([[0, 0, 0], [10, 0, 0]], dtype=np.float32)
+        stacked, cyclic = stack_polylines([edge])
+        result = signed_distance_to_polylines(
+            jnp.array([[5.0, 2.0, 0.0]], dtype=jnp.float32), stacked, cyclic
+        )
+        assert jnp.allclose(result, jnp.array([-2.0]), atol=1e-6)
+
+
+class TestWrapAngle:
+    """Angle wrapping into the principal range."""
+
+    def test_wraps_into_minus_pi_pi(self) -> None:
+        """Arbitrary angles map into ``[-pi, pi]``."""
+        angles = jnp.array([0.0, 3.5, -3.5, 7.0, -7.0, jnp.pi, -jnp.pi])
+        wrapped = wrap_angle(angles)
+        assert bool(jnp.all(wrapped <= jnp.pi + 1e-6))
+        assert bool(jnp.all(wrapped >= -jnp.pi - 1e-6))
+        assert jnp.allclose(wrap_angle(jnp.array([3.5])), jnp.array([3.5 - 2 * jnp.pi]), atol=1e-6)
+
+
+# Two agents, three future steps, channels [x, y, heading, speed].
+_TRAJ = jnp.asarray(
+    [
+        [[3.0, 2.0, 0.1, 5.0], [4.0, 2.5, 0.2, 5.5], [5.0, 3.0, 0.3, 6.0]],
+        [[-1.0, 4.0, -0.5, 1.0], [-1.5, 4.5, -0.6, 1.2], [-2.0, 5.0, -0.7, 1.4]],
+    ],
+    dtype=jnp.float32,
+)
+# Per-agent reference pose [x0, y0, yaw0].
+_POSE = jnp.asarray([[3.0, 2.0, 0.5], [-1.0, 4.0, -1.2]], dtype=jnp.float32)
+
+
+class TestAgentFrame:
+    """Per-agent local-frame trajectory transform and its inverse."""
+
+    def test_round_trip_is_identity(self) -> None:
+        """``from_agent_frame`` inverts ``to_agent_frame`` (headings in range)."""
+        recovered = from_agent_frame(to_agent_frame(_TRAJ, _POSE), _POSE)
+        assert jnp.allclose(recovered, _TRAJ, atol=1e-5)
+
+    def test_first_step_maps_near_origin(self) -> None:
+        """An agent whose reference is its own current pose starts near origin.
+
+        Agent 0's reference position equals its first future ``xy`` (3, 2), so
+        the local first-step position is the zero vector regardless of heading.
+        """
+        local = to_agent_frame(_TRAJ, _POSE)
+        assert jnp.allclose(local[0, 0, :2], jnp.zeros(2), atol=1e-6)
+        assert jnp.allclose(local[1, 0, :2], jnp.zeros(2), atol=1e-6)
+
+    def test_known_translation_and_rotation(self) -> None:
+        """A point 1 m ahead of a +y-facing agent maps to (1, 0) forward-local."""
+        traj = jnp.asarray([[[1.0, 3.0, jnp.pi / 2, 2.0]]], dtype=jnp.float32)
+        pose = jnp.asarray([[1.0, 2.0, jnp.pi / 2]], dtype=jnp.float32)
+        local = to_agent_frame(traj, pose)
+        # forward (+x_local) = 1, lateral (y_local) = 0, heading aligned to 0.
+        assert jnp.allclose(local[0, 0, :3], jnp.array([1.0, 0.0, 0.0]), atol=1e-6)
+
+    def test_origin_pose_only_wraps_heading(self) -> None:
+        """A zero reference pose leaves x, y, speed unchanged."""
+        pose = jnp.zeros((2, 3), dtype=jnp.float32)
+        local = to_agent_frame(_TRAJ, pose)
+        assert jnp.allclose(local[..., :2], _TRAJ[..., :2], atol=1e-6)
+        assert jnp.allclose(local[..., 3], _TRAJ[..., 3], atol=1e-6)
+
+    def test_speed_channel_is_rotation_invariant(self) -> None:
+        """The scalar speed channel is untouched by both directions."""
+        local = to_agent_frame(_TRAJ, _POSE)
+        assert jnp.allclose(local[..., 3], _TRAJ[..., 3], atol=1e-6)
+
+    def test_local_heading_is_wrapped(self) -> None:
+        """Local heading stays in ``[-pi, pi]`` even for a large reference yaw."""
+        pose = jnp.asarray([[0.0, 0.0, 3.0], [0.0, 0.0, -3.0]], dtype=jnp.float32)
+        local = to_agent_frame(_TRAJ, pose)
+        assert bool(jnp.all(jnp.abs(local[..., 2]) <= jnp.pi + 1e-6))
+
+    def test_differentiable(self) -> None:
+        """Gradients flow through the transform for context-perturbation use."""
+        grad = jax.grad(lambda t: jnp.sum(to_agent_frame(t, _POSE) ** 2))(_TRAJ)
+        assert bool(jnp.all(jnp.isfinite(grad)))
+
+    def test_jit_matches_eager(self) -> None:
+        """Jitted transform equals the eager result."""
+        assert jnp.allclose(jax.jit(to_agent_frame)(_TRAJ, _POSE), to_agent_frame(_TRAJ, _POSE))
+
+    def test_vmap_over_batch(self) -> None:
+        """The transform vmaps over a leading batch axis."""
+        batched_traj = jnp.broadcast_to(_TRAJ, (4, *_TRAJ.shape))
+        batched_pose = jnp.broadcast_to(_POSE, (4, *_POSE.shape))
+        out = jax.vmap(to_agent_frame)(batched_traj, batched_pose)
+        assert out.shape == (4, *_TRAJ.shape)
+        assert jnp.allclose(out[0], to_agent_frame(_TRAJ, _POSE), atol=1e-6)
