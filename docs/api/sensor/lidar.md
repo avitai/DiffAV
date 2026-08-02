@@ -1,0 +1,3 @@
+# lidar
+
+::: simulacrax.sensor.lidar

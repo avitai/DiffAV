@@ -1,0 +1,3 @@
+# trainer
+
+::: simulacrax.models.trainer

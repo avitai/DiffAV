@@ -1,0 +1,3 @@
+# rasterizer
+
+::: simulacrax.occupancy.rasterizer

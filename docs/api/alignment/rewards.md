@@ -1,0 +1,3 @@
+# rewards
+
+::: simulacrax.alignment.rewards

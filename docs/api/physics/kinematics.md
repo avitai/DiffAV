@@ -1,0 +1,3 @@
+# kinematics
+
+::: simulacrax.physics.kinematics

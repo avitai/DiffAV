@@ -1,0 +1,3 @@
+# preferences
+
+::: simulacrax.alignment.preferences

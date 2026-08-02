@@ -1,0 +1,3 @@
+# geometry
+
+::: simulacrax.core.geometry

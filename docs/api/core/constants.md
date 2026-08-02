@@ -1,0 +1,3 @@
+# constants
+
+::: simulacrax.core.constants

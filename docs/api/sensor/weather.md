@@ -1,0 +1,3 @@
+# weather
+
+::: simulacrax.sensor.weather

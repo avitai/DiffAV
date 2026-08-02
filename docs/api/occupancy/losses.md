@@ -1,0 +1,3 @@
+# losses
+
+::: simulacrax.occupancy.losses
