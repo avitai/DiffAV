@@ -1,0 +1,252 @@
+site_name: Simulacrax Documentation
+repo_url: https://github.com/avitai/simulacrax
+site_description: Physics-informed, RL-aligned evaluation engine for autonomous driving
+site_author: The Simulacrax Team
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Light mode with automatic detection
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode with automatic detection
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    # Navigation features with collapsible sections
+    - navigation.path
+    - navigation.top
+    # Instant loading for better UX
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    # Enable navigation tracking
+    - navigation.tracking
+    # Table of contents
+    - toc.follow
+    # Search features
+    - search.highlight
+    - search.share
+    - search.suggest
+    # Content features
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+    # Enable Mermaid diagram support
+    - content.mermaid
+  icon:
+    repo: fontawesome/brands/github
+    logo: "material/car-connected"
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+# Extra configuration
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/avitai/simulacrax
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/simulacrax/
+
+plugins:
+  - search
+  - ipynb
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_submodules: true
+            show_source: false
+            show_bases: true
+            show_inheritance_diagram: false
+            group_by_category: true
+            heading_level: 2
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            show_if_no_docstring: true
+            show_overloads: false
+            show_root_heading: true
+            show_symbol_type_heading: false
+            show_symbol_type_toc: false
+            filters:
+              - "!^_"
+              - "^__init__$"
+            inherited_members: true
+          inventories:
+            - https://docs.python.org/3/objects.inv
+            - https://docs.jax.dev/en/latest/objects.inv
+            - https://flax.readthedocs.io/en/latest/objects.inv
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: "¤"
+      title: "On this page"
+      toc_depth: 4
+  # PyMdown Extensions for enhanced formatting
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      base_path: docs
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# MathJax for scientific/ML equations
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  # Mermaid — re-initialise on every navigation.instant page load
+  - javascripts/mermaid.js
+
+# Custom CSS
+extra_css:
+  - _static/extra.css
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+      - Core Concepts: getting-started/concepts.md
+  - Examples:
+      - Overview: examples/overview.md
+      - Core:
+          - WOD Loading Quick Reference: examples/core/wod-loading-quickref.md
+          - Scene Tokenization Tutorial: examples/core/scene-tokenization-tutorial.md
+          - End-to-End Quick Reference: examples/core/end-to-end-quickref.md
+      - Models:
+          - Trajectory Diffusion Quick Reference: examples/models/trajectory-diffusion-quickref.md
+          - Physics-Informed Training Tutorial: examples/models/physics-informed-training-tutorial.md
+      - Physics:
+          - Bicycle Model Quick Reference: examples/physics/bicycle-model-quickref.md
+      - Alignment:
+          - Preference Construction Quick Reference: examples/alignment/preference-construction-quickref.md
+          - DPO Fine-Tuning Quick Reference: examples/alignment/dpo-finetuning-quickref.md
+          - DPO Fine-Tuning Tutorial: examples/alignment/dpo-finetuning-tutorial.md
+      - Evaluation:
+          - WOD Metrics Quick Reference: examples/evaluation/wod-metrics-quickref.md
+          - Evaluation Pipeline Tutorial: examples/evaluation/evaluation-pipeline-tutorial.md
+      - Advanced:
+          - Occupancy Flow Tutorial: examples/advanced/occupancy-flow-tutorial.md
+          - ScenarioMiner Guide: examples/advanced/scenario-miner-guide.md
+          - Sensor Simulation Tutorial: examples/advanced/sensor-simulation-tutorial.md
+  - User Guide:
+      - Models:
+          - Trajectory Generation: user-guide/models.md
+      - Data:
+          - Scene Tokenization: user-guide/tokenization.md
+      - Physics:
+          - Physics-Informed Training: user-guide/physics.md
+      - Alignment:
+          - Preference-Based Alignment: user-guide/alignment.md
+      - Evaluation:
+          - WOD Evaluation Metrics: user-guide/evaluation.md
+      - Occupancy:
+          - Occupancy Flow Prediction: user-guide/occupancy.md
+      - SDK:
+          - ScenarioMiner: user-guide/sdk.md
+      - Distributed:
+          - Distributed Training: user-guide/distributed.md
+      - Production:
+          - Production Deployment: user-guide/production.md
+          - Sensor Simulation: user-guide/sensor.md
+  - API Reference:
+      - Overview: api/index.md
+      - Core:
+          - types: api/core/types.md
+          - constants: api/core/constants.md
+          - config: api/core/config.md
+          - geometry: api/core/geometry.md
+          - training_utils: api/core/training_utils.md
+          - distributed: api/core/distributed.md
+      - Data:
+          - wod_source: api/data/wod_source.md
+          - tokenizer: api/data/tokenizer.md
+          - encoders: api/data/encoders.md
+          - operators: api/data/operators.md
+          - parsers: api/data/parsers.md
+          - converters: api/data/converters.md
+      - Models:
+          - factorized_backbone: api/models/factorized_backbone.md
+          - trajectory_diffusion: api/models/trajectory_diffusion.md
+          - checkpointing: api/models/checkpointing.md
+          - trainer: api/models/trainer.md
+      - Physics:
+          - kinematics: api/physics/kinematics.md
+          - losses: api/physics/losses.md
+      - Alignment:
+          - rewards: api/alignment/rewards.md
+          - preferences: api/alignment/preferences.md
+          - dpo_trainer: api/alignment/dpo_trainer.md
+          - scenario_steering: api/alignment/scenario_steering.md
+          - steering_spine: api/alignment/steering_spine.md
+          - weight_soup: api/alignment/weight_soup.md
+      - Evaluation:
+          - metrics: api/evaluation/metrics.md
+          - estimators: api/evaluation/estimators.md
+          - wosac_metametric: api/evaluation/wosac_metametric.md
+          - runner: api/evaluation/runner.md
+          - dashboard: api/evaluation/dashboard.md
+      - Occupancy:
+          - flow_model: api/occupancy/flow_model.md
+          - rasterizer: api/occupancy/rasterizer.md
+          - losses: api/occupancy/losses.md
+      - Sensor:
+          - nerf_renderer: api/sensor/nerf_renderer.md
+          - weather: api/sensor/weather.md
+          - lidar: api/sensor/lidar.md
+      - SDK:
+          - scenario_miner: api/api/scenario_miner.md
+          - config: api/api/config.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Architecture: development/architecture.md
+      - Example Documentation Design: development/example_documentation_design.md

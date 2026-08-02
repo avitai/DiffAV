@@ -1,0 +1,45 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-suffix: "quality"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pre-commit hooks
+        run: uv run pre-commit run --all-files
+
+      - name: Run type checking with pyright
+        run: uv run pyright src/
+
+      - name: Type safety summary
+        if: always()
+        run: |
+          echo "## Type Safety Report" >> $GITHUB_STEP_SUMMARY
+          echo "### Pyright Analysis" >> $GITHUB_STEP_SUMMARY
+          uv run pyright --outputjson src/ | jq -r '.summary | "- Errors: \(.errorCount)\n- Warnings: \(.warningCount)\n- Information: \(.informationCount)"' >> $GITHUB_STEP_SUMMARY || true

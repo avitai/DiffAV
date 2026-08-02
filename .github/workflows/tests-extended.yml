@@ -1,0 +1,51 @@
+name: Extended Tests
+
+# The slow tier (sampling/training-heavy suites) is deselected from the fast
+# CI gate and runs here — on every push to main and nightly — together with
+# the full-suite coverage gate.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * *" # nightly at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-extended-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-suite:
+    name: Full Suite + Coverage Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-suffix: "extended"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run full test suite with the coverage gate
+        env:
+          JAX_PLATFORMS: cpu
+        run: |
+          uv run pytest \
+            --cov=src --cov-report=term-missing --cov-report=html \
+            --cov-fail-under=94
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov/

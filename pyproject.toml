@@ -1,0 +1,392 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling>=1.18"]
+
+[dependency-groups]
+dev = [
+  "bandit[toml]>=1.8.6",
+  "matplotlib>=3.8",
+  "build>=1.0.3",
+  "import-linter>=2.3",
+  "interrogate>=1.7.0",
+  "ipykernel>=6.29.5",
+  "pre-commit>=4.0.0",
+  "pydocstyle>=6.3.0",
+  "pylint>=3.3.0",
+  "pyright>=1.1.336",
+  "python-dotenv>=1",
+  "radon>=6.0.1",
+  "ruff>=0.1.5",
+  "detect-secrets>=1.5.0",
+  {include-group = "docs"},
+  {include-group = "test"}
+]
+docs = [
+  "griffe>=1.7.3",
+  "hippogriffe>=0.2",
+  "jupytext>=1.16.0",
+  "mkdocs>=1.6.1",
+  "mkdocs-include-exclude-files>=0.1",
+  "mkdocs-ipynb>=0.1",
+  "mkdocs-jupyter>=0.24",
+  "mkdocs-material>=9.6.7",
+  "mkdocstrings>=0.28.3",
+  "mkdocstrings-python>=1.1.2",
+  "pymdown-extensions>=10.14.3"
+]
+test = [
+  "beartype>=0.14.1",
+  "coverage>=7",
+  "pytest>=8.3.5",
+  "pytest-asyncio>=0.23",
+  "pytest-benchmark>=4",
+  "pytest-cov>=6.1.1",
+  "pytest-env>=1.0.1",
+  "pytest-json-report>=1.5.0",
+  "pytest-randomly>=3.16.0",
+  "pytest-timeout>=2.1",
+  "pytest-xdist>=3.6"
+]
+
+[project]
+authors = [{name = "Mahdi Shafiei"}]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Operating System :: MacOS :: MacOS X",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Mathematics"
+]
+dependencies = [
+  # Core JAX ecosystem
+  "jax>=0.6.1",
+  "jaxlib>=0.6.1",
+  "flax>=0.12.0",
+  "jaxtyping>=0.2.20",
+  "optax>=0.2.0",
+  "orbax-checkpoint>=0.11.0",
+  "chex>=0.1.7",
+  # Sister repos, pinned to their latest release tags via [tool.uv.sources].
+  # The artifex distribution is published as avitai-artifex; imports stay `artifex`.
+  "datarax>=0.1.4",
+  "avitai-artifex>=0.1.2",
+  "opifex>=0.2.0",
+  "calibrax>=0.1.1",
+  # WOD dependencies (TF used CPU-only for proto parsing)
+  "tensorflow>=2.20.0",
+  "tensorflow-datasets>=4.9.2",
+  "protobuf>=5.28.0",
+  # Utilities
+  "numpy>=1.24,<2.4.0",
+  "scipy>=1.10",
+  "psutil>=5.9.0"
+]
+description = "Simulacrax: Physics-informed, RL-aligned evaluation engine for autonomous driving"
+dynamic = ["version"]
+keywords = ["autonomous-driving", "evaluation", "jax", "diffusion", "reinforcement-learning"]
+license = {file = "LICENSE"}
+name = "simulacrax"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+
+[project.optional-dependencies]
+gpu = [
+  # GPU support via JAX's pip-managed CUDA runtime (no system CUDA toolkit required).
+  "jax[cuda12]>=0.6.1; sys_platform == 'linux'",
+  "jaxlib>=0.6.1; sys_platform == 'linux'"
+]
+metal = [
+  "jax-metal>=0.1.0; sys_platform == 'darwin'"
+]
+
+[project.urls]
+Source = "https://github.com/avitai/simulacrax"
+
+[tool.bandit]
+exclude_dirs = ["tests", "scripts", "examples", "docs"]
+skips = ["B101", "B110"]
+
+[tool.coverage.html]
+directory = "htmlcov"
+skip_covered = false
+skip_empty = false
+
+[tool.coverage.paths]
+source = [
+  "src",
+  "*/simulacrax/src"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "if self.debug:",
+  "if settings.DEBUG",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if 0:",
+  "if __name__ == .__main__.:",
+  "class .*\\bProtocol\\):",
+  "@(abc\\.)?abstractmethod",
+  "pass",
+  "raise ImportError"
+]
+fail_under = 80
+precision = 2
+show_missing = true
+skip_covered = false
+
+[tool.coverage.run]
+branch = true
+omit = ["*/tests/*", "*/conftest.py", "*/__pycache__/*", "*/scripts/*"]
+parallel = true
+relative_files = true
+source = ["src"]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/simulacrax", "README.md", "LICENSE", "pyproject.toml"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/simulacrax"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+path = "src/simulacrax/__init__.py"
+
+[tool.importlinter]
+root_package = "simulacrax"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "simulacrax.data",
+  "simulacrax.models",
+  "simulacrax.physics",
+  "simulacrax.alignment",
+  "simulacrax.evaluation",
+  "simulacrax.occupancy",
+  "simulacrax.sensor",
+  "simulacrax.api"
+]
+name = "Core is dependency-free within simulacrax"
+source_modules = ["simulacrax.core"]
+type = "forbidden"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "simulacrax.models",
+  "simulacrax.alignment",
+  "simulacrax.evaluation",
+  "simulacrax.api"
+]
+name = "Data layer must not depend on model/alignment/evaluation/api layers"
+source_modules = ["simulacrax.data"]
+type = "forbidden"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "simulacrax.data",
+  "simulacrax.models",
+  "simulacrax.alignment",
+  "simulacrax.evaluation",
+  "simulacrax.api"
+]
+name = "Physics layer must not depend on data/model/alignment/evaluation/api layers"
+source_modules = ["simulacrax.physics"]
+type = "forbidden"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "simulacrax.data",
+  "simulacrax.alignment",
+  "simulacrax.evaluation",
+  "simulacrax.api"
+]
+name = "Models layer must not depend on data/alignment/evaluation/api layers"
+source_modules = ["simulacrax.models"]
+type = "forbidden"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "simulacrax.data",
+  "simulacrax.evaluation",
+  "simulacrax.api"
+]
+name = "Alignment layer must not depend on data/evaluation/api layers"
+source_modules = ["simulacrax.alignment"]
+type = "forbidden"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "simulacrax.data",
+  "simulacrax.models",
+  "simulacrax.alignment",
+  "simulacrax.occupancy",
+  "simulacrax.sensor",
+  "simulacrax.api"
+]
+name = "Evaluation layer depends only on core and physics"
+source_modules = ["simulacrax.evaluation"]
+type = "forbidden"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "simulacrax.data",
+  "simulacrax.models",
+  "simulacrax.physics",
+  "simulacrax.alignment",
+  "simulacrax.evaluation",
+  "simulacrax.sensor",
+  "simulacrax.api"
+]
+name = "Occupancy layer depends only on core"
+source_modules = ["simulacrax.occupancy"]
+type = "forbidden"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "simulacrax.data",
+  "simulacrax.models",
+  "simulacrax.physics",
+  "simulacrax.alignment",
+  "simulacrax.evaluation",
+  "simulacrax.occupancy",
+  "simulacrax.api"
+]
+name = "Sensor layer depends only on core"
+source_modules = ["simulacrax.sensor"]
+type = "forbidden"
+
+[tool.interrogate]
+exclude = ["tests", "examples", "scripts", ".venv", "site"]
+fail-under = 95
+ignore-init-method = true
+ignore-init-module = true
+
+[tool.pydocstyle]
+add-ignore = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D202", "D212", "D415"]
+convention = "google"
+match = ".*\\.py$"
+match-dir = "^(?!tests|examples).*"
+
+[tool.pylint."messages_control"]
+max-args = 10
+max-attributes = 12
+
+[tool.pyright]
+exclude = ["examples", "scripts", "**/__pycache__", "**/.venv"]
+include = ["src", "tests"]
+reportAbstractUsage = false
+reportFunctionMemberAccess = false
+reportOptionalCall = false
+reportOptionalIterable = false
+reportOptionalMemberAccess = false
+reportOptionalOperand = false
+reportOptionalSubscript = false
+# Relaxations are limited to JAX/NNX optional/member-access diagnostics.
+typeCheckingMode = "basic"
+venv = ".venv"
+venvPath = "."
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config --tb=short --color=yes --durations=10 --timeout=300"
+cache_dir = ".pytest_cache"
+console_output_style = "progress"
+filterwarnings = [
+  "ignore::DeprecationWarning:pkg_resources.*",
+  "ignore::DeprecationWarning:jax.*",
+  "ignore:jax.interpreters.xla.pytype_aval_mappings is deprecated:DeprecationWarning",
+  "ignore::UserWarning:jax._src.xla_bridge",
+  "ignore:.*cuSPARSE.*",
+  "ignore:.*CUDA-enabled jaxlib.*",
+  "ignore:Sharding info not provided when restoring.*:UserWarning",
+  "ignore:'.type' is deprecated:DeprecationWarning",
+  "ignore::ResourceWarning"
+]
+log_cli = true
+log_cli_level = "INFO"
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "integration: marks tests as integration tests",
+  "benchmark: marks tests as performance benchmarks"
+]
+minversion = "6.0"
+python_classes = "Test*"
+python_files = "test_*.py"
+python_functions = "test_*"
+testpaths = ["tests"]
+
+[tool.pytest-env]
+# D: prefix = default only (never overrides values already set in the shell).
+# JAX_PLATFORMS is intentionally unset so JAX picks GPU when available and CPU otherwise.
+"D:JAX_ENABLE_X64" = "0"
+"D:JAX_SKIP_CUDA_CONSTRAINTS_CHECK" = "1"
+"D:TF_CPP_MIN_LOG_LEVEL" = "1"
+"D:TF_FORCE_GPU_ALLOW_GROWTH" = "true"
+"D:XLA_PYTHON_CLIENT_MEM_FRACTION" = "0.75"
+"D:XLA_PYTHON_CLIENT_PREALLOCATE" = "false"
+
+[tool.ruff]
+exclude = ["uv.lock"]
+extend-include = ["*.ipynb"]
+line-length = 100
+src = []
+target-version = "py311"
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+fixable = ["I001", "F401", "E", "W", "W291", "W292", "W293", "F841"]
+ignore = [
+  "E402",
+  "E721",
+  "E731",
+  "E741",
+  "F722",
+  "W391",
+  "E203",
+  "UP006",
+  "UP007",
+  "UP015",
+  "UP024",
+  "RUF005"
+]
+select = ["E", "F", "I", "W", "UP"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+extra-standard-library = []
+known-first-party = ["simulacrax"]
+lines-after-imports = 2
+order-by-type = false
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.uv]
+# datarax v0.1.4 carries a stale transitive calibrax source pin (tag v0.1.0);
+# the override forces the release actually targeted by this repo.
+override-dependencies = ["calibrax @ git+https://github.com/avitai/calibrax@v0.1.1"]
+python-preference = "only-managed"
+
+[tool.uv.sources]
+avitai-artifex = {git = "https://github.com/avitai/artifex", tag = "v0.1.2"}
+calibrax = {git = "https://github.com/avitai/calibrax", tag = "v0.1.1"}
+datarax = {git = "https://github.com/avitai/datarax", tag = "v0.1.4"}
+opifex = {git = "https://github.com/avitai/opifex", tag = "v0.2.0"}

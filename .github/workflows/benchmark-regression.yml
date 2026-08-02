@@ -1,0 +1,62 @@
+name: Benchmark Regression Guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "benchmarks/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-suffix: "benchmark"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Restore benchmark baseline
+        # The previous run's baseline makes --fail-on-regression a real gate;
+        # without it the script has nothing to compare against.
+        uses: actions/cache/restore@v4
+        with:
+          path: temp/benchmark_results.json
+          key: benchmark-baseline-${{ github.ref_name }}
+          restore-keys: benchmark-baseline-
+
+      - name: Run benchmark suite
+        env:
+          JAX_PLATFORMS: cpu
+        run: uv run python -m benchmarks.regression --fail-on-regression
+
+      - name: Save benchmark baseline
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: temp/benchmark_results.json
+          key: benchmark-baseline-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Upload benchmark data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-data
+          path: temp/benchmark_results.json
+          retention-days: 30

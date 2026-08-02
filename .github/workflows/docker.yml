@@ -1,0 +1,50 @@
+name: Docker Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docker.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-image:
+    name: Build and Smoke-Test Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free runner disk space
+        # The CUDA-based image needs more space than the default runner
+        # leaves free; drop the large preinstalled toolchains.
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune -af
+          df -h /
+
+      - name: Build image
+        run: docker build -t simulacrax:ci .
+
+      - name: CPU import smoke test
+        run: |
+          docker run --rm -e JAX_PLATFORMS=cpu simulacrax:ci \
+            python -c "import simulacrax, jax; print(jax.devices())"

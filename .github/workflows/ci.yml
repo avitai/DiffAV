@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-suffix: "lint"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run Ruff linter
+        run: uv run ruff check --output-format=github
+
+      - name: Run Ruff formatter check
+        run: uv run ruff format --check
+
+  test-fast:
+    name: Fast Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    # Fast PR gate: the slow tier (heavy sampling/training suites) runs in
+    # tests-extended.yml on schedule and on pushes to main.
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-suffix: "test-fast"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run fast test tier
+        env:
+          JAX_PLATFORMS: cpu
+        # Coverage is informational here — the fast tier deliberately skips the
+        # slow suites, so the real >=94% gate runs on the full suite in
+        # tests-extended.yml.
+        run: |
+          uv run pytest -m "not slow" \
+            --cov=src --cov-report=term-missing --cov-fail-under=0
+
+  build:
+    name: Build Package
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-suffix: "build"
+
+      - name: Build package
+        run: uv build
+
+      - name: Check package metadata
+        run: uvx twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-dist
+          path: dist/

@@ -1,0 +1,194 @@
+# Simulacrax pre-commit configuration.
+# Layered strictness:
+# - src/: strict blocking rules
+# - tests/: strict core correctness rules (without docstring burden)
+# - scripts/examples/docs: lower-noise quality checks + dedicated validators
+
+repos:
+  - repo: local
+    hooks:
+      - id: sort_pyproject
+        name: sort_pyproject
+        entry: toml-sort
+        language: python
+        args: [-i, --sort-table-keys, --sort-inline-tables, pyproject.toml]
+        files: ^pyproject\.toml$
+        additional_dependencies: ["toml-sort==0.23.1"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-added-large-files
+        args: ["--maxkb=2000"]
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-json
+      - id: debug-statements
+      - id: mixed-line-ending
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.5
+    hooks:
+      - id: ruff
+        args: [--fix, --unsafe-fixes]
+        types_or: [python, pyi, jupyter, toml]
+      - id: ruff-format
+        types_or: [python, pyi, jupyter, toml]
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: ^(uv\.lock$|.*\.ipynb$)
+
+  - repo: local
+    hooks:
+      - id: check-file-length
+        name: check-file-length (warn >1500, fail >2000 lines)
+        entry: bash
+        args:
+          - -c
+          - |
+            for file in "$@"; do
+              lines=$(wc -l < "$file" 2>/dev/null || echo 0)
+              if [ "$lines" -gt 2000 ]; then
+                echo "ERROR: $file has $lines lines (limit: 2000)"
+                exit 1
+              elif [ "$lines" -gt 1500 ]; then
+                echo "WARNING: $file has $lines lines (approaching limit of 2000)"
+              fi
+            done
+          - --
+        language: system
+        types: [python]
+        exclude: ^tests/
+
+      - id: ruff-src-blocking
+        name: ruff-src-blocking
+        entry: uv run ruff check src --select=E,F,I,W,UP,B006,E722,B904,BLE001,D
+        language: system
+        pass_filenames: false
+
+      - id: ruff-tests-blocking
+        name: ruff-tests-blocking
+        entry: uv run ruff check tests --select=E,F,I,W,UP,B006,E722,B904,BLE001
+        language: system
+        pass_filenames: false
+
+      - id: ruff-support-advisory
+        name: ruff-support-advisory
+        entry: bash
+        args:
+          - -c
+          - |
+            uv run ruff check scripts docs benchmarks --select=E,F,I,W,UP || exit 1
+            uv run ruff check examples --select=E,F,I,W,UP --ignore=E402 || true
+          - --
+        language: system
+        pass_filenames: false
+
+      - id: pyright-src-blocking
+        name: pyright-src-blocking
+        entry: uv run pyright src
+        language: system
+        pass_filenames: false
+
+      - id: pyright-tests-blocking
+        name: pyright-tests-blocking
+        entry: uv run pyright tests
+        language: system
+        pass_filenames: false
+
+      - id: pyright-benchmarks-blocking
+        name: pyright-benchmarks-blocking
+        entry: uv run pyright benchmarks
+        language: system
+        pass_filenames: false
+
+      - id: bandit-src-blocking
+        name: bandit-src-blocking
+        entry: uv run bandit -r src -ll
+        language: system
+        pass_filenames: false
+
+      - id: import-linter-blocking
+        name: import-linter-blocking
+        entry: uv run --with import-linter lint-imports
+        language: system
+        pass_filenames: false
+
+      - id: interrogate-src-blocking
+        name: interrogate-src-blocking
+        entry: uv run interrogate src --fail-under=95
+        language: system
+        pass_filenames: false
+
+      - id: radon-cc-src-blocking
+        name: radon-cc-src-blocking
+        entry: bash
+        args:
+          - -c
+          - |
+            out=$(uv run radon cc src -n C)
+            if [ -n "$out" ]; then
+              echo "$out"
+              echo "Complexity rank C or worse detected."
+              exit 1
+            fi
+          - --
+        language: system
+        pass_filenames: false
+
+      - id: pylint-duplicate-src-blocking
+        name: pylint-duplicate-src-blocking
+        entry: uv run pylint --disable=all --enable=duplicate-code src
+        language: system
+        pass_filenames: false
+
+      - id: dataclass-policy-blocking
+        name: dataclass-policy-blocking
+        entry: uv run python scripts/check_dataclass_policy.py
+        language: system
+        pass_filenames: false
+
+      - id: validate-docs-blocking
+        name: validate-docs-blocking
+        entry: uv run python scripts/validate_docs.py --check-only
+        language: system
+        pass_filenames: false
+
+      - id: validate-examples-blocking
+        name: validate-examples-blocking
+        entry: uv run python scripts/validate_examples.py --path examples
+        language: system
+        pass_filenames: false
+
+      # Sibling convention: hooks never rewrite notebooks. The validate
+      # command is content-level and read-only; when it fails, resync
+      # manually with scripts/jupytext_converter.py sync <file>.
+      - id: validate-example-notebook-sync
+        name: validate-example-notebook-sync
+        entry: uv run python scripts/jupytext_converter.py validate examples
+        language: system
+        pass_filenames: false
+
+      - id: mkdocs-strict-blocking
+        name: mkdocs-strict-blocking
+        entry: uv run mkdocs build --strict -d /tmp/simulacrax-mkdocs-precommit
+        language: system
+        pass_filenames: false
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+  autofix_prs: false
+  autoupdate_branch: ""
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

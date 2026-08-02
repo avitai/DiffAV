@@ -1,0 +1,41 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 0 * * 1" # weekly on Monday
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-suffix: "security"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run dependency audit
+        run: uvx pip-audit --skip-editable
+        continue-on-error: true
+
+      - name: Run Bandit security linter
+        run: uv run bandit -r src/ -ll
