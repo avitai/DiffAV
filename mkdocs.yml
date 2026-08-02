@@ -4,6 +4,10 @@ repo_url: https://github.com/avitai/simulacrax
 site_description: Physics-informed, RL-aligned evaluation engine for autonomous driving
 site_author: The Simulacrax Team
 
+# Internal contributor spec kept in-repo but not published to the site.
+exclude_docs: |
+  development/example_documentation_design.md
+
 theme:
   name: material
   language: en
@@ -246,8 +250,8 @@ nav:
           - lidar: api/sensor/lidar.md
       - SDK:
           - scenario_miner: api/api/scenario_miner.md
+          - map_conditioned: api/api/map_conditioned.md
           - config: api/api/config.md
   - Development:
       - Contributing: development/contributing.md
       - Architecture: development/architecture.md
-      - Example Documentation Design: development/example_documentation_design.md

@@ -78,6 +78,11 @@ gate applied inside every attention and feed-forward sublayer, so trajectory
 generation reflects the full scene context (road layout, traffic signals, other
 agents) without concatenating these heterogeneous inputs.
 
+The factorized blocks optionally add a third axis — map cross-attention,
+gated by `use_map_cross_attention` (default `False` in the base config) — so
+each token can attend to map tokens directly; the map-conditioned entrypoint is
+`MapConditionedTrajectoryModel`.
+
 ## Configuration
 
 `TrajectoryDiffusionConfig` controls all model parameters:
@@ -117,9 +122,9 @@ config = TrajectoryDiffusionConfig(
 
 | Variant | hidden_dim | num_blocks | num_heads | Parameters | Use Case |
 |---------|-----------|------------|-----------|------------|----------|
-| Small | 64 | 1 | 2 | ~50K | Unit tests, prototyping |
-| Base | 128 | 2 | 4 | ~400K | Development, ablations |
-| Large | 256 | 4 | 8 | ~3M | Full-scale training |
+| Small | 64 | 1 | 2 | ~167K | Unit tests, prototyping |
+| Base | 128 | 2 | 4 | ~1.15M | Development, ablations |
+| Large | 256 | 4 | 8 | ~8.7M | Full-scale training |
 
 ### Noise Schedules
 
@@ -184,8 +189,9 @@ known range, set `x0_clip_bound` (e.g. `1.0` for unit-scale inputs) to gain
 the standard DDPM stabilisation clamp.
 
 `sample()` also accepts an optional test-time guidance seam: pass a
-differentiable scalar reward as `guidance_fn` with a non-zero
-`guidance_scale` η, and each reverse step ascends the reward in x̂₀-space
+single `guidance=GuidanceSpec(reward_fn=R, scale=η)` argument (a
+differentiable scalar reward `reward_fn` and non-zero `scale` η), and
+each reverse step ascends the reward in x̂₀-space
 (`x̂₀ + η·ᾱ_t·∇R(x̂₀)`, non-finite gradients skipped). The alignment
 package builds steering rewards for this seam via
 `make_steering_guidance`.
@@ -196,8 +202,11 @@ The model composes two artifex primitives:
 
 - **`NoiseSchedule`** from `artifex.generative_models.core.noise_schedule` —
   implements the forward diffusion math ($q$-sampling, posterior computation)
-- **`TransformerDecoderBlock`** from `artifex.generative_models.core.layers.transformers` —
-  self-attention + cross-attention building blocks
+- **`FeedForwardNetwork`** from `artifex.generative_models.core.layers.transformers`,
+  the DiT primitives `TimestepEmbedder`, `modulate`, and
+  `get_1d_sincos_pos_embed` from `artifex.generative_models.models.backbones.dit`,
+  and `flax.nnx.MultiHeadAttention` — the attention, feed-forward, and
+  timestep/positional building blocks of the backbone
 
 The model does not wrap `DDPMModel` directly because artifex's backbone factory
 uses a closed registry that doesn't support custom backbones. This is documented

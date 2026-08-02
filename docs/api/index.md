@@ -121,7 +121,7 @@ Differentiable sensor simulation for perception testing.
 |--------|-------------|
 | [lidar](sensor/lidar.md) | `LiDARRayCaster` — differentiable spherical ray marching |
 | [nerf_renderer](sensor/nerf_renderer.md) | `NeRFRenderer` — camera-relative neural rendering |
-| [weather](sensor/weather.md) | Rain/fog/snow augmentation operators (datarax `ModalityOperator`) |
+| [weather](sensor/weather.md) | Rain/fog/glare augmentation operators (datarax `ModalityOperator`) |
 
 ## SDK
 

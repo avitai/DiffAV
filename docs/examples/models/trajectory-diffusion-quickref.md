@@ -98,36 +98,9 @@ assert prediction.trajectories.shape == (32, 80, 4)
 
 | Variant | Hidden | Blocks | Heads | Parameters |
 |---------|--------|--------|-------|------------|
-| Small | 64 | 1 | 2 | ~50K |
-| Base | 128 | 2 | 4 | ~400K |
-| Large | 256 | 4 | 8 | ~3M |
-
-## Coming from MotionDiffuser / Diffuser?
-
-If you're familiar with Diffuser-style trajectory models, here's how Simulacrax compares:
-
-| Diffuser | Simulacrax |
-|----------|------------|
-| `GaussianDiffusion(model)` | `TrajectoryDiffusionModel(config, rngs=rngs)` |
-| `model.p_losses(x_start, t)` | `model.compute_loss(trajectories, scene_context, key=key)` |
-| `model.p_sample_loop(shape)` | `model.sample(scene_context, key=key)` |
-| PyTorch `nn.Module` | Flax NNX `nnx.Module` |
-| `optimizer.step()` | `optimizer.update(model, grads)` |
-
-**Key differences:**
-
-1. **JAX-native**: All operations use JAX arrays and JIT compilation, not PyTorch tensors
-2. **Scene conditioning**: Models are conditioned on tokenized scene context (map, agents, sensors)
-3. **Functional transforms**: Explicit PRNG keys for reproducible sampling
-
-## Coming from MTR / Scene Transformer?
-
-| MTR / Scene Transformer | Simulacrax |
-|------------------------|------------|
-| Goal-conditioned prediction | Scene-conditioned diffusion |
-| Anchor trajectories + refinement | Iterative denoising from Gaussian noise |
-| PyTorch `torch.utils.data.DataLoader` | `WODSource` + datarax pipeline |
-| `torch.compile(model)` | `nnx.jit(model.compute_loss)` |
+| Small | 64 | 1 | 2 | ~167K |
+| Base | 128 | 2 | 4 | ~1.15M |
+| Large | 256 | 4 | 8 | ~8.7M |
 
 ## Related
 

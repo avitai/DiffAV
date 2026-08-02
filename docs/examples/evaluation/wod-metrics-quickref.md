@@ -3,7 +3,7 @@
 | Metadata | Value |
 |----------|-------|
 | **Level** | Beginner |
-| **Runtime** | ~2 min (CPU) |
+| **Runtime** | ~5 min (CPU) |
 | **Prerequisites** | JAX arrays, WOD data (see WOD Loading quickref) |
 | **Format** | Python + Jupyter |
 
@@ -92,7 +92,7 @@ report = runner.run(model, batches)
 ## Terminal Output
 
 ```
-Loaded 44920 validation scenarios
+Loaded 333 validation scenarios
 Evaluating first 5 scenarios, K=6 hypotheses each
 Oracle ADE  (pred = GT): 0.0000 m
 Oracle FDE  (pred = GT): 0.0000 m

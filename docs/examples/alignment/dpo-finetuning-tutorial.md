@@ -3,7 +3,7 @@
 | Metadata | Value |
 |----------|-------|
 | **Level** | Advanced |
-| **Runtime** | ~20 min (CPU) |
+| **Runtime** | ~30 min (GPU recommended) |
 | **Prerequisites** | DPO Fine-Tuning Quick Reference, JAX arrays, preference basics |
 | **Format** | Python + Jupyter |
 
@@ -12,7 +12,9 @@ workflow end-to-end. Extends the DPO quick reference with guided generation:
 a technique for steering trajectory generation toward a target scenario type
 (e.g. `"forward"`, `"lane_change"`) using a kinematic reward signal.
 
-All data is synthetic — no Waymo Open Dataset is required to run this tutorial.
+This tutorial runs on real Waymo Open Dataset preference pairs, so a WOD Motion
+validation shard is required. Only the checkpoint-absent warm-up model is
+synthetic; the preference pairs are built from real WOD trajectories.
 
 ## Files
 
@@ -23,7 +25,9 @@ All data is synthetic — no Waymo Open Dataset is required to run this tutorial
 
 1. Install dependencies: `uv sync`
 2. Activate the managed environment: `source ./activate.sh`
-3. Run: `python examples/alignment/03_dpo_finetuning_tutorial.py` — no dataset required
+3. Point at your WOD Motion TFRecords (once): add
+   `WOD_MOTION_TFRECORD_PATH=/path/to/motion_v1.2.1/tf_example` to `.env.data`
+4. Run: `python examples/alignment/03_dpo_finetuning_tutorial.py`
 
 ## What You'll Learn
 

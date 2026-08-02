@@ -184,7 +184,7 @@ Every example should clearly communicate:
 
 ```python
 # Expected output:
-# Model created: 64d, 2 layers
+# Model created: 64d, 2 blocks
 # Step   0 | total=1.2345 | diff=1.2300 | phys=0.0045 | grad=0.5678
 # Step   5 | total=0.9876 | diff=0.9850 | phys=0.0026 | grad=0.4321
 ```
@@ -638,98 +638,6 @@ graph LR
 
 ---
 
-## 7. Framework Migration Guides
-
-### Purpose
-
-Many Simulacrax users come from other motion planning or trajectory prediction
-frameworks. Each example should include "Coming from X?" sections that map familiar
-concepts to Simulacrax equivalents.
-
-### Required Migration Sections
-
-Each markdown documentation file should include comparison tables for relevant frameworks:
-
-````markdown
-## Coming from MotionDiffuser / Diffuser?
-
-If you're familiar with Diffuser-style trajectory models, here's how Simulacrax compares:
-
-| Diffuser | Simulacrax |
-|----------|------------|
-| `GaussianDiffusion(model)` | `TrajectoryDiffusionModel(config, rngs=rngs)` |
-| `model.p_losses(x_start, t)` | `model.compute_loss(trajectories, scene_context, key=key)` |
-| `model.p_sample_loop(shape)` | `model.sample(scene_context, key=key)` |
-| PyTorch `nn.Module` | Flax NNX `nnx.Module` |
-| `optimizer.step()` | `optimizer.update(model, grads)` |
-
-**Key differences:**
-
-1. **JAX-native**: All operations use JAX arrays and JIT compilation, not PyTorch tensors
-2. **Scene conditioning**: Models are conditioned on tokenized scene context (map, agents, sensors)
-3. **Physics-informed**: Training integrates bicycle model constraints and collision penalties
-4. **Functional transforms**: Uses explicit PRNG keys for reproducible sampling
-
-## Coming from MTR / Scene Transformer?
-
-| MTR/Scene Transformer | Simulacrax |
-|----------------------|------------|
-| PyTorch transformer backbone | `FactorizedSceneBackbone` (Flax NNX) |
-| Goal-conditioned prediction | Scene-conditioned diffusion |
-| Anchor trajectories + refinement | Iterative denoising from noise |
-| `torch.utils.data.DataLoader` | `WODSource` + datarax pipeline |
-
-## Coming from UniSim / GAIA-1?
-
-| UniSim/GAIA-1 | Simulacrax |
-|---------------|------------|
-| Full world model (video + trajectory) | Trajectory-focused generation |
-| Autoregressive generation | Diffusion-based generation |
-| Image-space rendering | State-space trajectories [x, y, heading, velocity] |
-| Proprietary infrastructure | Open JAX/Flax NNX stack |
-````
-
-### Framework Mapping Reference
-
-Use this reference when creating migration sections:
-
-#### Data Sources
-
-| Concept | PyTorch Ecosystem | TensorFlow Ecosystem | Simulacrax |
-|---------|-------------------|----------------------|------------|
-| WOD loading | `waymo_open_dataset` | `tf.data` + WOD protos | `WODSource` |
-| Scene parsing | Custom proto parsing | Custom proto parsing | `SceneParser` |
-| Tokenization | Manual feature extraction | Manual feature extraction | `SceneTokenizer` |
-
-#### Models
-
-| Concept | PyTorch | Simulacrax |
-|---------|---------|------------|
-| Transformer backbone | `nn.TransformerEncoder` | `FactorizedSceneBackbone` (NNX) |
-| Diffusion model | `GaussianDiffusion` | `TrajectoryDiffusionModel` |
-| Training loop | `for batch in loader: ...` | `TrajectoryTrainer.train()` |
-| JIT compilation | `torch.compile(model)` | `nnx.jit(trainer.compute_train_step)` |
-
-#### Physics
-
-| Concept | Custom Implementation | Simulacrax |
-|---------|----------------------|------------|
-| Vehicle kinematics | Manual bicycle model | `BicycleModelConstraint` |
-| Collision checking | Pairwise distance | `SimulacraxPhysicsLoss` (collision penalty) |
-| Constraint enforcement | Custom loss terms | `SimulacraxPhysicsLoss` (adaptive weighting) |
-
-### When to Include Migration Sections
-
-| Example Category | Include Diffuser? | Include MTR? | Include UniSim? |
-|------------------|-------------------|--------------|-----------------|
-| Trajectory model | Yes | Yes | No |
-| Physics constraints | No | No | No |
-| Training loop | Yes | Yes | No |
-| Scene tokenization | No | Yes | Yes |
-| JIT optimization | No | No | No |
-
----
-
 ## 8. Content Principles
 
 ### The 7-Part Structure
@@ -906,7 +814,7 @@ print(f"Trajectories: {trajectories.shape}")
 
 | Component | Description |
 |-----------|-------------|
-| Model | TrajectoryDiffusionModel with 64d hidden, 2 layers |
+| Model | TrajectoryDiffusionModel with 64d hidden, 2 blocks |
 | Physics | Bicycle model + collision penalty |
 | Training | 20 steps with adaptive physics weighting |
 | JIT | 2-10x speedup with `nnx.jit` |
@@ -1061,7 +969,7 @@ graph TD
 
     subgraph SisterRepos["Sister Repositories"]
         OP[opifex: create_optimizer]
-        CAL[calibrax: TimingCollector]
+        CAL[calibrax: FlopsCounter]
         ERR[opifex: ErrorRecoveryManager]
     end
 
@@ -1415,10 +1323,7 @@ These templates can be copied and adapted for new examples.
 
 ```bash
 # Basic installation
-uv pip install simulacrax
-
-# With WOD data dependencies
-uv pip install "simulacrax[data]"
+./setup.sh
 
 # Development installation
 uv sync
@@ -1725,7 +1630,7 @@ When using components from sister repositories, always note their origin:
 | `OptimizerConfig` | opifex | Optimizer + gradient clipping config |
 | `create_optimizer` | opifex | Build optax optimizer from config |
 | `ErrorRecoveryManager` | opifex | NaN/instability detection |
-| `TimingCollector` | calibrax | Wall-clock timing |
+| `FlopsCounter` | calibrax | FLOPs profiling per training step |
 | `SimulacraxPhysicsLoss` | simulacrax | Bicycle model + collision penalties |
 | `SimulacraxCheckpointManager` | simulacrax | Periodic checkpoint saving |
 """

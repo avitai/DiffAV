@@ -2,72 +2,67 @@
 
 ## Overview
 
-Simulacrax supports three primary deployment paths:
+Simulacrax supports these deployment paths:
 
-- **StableHLO export** — compile the `ScenarioMiner` model to a portable `.mlir` artifact
-  for integration into C++/on-device inference stacks (TensorFlow Serving, IREE, OpenXLA).
 - **Docker** — ship the complete Python runtime in a container for training, batch
-  evaluation, and benchmarks.
+  evaluation, and benchmarks. This is the supported production path today.
 - **Direct JAX** — run from a Python process with GPU/TPU acceleration when a Python
   runtime is acceptable.
-
-Choose StableHLO when you need maximum portability or sub-millisecond C++ serving.
-Choose Docker when you want a fully managed runtime with all GPU dependencies pre-configured.
+- **StableHLO export (experimental)** — lower a trajectory-diffusion step to a portable
+  `.mlir` artifact via `jax.export`, as the foundation for future C++/on-device serving
+  (IREE, OpenXLA). Today this exports a single denoise step of a default-configured model
+  for shape/lowering validation; checkpoint-loaded export of the full `ScenarioMiner`
+  pipeline is planned, not yet implemented.
 
 ---
 
-## StableHLO Export
+## StableHLO Export (experimental)
 
-`scripts/export_stablehlo.py` compiles the `ScenarioMiner` diffusion backbone to
-[StableHLO](https://openxla.org/stablehlo) MLIR, producing a `.mlir` file that can be
-ingested by any OpenXLA-compatible runtime.
+`scripts/export_stablehlo.py` lowers the trajectory-diffusion denoise step
+(`TrajectoryDiffusionModel.predict_noise`) to [StableHLO](https://openxla.org/stablehlo)
+MLIR via `jax.export`, writing a `.mlir` artifact that any OpenXLA-compatible runtime
+can consume.
+
+!!! note "Scope"
+    This is a lowering/portability scaffold, not a serving path yet. It exports a
+    **single reverse-diffusion step** of a **freshly-initialised, default-configured**
+    model — no checkpoint is loaded — which is enough to validate the StableHLO lowering.
+    Exporting a trained checkpoint and the full `ScenarioMiner` sampling loop is planned
+    future work; the C++ (nanobind) binding path is not implemented.
 
 ### Prerequisites
 
-```bash
-# StableHLO export requires jaxlib >= 0.4.25
-uv pip install "jaxlib>=0.4.25"
-```
+`jax.export` requires JAX >= 0.4.24, already satisfied by the pinned environment.
 
 ### Export command
 
 ```bash
-uv run python scripts/export_stablehlo.py \
-    --checkpoint path/to/checkpoint \
-    --output     artifacts/scenario_miner.mlir \
-    --max-agents 32 \
-    --horizon    80 \
-    --context-dim 128
+# Writes artifacts/simulacrax_scenario_miner.mlir
+uv run python scripts/export_stablehlo.py
+
+# Choose a different output directory
+uv run python scripts/export_stablehlo.py --output-dir /tmp/artifacts
 ```
 
-Flags:
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--checkpoint` | _(required)_ | Path to a `SimulacraxCheckpointManager` directory. |
-| `--output` | `scenario_miner.mlir` | Output `.mlir` path. |
-| `--max-agents` | `32` | Maximum agents the exported model supports. |
-| `--horizon` | `80` | Future timesteps (must match training config). |
-| `--context-dim` | `128` | Scene context embedding dimension. |
-| `--diffusion-steps` | `10` | Reverse-diffusion steps baked into the export. |
+The only flag is `--output-dir` (default `artifacts`). The exported model uses fixed
+demonstration dimensions: 8 agents, 80 future steps, `hidden_dim=128`, `context_dim=128`.
 
 ### Expected output
 
 ```
-[INFO] Loading checkpoint: path/to/checkpoint (step=25000)
-[INFO] Tracing ScenarioMiner.sample() with max_agents=32, horizon=80
-[INFO] Lowering to StableHLO...
-[INFO] Written 4.2 MB → artifacts/scenario_miner.mlir
+... INFO ... Built TrajectoryDiffusionModel: hidden_dim=128, num_blocks=2, num_agents=8
+... INFO ... Tracing predict_noise for StableHLO export ...
+... INFO ... Serialising to StableHLO MLIR ...
+StableHLO export written to: /.../artifacts/simulacrax_scenario_miner.mlir
 ```
 
-The resulting `.mlir` can be compiled for a target device with `iree-compile` or fed
-directly to a TensorFlow Serving instance:
+The resulting `.mlir` can be compiled for a target device with `iree-compile`:
 
 ```bash
-iree-compile artifacts/scenario_miner.mlir \
+iree-compile artifacts/simulacrax_scenario_miner.mlir \
     --iree-input-type=stablehlo \
     --iree-hal-target-backends=cuda \
-    -o artifacts/scenario_miner_cuda.vmfb
+    -o artifacts/simulacrax_scenario_miner_cuda.vmfb
 ```
 
 ---

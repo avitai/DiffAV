@@ -1,9 +1,10 @@
 # Occupancy Flow Prediction
 
 Occupancy flow prediction answers: *where will each type of agent be at the next N timesteps?*
-The answer is a top-down grid (`OccupancyGrid`) over an 80m × 80m region anchored to the ego vehicle
+The answer is a top-down grid (`OccupancyGrid`) over a 60m × 60m region anchored to the ego vehicle
 (75% of the extent ahead, matching the official occupancy-flow grid conventions),
-with one channel per agent type and a 2D flow vector field.
+with one channel per agent type and a 2D flow vector field. The model's
+`OccupancyFlowConfig.grid_size_m` defaults to 60 m; the standalone rasterizer default is 80 m.
 
 ## Pipeline
 
@@ -59,7 +60,7 @@ $$\frac{\partial \rho}{\partial t} + \nabla \cdot (\rho \mathbf{v}) = 0$$
 from simulacrax.occupancy import FlowConsistencyLoss, FlowConsistencyLossConfig
 
 loss_fn = FlowConsistencyLoss(
-    FlowConsistencyLossConfig(weight=0.1, dt=0.5, cell_size_m=config.cell_size_m)
+    FlowConsistencyLossConfig(weight=0.1, dt=1.0, cell_size_m=config.cell_size_m)
 )
 physics_loss = loss_fn.compute(prediction)
 total_loss = reconstruction_loss + physics_loss

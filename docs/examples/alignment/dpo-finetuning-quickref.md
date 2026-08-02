@@ -2,8 +2,8 @@
 
 | Metadata | Value |
 |----------|-------|
-| **Level** | Advanced |
-| **Runtime** | ~10 min (CPU) |
+| **Level** | Intermediate |
+| **Runtime** | ~10 min (GPU with checkpoint; small-model CPU fallback) |
 | **Prerequisites** | JAX arrays, reward functions, DPO basics, Preference Construction example |
 | **Format** | Python + Jupyter |
 
@@ -29,7 +29,7 @@ error and aligning the model toward safer trajectories.
 ## What You'll Learn
 
 1. Create a trajectory diffusion model and optimizer for DPO training
-2. Build preference pairs from synthetic candidates using SafetyReward
+2. Build preference pairs from real WOD trajectories (GT + noise candidates) using SafetyReward
 3. Configure the DPO trainer with Diffusion-DPO log-probability estimation
 4. Run training steps and interpret alignment metrics
 5. Understand standard DPO vs reference-free (SimPO) modes
@@ -95,24 +95,29 @@ metrics = trainer.train_step(dpo_batch, jax.random.key(0))
 ## Terminal Output
 
 ```
-Model created: 32d, 2 layers
-Candidates shape: (8, 3, 8, 4)
+Restored WOD-trained policy from checkpoints/wod-mini
+Loaded 333 validation scenarios
+Ground truth: (8, 80, 4), scene context: (8, 128)
+GT score (noise=0):           <highest of the eight>
+Corrupted score (noise=3.5m): <lowest of the eight>
+GT outperforms corrupted:     True
 DPO batch keys: ['chosen', 'rejected', 'scene_contexts']
-Chosen shape:   (2, 3, 8, 4)
-Rejected shape: (2, 3, 8, 4)
-Reference model created (frozen copy via nnx.clone)
-DPO config: beta=0.1, K=4
+Chosen shape:   (2, 8, 80, 4)
+Rejected shape: (2, 8, 80, 4)
+Reference model created (frozen copy of the restored policy)
+DPO beta=1000.0, K=8 MC samples
 DPO trainer ready
-Step 0: loss=0.6698 acc=100.00% margin=0.4942 grad_norm=0.168476
-Step 1: loss=0.6767 acc=100.00% margin=0.4957 grad_norm=0.140427
-Step 2: loss=0.6861 acc=100.00% margin=0.3341 grad_norm=0.121241
+Step 0: loss=0.6931 acc=100.00% margin=0.0000 grad=x.xxxxxx
+Step 1: loss=0.69xx acc=100.00% margin=0.00xx grad=x.xxxxxx
+...
+Step 4: loss=0.69xx acc=100.00% margin=0.00xx grad=x.xxxxxx
 --- Final Metrics ---
-DPO loss:              0.6861
-Policy chosen log-p:   -1.3181
-Policy rejected log-p: -1.6522
-Reward accuracy:       100.00%
-Reward margin:         0.3341
-Gradient norm:         0.121241
+DPO loss:               0.69xx
+Policy chosen log-p:    -x.xxxx
+Policy rejected log-p:  -x.xxxx
+Implicit-reward acc:    100.00%
+Implicit-reward margin: 0.00xx
+Gradient norm:          x.xxxxxx
 ```
 
 ## Sister Repo Components

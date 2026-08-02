@@ -12,8 +12,7 @@ combines diffusion loss with kinematic and collision penalties. The trainer
 uses adaptive weight scheduling to gradually increase the physics loss
 contribution during training, Min-SNR-γ weighting on the diffusion term, and
 an ᾱ_t anneal on the physics term. The model is conditioned on per-agent
-scene context rows standardized to unit scale — the same add/div coefficient
-practice the reference trajectory diffusers apply to conditioning features.
+scene context rows standardized to unit scale.
 Training milestones sample a held-out scene so the loss decrease is tied to
 visible sample improvement.
 
@@ -88,12 +87,12 @@ metrics = trainer.train_step(trajectories, scene_context, key=key)
 | `TimingCollector` | calibrax | Wall-clock timing |
 | `SimulacraxPhysicsLoss` | simulacrax | Bicycle model + collision penalties |
 
-## Coming from Diffuser / Standard Training Loops?
+## Coming from standard PyTorch training?
 
 If you're familiar with standard PyTorch training loops, here's how Simulacrax physics-informed training compares:
 
-| PyTorch / Diffuser | Simulacrax |
-|--------------------|------------|
+| PyTorch | Simulacrax |
+|---------|------------|
 | Manual `loss.backward()` + `optimizer.step()` | `TrajectoryTrainer.train_step(traj, ctx, key)` |
 | Physics penalty as separate loss term | `SimulacraxPhysicsLoss` integrated via `TrainerConfig` |
 | Manual gradient clipping | Pre-configured via `OptimizerConfig(gradient_clip=...)` |

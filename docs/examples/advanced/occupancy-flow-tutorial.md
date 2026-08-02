@@ -3,7 +3,7 @@
 | Metadata | Value |
 |----------|-------|
 | **Level** | Advanced |
-| **Runtime** | ~10 min (CPU) |
+| **Runtime** | ~15 min (GPU) |
 | **Prerequisites** | WOD data, SceneContext types, JAX basics |
 | **Format** | Python + Jupyter |
 

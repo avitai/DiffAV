@@ -97,33 +97,6 @@ scene_embedding = result["scene_embedding"]  # [total_tokens, 256]
 | `OperatorModule` | datarax | Base class for all 9 pipeline operators |
 | `CompositeOperatorModule` | datarax | SceneTokenizer sequential DAG |
 
-## Coming from MTR / Scene Transformer?
-
-If you're familiar with MTR or Scene Transformer-style scene encoding, here's how Simulacrax compares:
-
-| MTR / Scene Transformer | Simulacrax |
-|------------------------|------------|
-| PyTorch DataLoader + custom collate | `WODSource` → datarax operator DAG |
-| Manual feature extraction per modality | `SceneTokenizer` composes 9 operators sequentially |
-| Agent/map/sensor features concatenated ad-hoc | `SceneFusionOperator` with configurable `FusionStrategy` |
-| Fixed-size padding per modality | JAX-compatible fixed-size operators (JIT-safe) |
-| `torch.compile()` | `nnx.jit` over the full tokenizer |
-
-**Key differences:**
-
-1. **Datarax DAG**: Tokenization is a composable pipeline — each operator adds one key to the data dict and passes it forward
-2. **Differentiable end-to-end**: Gradients flow from downstream trajectory loss back through the tokenizer
-3. **Cross-modal fusion**: `SceneFusionOperator` supports `cross_attention` (default), `early`, and `additive` strategies
-
-## Coming from UniSim / GAIA-1?
-
-| UniSim / GAIA-1 | Simulacrax |
-|-----------------|------------|
-| Full world model (video + trajectory) | Trajectory-focused generation |
-| Autoregressive generation | Diffusion-based generation |
-| Proprietary infrastructure | Open JAX / Flax NNX stack |
-| Image-space sensor encoding | State-space + camera CNN per view via `CameraEncoder` |
-
 ## Related
 
 - [WOD Loading Quick Reference](wod-loading-quickref.md)

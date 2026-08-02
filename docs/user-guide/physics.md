@@ -57,8 +57,21 @@ The residual quantifies how well a trajectory satisfies the bicycle model:
 
 $$
 \mathcal{L}_{\text{kin}} = \text{MSE}(\Delta x_{\text{actual}} - \Delta x_{\text{model}})
-  + \text{mean}(\Delta\theta_{\text{wrapped}}^2)
+  + \text{mean}(\text{heading\_excess}^2)
 $$
+
+The heading term is a hinge on the *excess* turning beyond the steering-feasible
+rate, not on all heading change:
+
+$$
+\text{heading\_excess} = \max\left(0,\;
+  |\Delta\theta_{\text{wrapped}}| - |v| \cdot \frac{\Delta t}{L} \tan(\delta_{\max})
+\right)
+$$
+
+so a trajectory that turns within the bicycle model's feasible steering rate
+contributes zero heading residual; only turning faster than $\delta_{\max}$
+allows is penalized.
 
 Lower residuals indicate more physically plausible trajectories.
 
@@ -145,7 +158,7 @@ repository:
 |-----------|------|---------|
 | `AdaptiveWeightScheduler` | `opifex.core.physics.losses` | Weight scheduling |
 | `create_optimizer` | `opifex.core.training.optimizers` | Optimizer creation |
-| `ErrorRecoveryManager` | `opifex.core.training.components` | NaN detection |
+| `ErrorRecoveryManager` | `opifex.core.training.components.recovery` | NaN detection |
 
 The trainer can also profile step FLOPs via calibrax's `FlopsCounter`
 when `TrainerConfig.profile_flops` is enabled.

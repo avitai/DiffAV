@@ -27,7 +27,7 @@ chosen/rejected pairs for the DPO trainer.
 
 ## What You'll Learn
 
-1. Configure the composite SafetyReward with collision, kinematic, and comfort components
+1. Configure the composite SafetyReward with collision, kinematic, boundary, and comfort components
 2. Score candidate trajectories and inspect per-component rewards
 3. Build preference pairs with best-vs-worst and adjacent ranking strategies
 4. Convert preference batches to DPO training format

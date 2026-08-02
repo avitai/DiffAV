@@ -21,8 +21,8 @@ uv run pytest -vv --cov=src/ --cov-report=term-missing
 # Specific test file
 uv run pytest tests/data/test_wod_source.py -v
 
-# Skip slow / GPU tests
-uv run pytest -m "not slow and not gpu"
+# Skip slow tests
+uv run pytest -m "not slow"
 ```
 
 ## Code Quality
@@ -90,7 +90,7 @@ simulacrax/
 │   ├── evaluation/       # Metrics and evaluation
 │   ├── physics/          # Physics validation
 │   ├── occupancy/        # Occupancy flow
-│   ├── sensor/           # Sensor simulation (stretch)
+│   ├── sensor/           # Sensor simulation (differentiable skeleton; not photorealistic)
 │   └── api/              # Orchestration API
 ├── tests/                # Test suite (mirrors src/)
 ├── docs/                 # Documentation (MkDocs)

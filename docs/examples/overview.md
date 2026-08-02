@@ -1,7 +1,6 @@
 # Examples Overview
 
-Simulacrax examples follow a three-tier system matching the
-[example documentation design](../development/example_documentation_design.md).
+Simulacrax examples follow a three-tier system.
 
 <div class="grid cards" markdown>
 
@@ -37,9 +36,9 @@ Simulacrax examples follow a three-tier system matching the
 
 | Tier | Name | Runtime | Audience | Code ratio |
 |------|------|---------|----------|------------|
-| **1** | Quick Reference | ~5–10 min (CPU) | All levels | 70% code / 30% explanation |
-| **2** | Tutorial | ~15–30 min (CPU) | Beginner / Intermediate | 50% code / 50% explanation |
-| **3** | Advanced Guide | ~30–60 min (CPU) | Advanced / Production | 40% code / 60% explanation |
+| **1** | Quick Reference | ~5–10 min | All levels | 70% code / 30% explanation |
+| **2** | Tutorial | ~15–30 min | Beginner / Intermediate | 50% code / 50% explanation |
+| **3** | Advanced Guide | ~30–60 min | Advanced / Production | 40% code / 60% explanation |
 
 ---
 
@@ -49,9 +48,9 @@ Simulacrax examples follow a three-tier system matching the
 
 | Example | Tier | Runtime | Description |
 |---------|------|---------|-------------|
-| [WOD Loading Quick Reference](core/wod-loading-quickref.md) | 1 | ~5 min | Load WOD scenarios, iterate Elements, parse to `SceneContext` |
+| [WOD Loading Quick Reference](core/wod-loading-quickref.md) | 1 | ~2 min (CPU) | Load WOD scenarios, iterate Elements, parse to `SceneContext` |
 | [Scene Tokenization Tutorial](core/scene-tokenization-tutorial.md) | 2 | ~8 min | Multi-modal embedding pipeline: agents, map, ego, lidar, camera |
-| [End-to-End Quick Reference](core/end-to-end-quickref.md) | 1 | ~5 min | Generate scenarios, evaluate a planner, run adversarial search |
+| [End-to-End Quick Reference](core/end-to-end-quickref.md) | 1 | ~2 min (CPU) | Generate scenarios, evaluate a planner, run adversarial search |
 
 ### Models
 
@@ -64,7 +63,7 @@ Simulacrax examples follow a three-tier system matching the
 
 | Example | Tier | Runtime | Description |
 |---------|------|---------|-------------|
-| [Bicycle Model Quick Reference](physics/bicycle-model-quickref.md) | 1 | ~1 min | Kinematic constraints, trajectory validation, Ackerman steering |
+| [Bicycle Model Quick Reference](physics/bicycle-model-quickref.md) | 1 | ~3 min (CPU) | Kinematic constraints, trajectory validation, Ackerman steering |
 
 ### Alignment
 
@@ -72,22 +71,22 @@ Simulacrax examples follow a three-tier system matching the
 |---------|------|---------|-------------|
 | [Preference Construction Quick Reference](alignment/preference-construction-quickref.md) | 1 | ~10 min | Score candidates with safety rewards, build chosen/rejected pairs |
 | [DPO Fine-Tuning Quick Reference](alignment/dpo-finetuning-quickref.md) | 1 | ~10 min | Fine-tune trajectory diffusion with Diffusion-DPO alignment |
-| [DPO Fine-Tuning Tutorial](alignment/dpo-finetuning-tutorial.md) | 2 | ~15 min | Full DPO pipeline plus ranked-pair scenario steering |
+| [DPO Fine-Tuning Tutorial](alignment/dpo-finetuning-tutorial.md) | 2 | ~30 min (GPU recommended) | Full DPO pipeline plus ranked-pair scenario steering |
 
 ### Evaluation
 
 | Example | Tier | Runtime | Description |
 |---------|------|---------|-------------|
-| [WOD Metrics Quick Reference](evaluation/wod-metrics-quickref.md) | 1 | ~5 min | ADE/FDE/miss-rate functions and the MotionMetrics aggregator |
-| [Evaluation Pipeline Tutorial](evaluation/evaluation-pipeline-tutorial.md) | 2 | ~15 min | Runner orchestration, sim-agent realism, dashboard export |
+| [WOD Metrics Quick Reference](evaluation/wod-metrics-quickref.md) | 1 | ~5 min (CPU) | ADE/FDE/miss-rate functions and the MotionMetrics aggregator |
+| [Evaluation Pipeline Tutorial](evaluation/evaluation-pipeline-tutorial.md) | 2 | ~15 min (CPU), ~3 min (GPU) | Runner orchestration, sim-agent realism, dashboard export |
 
 ### Advanced
 
 | Example | Tier | Runtime | Description |
 |---------|------|---------|-------------|
-| [Occupancy Flow Tutorial](advanced/occupancy-flow-tutorial.md) | 3 | ~30 min | FNO occupancy prediction with continuity-loss regularisation |
+| [Occupancy Flow Tutorial](advanced/occupancy-flow-tutorial.md) | 3 | ~15 min (GPU) | FNO occupancy prediction with continuity-loss regularisation |
 | [ScenarioMiner Guide](advanced/scenario-miner-guide.md) | 3 | ~30 min | SDK deep dive: generation, evaluation, adversarial search |
-| [Sensor Simulation Tutorial](advanced/sensor-simulation-tutorial.md) | 3 | ~30 min | Differentiable LiDAR, NeRF rendering, weather augmentation |
+| [Sensor Simulation Tutorial](advanced/sensor-simulation-tutorial.md) | 3 | ~5-10 min (GPU) | Differentiable LiDAR, NeRF rendering, weather augmentation |
 
 ---
 
@@ -129,15 +128,6 @@ Each example includes:
 ## For Contributors
 
 <div class="grid cards" markdown>
-
--   :material-file-document-edit-outline:{ .lg .middle } **Documentation Design Guide**
-
-    ---
-
-    Complete standards for writing new examples, including tier guidelines,
-    output capture, migration tables, and the quality checklist.
-
-    [:octicons-arrow-right-24: Example Documentation Design](../development/example_documentation_design.md)
 
 -   :material-language-python:{ .lg .middle } **Example Template**
 

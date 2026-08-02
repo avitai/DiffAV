@@ -3,7 +3,7 @@
 | Metadata | Value |
 |----------|-------|
 | **Level** | Advanced |
-| **Runtime** | ~5 min (CPU) |
+| **Runtime** | ~5-10 min (GPU) |
 | **Prerequisites** | JAX basics, ScenarioMiner Quick Reference |
 | **Format** | Python + Jupyter |
 

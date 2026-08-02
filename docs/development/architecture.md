@@ -36,6 +36,17 @@ graph TB
     end
 ```
 
+### Trajectory model architecture
+
+The `TrajectoryDiffusionModel` node above is backed by a factorized design.
+The denoiser is a `FactorizedSceneBackbone` that interleaves separate temporal
+and social attention blocks, configured by `num_blocks`, `num_temporal_layers`,
+and `num_social_layers`. Map conditioning is applied through adaLN-gated
+cross-attention to scene tokens, enabled by `use_map_cross_attention`, with
+`MapConditionedTrajectoryModel` serving as the map-conditioned entrypoint.
+Diffusion is performed in per-agent local frames: the denoiser predicts in each
+agent's own local frame, with one context row per agent.
+
 ## Module Dependency Graph
 
 ```mermaid
@@ -65,11 +76,13 @@ graph LR
     models --> core
     models --> artifex
     models --> opifex
+    models --> calibrax
     physics --> core
     physics --> opifex
     alignment --> core
     alignment --> models
     alignment --> physics
+    alignment --> artifex
     evaluation --> core
     evaluation --> physics
     evaluation --> calibrax
@@ -77,8 +90,10 @@ graph LR
     occupancy --> opifex
     sensor --> core
     sensor --> datarax
+    sensor --> opifex
     api --> alignment
     api --> models
+    api --> opifex
 ```
 
 ## Design Principles

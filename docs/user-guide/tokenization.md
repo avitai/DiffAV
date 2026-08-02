@@ -43,7 +43,7 @@ Negotiation happens at construction against the data source's
 `element_spec()`:
 
 ```python
-source = WODSource(WODSourceConfig(split="training"))
+source = WODSource(WODSourceConfig(split="train"))
 tokenizer = SceneTokenizer(
     TokenizerConfig(),
     element_spec=source.element_spec(),
@@ -119,7 +119,8 @@ where $S_k$ is the set of points belonging to polyline $k$ and $v_i$
 is the validity flag.
 
 **Stage 2 — Global graph:** Polyline centroids form a proximity graph
-(edges between polylines within `edge_radius` metres). `EGNNLayer`
+(edges between polylines within the map encoder's fixed `edge_radius`,
+50 m default). `EGNNLayer`
 from artifex runs equivariant message passing to capture spatial
 relationships between polylines.
 

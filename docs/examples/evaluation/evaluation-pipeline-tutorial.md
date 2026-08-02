@@ -3,7 +3,7 @@
 | Metadata | Value |
 |----------|-------|
 | **Level** | Intermediate |
-| **Runtime** | ~5 min (CPU), ~1 min (GPU) |
+| **Runtime** | ~15 min (CPU), ~3 min (GPU) |
 | **Prerequisites** | WOD Metrics Quick Reference, JAX arrays |
 | **Format** | Python + Jupyter |
 

@@ -30,6 +30,16 @@ Simulacrax generates and evaluates adversarial driving scenarios to stress-test 
 - **WOSAC-Compatible**: Evaluates against standard Waymo challenge metrics (ADE, FDE, collision rate, miss rate), computed as JAX-native Euclidean proxies rather than the official leaderboard implementation
 - **Modular Architecture**: Clean protocol-based design with frozen dataclass configuration — easy to swap generative models, physics validators, and evaluation metrics
 
+## Status & Results
+
+Simulacrax is a working research scaffold: every pillar (diffusion world model, DPO/steering alignment, physics feasibility, occupancy flow, evaluation metrics) is built, and its core has been exercised on real Waymo Open Dataset data. It is not a leaderboard-tuned system — results are reported honestly.
+
+- **Trajectory prediction.** A map-conditioned diffusion baseline trained on real WOD reaches **minADE₆ ≈ 5.6 m** on held-out validation (`tracks_to_predict`, WOMD 2 Hz). That is roughly 9× the ~0.6 m of full-scale WOSAC leaders: the model is **over-dispersed** (best-of-64 ≈ 2.5 m) and **under-fit**, trained on ~1.6% of WOMD. The map is load-bearing — zeroing the scene tokens degrades minADE ~8.6× (4.4 → 38 m).
+- **Adversarial steering (the differentiator).** Test-time reward guidance on the frozen baseline steers a real scene's adversary from **7.30 m → 2.88 m** from its victim while *improving* off-road feasibility (0.21 → 0.08) and holding WOSAC realism (0.673 → 0.653). A map-conditioned Diffusion-DPO fine-tune reproduces this at training time.
+- **Roadmap.** Close the trajectory-quality gap (scale up, fix over-dispersion), then a persistent-WOSAC leaderboard submission and GRPO/R1-style RL fine-tuning (now standard in the winning recipe).
+
+The map-conditioned model (`MapConditionedTrajectoryModel`) and its trainer are driven end-to-end by [`scripts/train_wod.py`](scripts/train_wod.py) — warmup-cosine schedule, EMA, and held-out validation.
+
 ## Design
 
 ### Generative Trajectory Prediction
@@ -44,7 +54,7 @@ All models predict in the WOSAC state space: 11 history steps (1.1s) conditionin
 
 ### Physics Constraints
 
-Generated trajectories pass through a differentiable physics validation layer based on the bicycle kinematic model. Constraints include maximum acceleration, jerk limits, curvature bounds, and collision detection. Physics violations feed back as a loss term during training, ensuring the generator learns to produce plausible trajectories without post-hoc rejection sampling.
+Generated trajectories pass through a differentiable physics validation layer based on the bicycle kinematic model. Constraints include maximum acceleration, curvature bounds, and collision detection. Physics violations feed back as a loss term during training, ensuring the generator learns to produce plausible trajectories without post-hoc rejection sampling.
 
 ### Adversarial Alignment
 
@@ -73,7 +83,7 @@ Simulacrax builds on four companion libraries in the JAX ecosystem:
 |---|---|---|
 | [Datarax](https://github.com/avitai/datarax) | Data pipelines | Operators, cross-modal operators, TFDS sources |
 | [Artifex](https://github.com/avitai/artifex) | Generative models | DiffusionModel (DiT), RL rewards/trainers, noise schedules |
-| [Opifex](https://github.com/avitai/opifex) | Scientific ML / Physics | PDE solvers, neural operators, FNO |
+| [Opifex](https://github.com/avitai/opifex) | Scientific ML / Physics | Optimizers, EMA & checkpointing, error recovery, adaptive physics-weight scheduling, and multi-scale Fourier neural operators |
 | [Calibrax](https://github.com/avitai/calibrax) | Profiling / Benchmarking | Roofline analysis, memory profiling |
 
 ## Installation
@@ -91,7 +101,7 @@ uv sync --extra gpu     # Linux with NVIDIA GPU (CUDA 12)
 
 ### Requirements
 
-- Python >= 3.11
+- Python 3.11, 3.12, or 3.13
 - JAX >= 0.6.1
 - Flax >= 0.12.0
 - TensorFlow >= 2.20.0 (CPU-only, for WOD proto parsing)

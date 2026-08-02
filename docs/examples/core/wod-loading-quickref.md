@@ -3,7 +3,7 @@
 | Metadata | Value |
 |----------|-------|
 | **Level** | Beginner |
-| **Runtime** | ~5 min (CPU) |
+| **Runtime** | ~2 min (CPU) |
 | **Prerequisites** | Simulacrax installed, WOD TFRecord data |
 | **Format** | Python + Jupyter |
 

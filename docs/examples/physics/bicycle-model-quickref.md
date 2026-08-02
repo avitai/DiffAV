@@ -3,7 +3,7 @@
 | Metadata | Value |
 |----------|-------|
 | **Level** | Intermediate |
-| **Runtime** | ~1 min (CPU) |
+| **Runtime** | ~3 min (CPU) |
 | **Prerequisites** | JAX arrays, vehicle kinematics basics |
 | **Format** | Python + Jupyter |
 
