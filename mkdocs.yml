@@ -1,4 +1,5 @@
 site_name: Simulacrax Documentation
+site_url: https://docs.avitai.bio/simulacrax
 repo_url: https://github.com/avitai/simulacrax
 site_description: Physics-informed, RL-aligned evaluation engine for autonomous driving
 site_author: The Simulacrax Team
