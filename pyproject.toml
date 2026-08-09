@@ -88,11 +88,11 @@ dependencies = [
   "scipy>=1.10",
   "psutil>=5.9.0"
 ]
-description = "Simulacrax: Physics-informed, RL-aligned evaluation engine for autonomous driving"
+description = "DiffAV: Physics-informed, RL-aligned evaluation engine for autonomous driving"
 dynamic = ["version"]
 keywords = ["autonomous-driving", "evaluation", "jax", "diffusion", "reinforcement-learning"]
 license = {file = "LICENSE"}
-name = "simulacrax"
+name = "diffav"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 
@@ -107,7 +107,7 @@ metal = [
 ]
 
 [project.urls]
-Source = "https://github.com/avitai/simulacrax"
+Source = "https://github.com/avitai/DiffAV"
 
 [tool.bandit]
 exclude_dirs = ["tests", "scripts", "examples", "docs"]
@@ -121,7 +121,7 @@ skip_empty = false
 [tool.coverage.paths]
 source = [
   "src",
-  "*/simulacrax/src"
+  "*/diffav/src"
 ]
 
 [tool.coverage.report]
@@ -155,118 +155,118 @@ source = ["src"]
 output = "coverage.xml"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/simulacrax", "README.md", "LICENSE", "pyproject.toml"]
+include = ["src/diffav", "README.md", "LICENSE", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/simulacrax"]
+packages = ["src/diffav"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.version]
-path = "src/simulacrax/__init__.py"
+path = "src/diffav/__init__.py"
 
 [tool.importlinter]
-root_package = "simulacrax"
+root_package = "diffav"
 
 [[tool.importlinter.contracts]]
 forbidden_modules = [
-  "simulacrax.data",
-  "simulacrax.models",
-  "simulacrax.physics",
-  "simulacrax.alignment",
-  "simulacrax.evaluation",
-  "simulacrax.occupancy",
-  "simulacrax.sensor",
-  "simulacrax.api"
+  "diffav.data",
+  "diffav.models",
+  "diffav.physics",
+  "diffav.alignment",
+  "diffav.evaluation",
+  "diffav.occupancy",
+  "diffav.sensor",
+  "diffav.api"
 ]
-name = "Core is dependency-free within simulacrax"
-source_modules = ["simulacrax.core"]
+name = "Core is dependency-free within diffav"
+source_modules = ["diffav.core"]
 type = "forbidden"
 
 [[tool.importlinter.contracts]]
 forbidden_modules = [
-  "simulacrax.models",
-  "simulacrax.alignment",
-  "simulacrax.evaluation",
-  "simulacrax.api"
+  "diffav.models",
+  "diffav.alignment",
+  "diffav.evaluation",
+  "diffav.api"
 ]
 name = "Data layer must not depend on model/alignment/evaluation/api layers"
-source_modules = ["simulacrax.data"]
+source_modules = ["diffav.data"]
 type = "forbidden"
 
 [[tool.importlinter.contracts]]
 forbidden_modules = [
-  "simulacrax.data",
-  "simulacrax.models",
-  "simulacrax.alignment",
-  "simulacrax.evaluation",
-  "simulacrax.api"
+  "diffav.data",
+  "diffav.models",
+  "diffav.alignment",
+  "diffav.evaluation",
+  "diffav.api"
 ]
 name = "Physics layer must not depend on data/model/alignment/evaluation/api layers"
-source_modules = ["simulacrax.physics"]
+source_modules = ["diffav.physics"]
 type = "forbidden"
 
 [[tool.importlinter.contracts]]
 forbidden_modules = [
-  "simulacrax.data",
-  "simulacrax.alignment",
-  "simulacrax.evaluation",
-  "simulacrax.api"
+  "diffav.data",
+  "diffav.alignment",
+  "diffav.evaluation",
+  "diffav.api"
 ]
 name = "Models layer must not depend on data/alignment/evaluation/api layers"
-source_modules = ["simulacrax.models"]
+source_modules = ["diffav.models"]
 type = "forbidden"
 
 [[tool.importlinter.contracts]]
 forbidden_modules = [
-  "simulacrax.data",
-  "simulacrax.evaluation",
-  "simulacrax.api"
+  "diffav.data",
+  "diffav.evaluation",
+  "diffav.api"
 ]
 name = "Alignment layer must not depend on data/evaluation/api layers"
-source_modules = ["simulacrax.alignment"]
+source_modules = ["diffav.alignment"]
 type = "forbidden"
 
 [[tool.importlinter.contracts]]
 forbidden_modules = [
-  "simulacrax.data",
-  "simulacrax.models",
-  "simulacrax.alignment",
-  "simulacrax.occupancy",
-  "simulacrax.sensor",
-  "simulacrax.api"
+  "diffav.data",
+  "diffav.models",
+  "diffav.alignment",
+  "diffav.occupancy",
+  "diffav.sensor",
+  "diffav.api"
 ]
 name = "Evaluation layer depends only on core and physics"
-source_modules = ["simulacrax.evaluation"]
+source_modules = ["diffav.evaluation"]
 type = "forbidden"
 
 [[tool.importlinter.contracts]]
 forbidden_modules = [
-  "simulacrax.data",
-  "simulacrax.models",
-  "simulacrax.physics",
-  "simulacrax.alignment",
-  "simulacrax.evaluation",
-  "simulacrax.sensor",
-  "simulacrax.api"
+  "diffav.data",
+  "diffav.models",
+  "diffav.physics",
+  "diffav.alignment",
+  "diffav.evaluation",
+  "diffav.sensor",
+  "diffav.api"
 ]
 name = "Occupancy layer depends only on core"
-source_modules = ["simulacrax.occupancy"]
+source_modules = ["diffav.occupancy"]
 type = "forbidden"
 
 [[tool.importlinter.contracts]]
 forbidden_modules = [
-  "simulacrax.data",
-  "simulacrax.models",
-  "simulacrax.physics",
-  "simulacrax.alignment",
-  "simulacrax.evaluation",
-  "simulacrax.occupancy",
-  "simulacrax.api"
+  "diffav.data",
+  "diffav.models",
+  "diffav.physics",
+  "diffav.alignment",
+  "diffav.evaluation",
+  "diffav.occupancy",
+  "diffav.api"
 ]
 name = "Sensor layer depends only on core"
-source_modules = ["simulacrax.sensor"]
+source_modules = ["diffav.sensor"]
 type = "forbidden"
 
 [tool.interrogate]
@@ -372,7 +372,7 @@ select = ["E", "F", "I", "W", "UP"]
 [tool.ruff.lint.isort]
 combine-as-imports = true
 extra-standard-library = []
-known-first-party = ["simulacrax"]
+known-first-party = ["diffav"]
 lines-after-imports = 2
 order-by-type = false
 

@@ -1,4 +1,4 @@
-"""Tests for Simulacrax example files.
+"""Tests for DiffAV example files.
 
 Following the sibling-repo convention, these tests validate that examples:
 
@@ -21,7 +21,7 @@ from scripts.jupytext_converter import _comparable_cells
 
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
-EXAMPLE_TIMEOUT_SECONDS = int(os.environ.get("SIMULACRAX_EXAMPLE_TIMEOUT_SECONDS", "600"))
+EXAMPLE_TIMEOUT_SECONDS = int(os.environ.get("DIFFAV_EXAMPLE_TIMEOUT_SECONDS", "600"))
 
 REQUIRED_SECTIONS = ("Overview",)
 LEARNING_GOALS_PATTERN = re.compile(
@@ -131,10 +131,10 @@ class TestExampleExecution:
                     "JAX_PLATFORMS": os.environ.get("JAX_PLATFORMS", "cpu"),
                     # Examples honouring this knob shrink training/fit loops
                     # to smoke scale; showcase scale stays for real runs.
-                    "SIMULACRAX_EXAMPLES_SMOKE": "1",
+                    "DIFFAV_EXAMPLES_SMOKE": "1",
                     # Keep smoke-scale plots away from the showcase
                     # artifacts under docs/assets/images/examples.
-                    "SIMULACRAX_EXAMPLES_OUTPUT_DIR": str(tmp_path),
+                    "DIFFAV_EXAMPLES_OUTPUT_DIR": str(tmp_path),
                 },
                 text=True,
                 timeout=EXAMPLE_TIMEOUT_SECONDS,

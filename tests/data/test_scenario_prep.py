@@ -6,7 +6,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.data import PAD_SENTINEL, prepare_full_horizon_scene, prepare_padded_scene
+from diffav.data import PAD_SENTINEL, prepare_full_horizon_scene, prepare_padded_scene
 
 
 def _raw_scenario(

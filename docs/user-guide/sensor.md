@@ -1,7 +1,7 @@
 # Sensor Simulation
 
-Simulacrax provides three differentiable sensor simulation modules under
-`simulacrax.sensor`:
+DiffAV provides three differentiable sensor simulation modules under
+`diffav.sensor`:
 
 | Module | Key class | Purpose |
 |--------|-----------|---------|
@@ -44,7 +44,7 @@ alpha compositing → RenderedImage (pixels H×W×3, depth H×W)
 import jax
 import jax.numpy as jnp
 from flax import nnx
-from simulacrax.sensor import CameraPose, NeRFRenderer, NeRFRendererConfig
+from diffav.sensor import CameraPose, NeRFRenderer, NeRFRendererConfig
 
 cfg = NeRFRendererConfig(
     height=64, width=64,
@@ -87,7 +87,7 @@ All clip output to `[0, 1]` by default via the `clip_range` config field.
 
 ```python
 from flax import nnx
-from simulacrax.sensor import FogAugmentation, FogConfig
+from diffav.sensor import FogAugmentation, FogConfig
 
 fog = FogAugmentation(
     FogConfig(field_key="image", intensity=0.5),
@@ -103,7 +103,7 @@ foggy_image = out_data["image"]  # (H, W, 3)
 from datarax.operators.composite_operator import (
     CompositeOperatorConfig, CompositeOperatorModule, CompositionStrategy,
 )
-from simulacrax.sensor import (
+from diffav.sensor import (
     RainAugmentation, RainConfig,
     FogAugmentation,  FogConfig,
     GlareAugmentation, GlareConfig,
@@ -144,7 +144,7 @@ returns a `PointCloud` at the first high-density intersection.
 ```python
 import jax
 import jax.numpy as jnp
-from simulacrax.sensor import LiDARConfig, LiDARRayCaster
+from diffav.sensor import LiDARConfig, LiDARRayCaster
 
 caster = LiDARRayCaster(LiDARConfig(
     num_beams=64,
@@ -185,6 +185,6 @@ cloud = caster.cast_rays(grids[0], jnp.zeros(3), jnp.eye(3), key=jax.random.key(
 
 ## API Reference
 
-- [`simulacrax.sensor.nerf_renderer`](../api/sensor/nerf_renderer.md)
-- [`simulacrax.sensor.weather`](../api/sensor/weather.md)
-- [`simulacrax.sensor.lidar`](../api/sensor/lidar.md)
+- [`diffav.sensor.nerf_renderer`](../api/sensor/nerf_renderer.md)
+- [`diffav.sensor.weather`](../api/sensor/weather.md)
+- [`diffav.sensor.lidar`](../api/sensor/lidar.md)

@@ -17,15 +17,15 @@ import numpy as np
 import pytest
 from flax import nnx
 
-from simulacrax.api.map_conditioned import (
+from diffav.api.map_conditioned import (
     MapConditionedTrajectoryConfig,
     MapConditionedTrajectoryModel,
 )
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.core.types import ModalityMode
-from simulacrax.data.tokenizer import TokenizerConfig
-from simulacrax.models.trajectory_diffusion import GuidanceSpec, TrajectoryDiffusionConfig
-from simulacrax.physics.losses import SimulacraxPhysicsConfig
+from diffav.core.geometry import RoadEdges
+from diffav.core.types import ModalityMode
+from diffav.data.tokenizer import TokenizerConfig
+from diffav.models.trajectory_diffusion import GuidanceSpec, TrajectoryDiffusionConfig
+from diffav.physics.losses import DiffAVPhysicsConfig
 from tests import support
 
 
@@ -386,7 +386,7 @@ def _physics_config(
     """The default coupled config with physics enabled on the x̂₀ estimate."""
     return dataclasses.replace(
         _config(),
-        physics=SimulacraxPhysicsConfig(**physics_overrides),
+        physics=DiffAVPhysicsConfig(**physics_overrides),
         physics_x0_annealing=annealing,
     )
 

@@ -1,3 +1,3 @@
 # geometry
 
-::: simulacrax.core.geometry
+::: diffav.core.geometry

@@ -14,8 +14,8 @@ chosen/rejected pairs for the DPO trainer.
 
 ## Files
 
-- **Python Script**: [`examples/alignment/01_preference_construction_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/alignment/01_preference_construction_quickref.py)
-- **Jupyter Notebook**: [`examples/alignment/01_preference_construction_quickref.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/alignment/01_preference_construction_quickref.ipynb)
+- **Python Script**: [`examples/alignment/01_preference_construction_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/alignment/01_preference_construction_quickref.py)
+- **Jupyter Notebook**: [`examples/alignment/01_preference_construction_quickref.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/alignment/01_preference_construction_quickref.ipynb)
 
 ## Requirements & Run
 
@@ -35,7 +35,7 @@ chosen/rejected pairs for the DPO trainer.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - JAX arrays, reward functions, DPO basics
 
 ## Pipeline Overview
@@ -57,7 +57,7 @@ PreferencePairBuilder
 ## Quick Usage
 
 ```python
-from simulacrax.alignment import (
+from diffav.alignment import (
     PreferencePairBuilder,
     PreferencePairConfig,
     SafetyReward,
@@ -96,7 +96,7 @@ Multi-scene batch: 6 pairs from 3 scenes
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `BicycleModelConstraint` | simulacrax.physics | Kinematic reward computation |
+| `BicycleModelConstraint` | diffav.physics | Kinematic reward computation |
 | `RewardFunction` protocol | artifex | Interface contract for reward functions |
 
 ## Related

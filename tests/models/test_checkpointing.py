@@ -12,10 +12,10 @@ import optax
 import pytest
 from flax import nnx
 
-from simulacrax.models.checkpointing import (
+from diffav.models.checkpointing import (
     CheckpointConfig,
     CheckpointCorruptError,
-    SimulacraxCheckpointManager,
+    DiffAVCheckpointManager,
     TrainingState,
 )
 
@@ -139,12 +139,12 @@ class TestTrainingState:
 
 
 # ---------------------------------------------------------------------------
-# SimulacraxCheckpointManager
+# DiffAVCheckpointManager
 # ---------------------------------------------------------------------------
 
 
-class TestSimulacraxCheckpointManager:
-    """Tests for SimulacraxCheckpointManager with real Orbax I/O."""
+class TestDiffAVCheckpointManager:
+    """Tests for DiffAVCheckpointManager with real Orbax I/O."""
 
     @pytest.fixture()
     def model(self) -> _SimpleModel:
@@ -161,14 +161,14 @@ class TestSimulacraxCheckpointManager:
         )
 
     @pytest.fixture()
-    def manager(self, config: CheckpointConfig) -> Generator[SimulacraxCheckpointManager]:
-        """Create a SimulacraxCheckpointManager from the config fixture."""
-        with SimulacraxCheckpointManager(config) as mgr:
+    def manager(self, config: CheckpointConfig) -> Generator[DiffAVCheckpointManager]:
+        """Create a DiffAVCheckpointManager from the config fixture."""
+        with DiffAVCheckpointManager(config) as mgr:
             yield mgr
 
     def test_save_and_restore_round_trip(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """Restored weights are bit-identical to the saved ones."""
@@ -187,7 +187,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_restore_with_optimizer_round_trip(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """Optimizer state, step, and epoch survive the round trip."""
@@ -210,7 +210,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_restore_latest_none_when_empty(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """restore_latest returns None (model untouched) with no checkpoints."""
@@ -221,7 +221,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_architecture_version_round_trip(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """A matching architecture version restores and is carried through."""
@@ -236,7 +236,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_restore_rejects_version_mismatch_before_loading(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """A version mismatch raises and leaves the target model untouched."""
@@ -251,7 +251,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_restore_rejects_unversioned_when_version_expected(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """An unversioned checkpoint is rejected when a version is required."""
@@ -263,7 +263,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_restore_skips_version_check_by_default(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """With no expected version, a versioned checkpoint restores unchecked."""
@@ -282,7 +282,7 @@ class TestSimulacraxCheckpointManager:
         model: _SimpleModel,
     ) -> None:
         """A checkpoint that exists but cannot be read raises, not silently skips."""
-        with SimulacraxCheckpointManager(config) as manager:
+        with DiffAVCheckpointManager(config) as manager:
             manager.save(model, step=5, loss=0.1)
 
         # Destroy the checkpoint payload while keeping the step directory listed.
@@ -294,20 +294,20 @@ class TestSimulacraxCheckpointManager:
                 child.unlink()
 
         with (
-            SimulacraxCheckpointManager(config) as manager,
+            DiffAVCheckpointManager(config) as manager,
             pytest.raises(CheckpointCorruptError, match="step 5"),
         ):
             manager.restore_latest(model)
 
     def test_context_manager_closes(self, config: CheckpointConfig, model: _SimpleModel) -> None:
         """The manager works as a context manager and persists on exit."""
-        with SimulacraxCheckpointManager(config) as manager:
+        with DiffAVCheckpointManager(config) as manager:
             manager.save(model, step=1, loss=0.9)
         assert (Path(config.checkpoint_dir) / "1").exists()
 
     def test_save_if_due_at_interval(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """When step is a multiple of save_interval_steps, save occurs."""
@@ -316,7 +316,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_save_if_due_not_at_interval(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """When step is not a multiple of save_interval_steps, no save occurs."""
@@ -325,7 +325,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_save_if_due_at_zero(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """Step 0 never triggers a save even though 0 % N == 0."""
@@ -334,7 +334,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_latest_step_after_saves(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
         model: _SimpleModel,
     ) -> None:
         """After saving at steps 1, 2, 3, latest_step returns 3."""
@@ -345,7 +345,7 @@ class TestSimulacraxCheckpointManager:
 
     def test_latest_step_empty(
         self,
-        manager: SimulacraxCheckpointManager,
+        manager: DiffAVCheckpointManager,
     ) -> None:
         """With no checkpoints, latest_step returns None."""
         assert manager.latest_step() is None
@@ -361,7 +361,7 @@ class TestSimulacraxCheckpointManager:
             save_interval_steps=1,
             max_to_keep=2,
         )
-        with SimulacraxCheckpointManager(config) as mgr:
+        with DiffAVCheckpointManager(config) as mgr:
             for step in (1, 2, 3):
                 mgr.save(model, step=step, loss=0.1 * step)
 

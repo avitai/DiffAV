@@ -1,3 +1,3 @@
 # factorized_backbone
 
-::: simulacrax.models.factorized_backbone
+::: diffav.models.factorized_backbone

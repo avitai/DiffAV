@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from benchmarks.steering_bakeoff import BakeoffCell, BakeoffConfig, run_steering_bakeoff
 
-from simulacrax.alignment.scenario_steering import SteeringStrategy
-from simulacrax.api.config import MinerConfig
+from diffav.alignment.scenario_steering import SteeringStrategy
+from diffav.api.config import MinerConfig
 
 
 pytestmark = [pytest.mark.slow, pytest.mark.benchmark]

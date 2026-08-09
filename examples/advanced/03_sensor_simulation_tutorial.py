@@ -30,8 +30,8 @@
 
 ## Overview
 
-Simulacrax provides three differentiable sensor simulation modules under
-`simulacrax.sensor`:
+DiffAV provides three differentiable sensor simulation modules under
+`diffav.sensor`:
 
 1. **NeRF Renderer** — scene-conditioned RGB + depth rendering via Neural
    Radiance Fields; uses `SinusoidalEmbedding` (opifex) and `StandardMLP`
@@ -120,11 +120,11 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
-PLOT_DIR = Path(os.environ.get("SIMULACRAX_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
+PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
 PLOT_DIR.mkdir(parents=True, exist_ok=True)
 from flax import nnx
 
-from simulacrax.sensor.nerf_renderer import (
+from diffav.sensor.nerf_renderer import (
     CameraPose,
     NeRFRenderer,
     NeRFRendererConfig,
@@ -255,7 +255,7 @@ fit_target = jnp.where(
 
 # Smoke mode (set by the example execution tests) shrinks the fit so the
 # CPU tier finishes quickly; real runs keep the full showcase schedule.
-_SMOKE = os.environ.get("SIMULACRAX_EXAMPLES_SMOKE") == "1"
+_SMOKE = os.environ.get("DIFFAV_EXAMPLES_SMOKE") == "1"
 max_fit_steps = 200 if _SMOKE else 2500
 # jaxnerf decays lr from 5e-4 to 5e-6 over training (nerf/utils.py:142-143);
 # exponential_decay with decay_rate=1e-2 over max_fit_steps is the same
@@ -324,7 +324,7 @@ All three compose into a single pipeline via
 """
 
 # %%
-from simulacrax.sensor.weather import (
+from diffav.sensor.weather import (
     FogAugmentation,
     FogConfig,
     GlareAugmentation,
@@ -428,7 +428,7 @@ density field, enabling gradient-based scene optimisation.
 """
 
 # %%
-from simulacrax.sensor.lidar import LiDARConfig, LiDARRayCaster, PointCloud
+from diffav.sensor.lidar import LiDARConfig, LiDARRayCaster, PointCloud
 
 
 lidar_cfg = LiDARConfig(
@@ -529,7 +529,7 @@ print(f"Empty grid — hit beams after masking: {empty_hits}")
 """
 ### Closing the loop: encoding the point cloud
 
-`simulacrax.data.encoders.lidar.LiDAREncoder` consumes exactly this kind of
+`diffav.data.encoders.lidar.LiDAREncoder` consumes exactly this kind of
 point cloud. It reads `lidar/points` `(N, 3)` from the data dict,
 subsamples to a fixed `num_points` count, projects the coordinates, runs
 transformer self-attention, and adds a per-point `lidar_emb` embedding of
@@ -537,8 +537,8 @@ shape `(num_points, embed_dim)`:
 """
 
 # %%
-from simulacrax.core.constants import LIDAR_EMBEDDING, LIDAR_POINTS
-from simulacrax.data.encoders.lidar import LiDAREncoder, LiDAREncoderConfig
+from diffav.core.constants import LIDAR_EMBEDDING, LIDAR_POINTS
+from diffav.data.encoders.lidar import LiDAREncoder, LiDAREncoderConfig
 
 
 lidar_encoder = LiDAREncoder(

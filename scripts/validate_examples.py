@@ -2,7 +2,7 @@
 """Validate example files for structure, quality, and execution.
 
 This script validates that example files follow the 7-part documentation structure
-and meet quality standards for the Simulacrax examples system.
+and meet quality standards for the DiffAV examples system.
 
 Usage:
     python scripts/validate_examples.py                    # Validate all examples
@@ -249,7 +249,7 @@ def print_result(result: ValidationResult, verbose: bool = False) -> None:
 def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Validate Simulacrax example files",
+        description="Validate DiffAV example files",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -274,7 +274,7 @@ def main() -> int:
     args = parser.parse_args()
 
     print("=" * 60)
-    print("Simulacrax Examples Validator")
+    print("DiffAV Examples Validator")
     print("=" * 60)
     print()
 

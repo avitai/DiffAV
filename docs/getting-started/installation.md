@@ -10,14 +10,14 @@
 
 The setup script auto-detects the host (NVIDIA GPU, Apple Silicon, or CPU),
 creates the uv-managed environment, and writes the generated backend file
-`.simulacrax.env` consumed by `source ./activate.sh`:
+`.diffav.env` consumed by `source ./activate.sh`:
 
 === "Linux (CUDA)"
 
     ```bash
     # Clone the repository
-    git clone https://github.com/avitai/simulacrax.git
-    cd simulacrax
+    git clone https://github.com/avitai/DiffAV.git
+    cd DiffAV
 
     # Auto-detects the NVIDIA GPU and installs the CUDA 12 backend
     ./setup.sh
@@ -26,8 +26,8 @@ creates the uv-managed environment, and writes the generated backend file
 === "Linux (CPU only)"
 
     ```bash
-    git clone https://github.com/avitai/simulacrax.git
-    cd simulacrax
+    git clone https://github.com/avitai/DiffAV.git
+    cd DiffAV
 
     ./setup.sh --backend cpu
     ```
@@ -35,8 +35,8 @@ creates the uv-managed environment, and writes the generated backend file
 === "macOS (Metal)"
 
     ```bash
-    git clone https://github.com/avitai/simulacrax.git
-    cd simulacrax
+    git clone https://github.com/avitai/DiffAV.git
+    cd DiffAV
 
     ./setup.sh --backend metal
     ```
@@ -59,7 +59,7 @@ uv sync --extra metal
 
 ## GPU Setup
 
-Simulacrax uses JAX for GPU computation and TensorFlow (CPU-only) for WOD proto parsing.
+DiffAV uses JAX for GPU computation and TensorFlow (CPU-only) for WOD proto parsing.
 TensorFlow's GPU visibility is disabled at import time to prevent memory conflicts.
 
 ### Verify JAX GPU Access
@@ -98,7 +98,7 @@ is called **before** any TF operations. The `WODSource` class handles this autom
 
 ### Environment Configuration
 
-Simulacrax uses a `.env` file for dataset paths. Copy the template and edit:
+DiffAV uses a `.env` file for dataset paths. Copy the template and edit:
 
 ```bash
 cp .env.example .env
@@ -116,7 +116,7 @@ with `.tfrecord` files. See the [Quick Start](quickstart.md) for download instru
 
 ### Sister Repo Installation
 
-Simulacrax depends on four sister repositories, pinned to their latest
+DiffAV depends on four sister repositories, pinned to their latest
 release tags via `[tool.uv.sources]` in `pyproject.toml` (the artifex
 distribution is published as `avitai-artifex`; imports stay `artifex`):
 

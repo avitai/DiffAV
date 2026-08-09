@@ -4,8 +4,8 @@
 
 ```bash
 # Clone and install all development dependencies (CPU backend)
-git clone https://github.com/avitai/simulacrax.git
-cd simulacrax
+git clone https://github.com/avitai/DiffAV.git
+cd DiffAV
 ./setup.sh --backend cpu
 
 # Install pre-commit hooks
@@ -81,8 +81,8 @@ class MyProtocol(Protocol):
 ## Project Structure
 
 ```
-simulacrax/
-├── src/simulacrax/       # Source code
+diffav/
+├── src/diffav/       # Source code
 │   ├── core/             # Domain types, protocols, config
 │   ├── data/             # WOD source, parsers, converters
 │   ├── models/           # Trajectory generation models

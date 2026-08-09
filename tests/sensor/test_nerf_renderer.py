@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.sensor.nerf_renderer import (
+from diffav.sensor.nerf_renderer import (
     CameraPose,
     NeRFRenderer,
     NeRFRendererConfig,
@@ -184,7 +184,7 @@ class TestRayGeometry:
 
     def test_edge_ray_matches_half_fov(self) -> None:
         """The outermost ray leaves at half the configured horizontal FOV."""
-        from simulacrax.core.constants import NERF_CAMERA_HORIZONTAL_FOV_RAD
+        from diffav.core.constants import NERF_CAMERA_HORIZONTAL_FOV_RAD
 
         angle = self._edge_ray_angle(width=64)
         assert angle == pytest.approx(NERF_CAMERA_HORIZONTAL_FOV_RAD / 2.0, rel=0.05)

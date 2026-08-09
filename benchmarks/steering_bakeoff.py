@@ -33,16 +33,16 @@ import numpy as np
 from calibrax.core.models import Metric, Point, Run
 from calibrax.exporters import PublicationGenerator
 
-from simulacrax.alignment.scenario_steering import ScenarioSteeringConfig, SteeringStrategy
-from simulacrax.alignment.steering_spine import candidate_offroad_fractions
-from simulacrax.api.config import MinerConfig, Scenario
-from simulacrax.api.scenario_miner import create_scenario_miner
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.evaluation.wosac_metametric import (
+from diffav.alignment.scenario_steering import ScenarioSteeringConfig, SteeringStrategy
+from diffav.alignment.steering_spine import candidate_offroad_fractions
+from diffav.api.config import MinerConfig, Scenario
+from diffav.api.scenario_miner import create_scenario_miner
+from diffav.core.geometry import RoadEdges
+from diffav.evaluation.wosac_metametric import (
     compute_metametric_features,
     WosacMetametric,
 )
-from simulacrax.physics.losses import SimulacraxPhysicsLoss
+from diffav.physics.losses import DiffAVPhysicsLoss
 
 
 logger = logging.getLogger(__name__)
@@ -128,7 +128,7 @@ def _score_cell(
     steered: jax.Array,
     reference: jax.Array,
     road_edges: RoadEdges,
-    physics_loss: SimulacraxPhysicsLoss,
+    physics_loss: DiffAVPhysicsLoss,
     metametric: WosacMetametric,
 ) -> tuple[float, float, float]:
     """Score one cell's steered rollouts on the three bake-off axes."""
@@ -166,7 +166,7 @@ def run_steering_bakeoff(config: BakeoffConfig) -> list[BakeoffCell]:
     """
     miner = create_scenario_miner(config.miner_config)
     road_edges = _probe_road_edges()
-    physics_loss = SimulacraxPhysicsLoss()
+    physics_loss = DiffAVPhysicsLoss()
     metametric = WosacMetametric()
     base_key = jax.random.key(config.seed)
 

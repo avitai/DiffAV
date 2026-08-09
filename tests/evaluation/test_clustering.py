@@ -5,7 +5,7 @@ from __future__ import annotations
 import jax
 import jax.numpy as jnp
 
-from simulacrax.evaluation.clustering import select_representative_modes
+from diffav.evaluation.clustering import select_representative_modes
 
 
 def _rollouts_with_endpoints(endpoints_x: jax.Array) -> jax.Array:

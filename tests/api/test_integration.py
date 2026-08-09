@@ -7,14 +7,14 @@ from pathlib import Path
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.api import (
+from diffav.api import (
     create_scenario_miner,
     FailureCase,
     MinerConfig,
     Scenario,
     ScenarioMiner,
 )
-from simulacrax.core.types import MetricsReport, TrajectoryPrediction
+from diffav.core.types import MetricsReport, TrajectoryPrediction
 
 
 pytestmark = [pytest.mark.slow, pytest.mark.integration]
@@ -82,10 +82,10 @@ class TestCheckpointLoadSuccessPath:
         import jax
         from flax import nnx
 
-        from simulacrax.core.constants import SCENE_BACKBONE_ARCHITECTURE_VERSION
-        from simulacrax.models.checkpointing import (
+        from diffav.core.constants import SCENE_BACKBONE_ARCHITECTURE_VERSION
+        from diffav.models.checkpointing import (
             CheckpointConfig,
-            SimulacraxCheckpointManager,
+            DiffAVCheckpointManager,
         )
 
         config = MinerConfig(
@@ -97,7 +97,7 @@ class TestCheckpointLoadSuccessPath:
 
         checkpoint_dir = tmp_path / "ckpt"
         manager_config = CheckpointConfig(checkpoint_dir=str(checkpoint_dir))
-        with SimulacraxCheckpointManager(manager_config) as manager:
+        with DiffAVCheckpointManager(manager_config) as manager:
             manager.save(
                 source.model,
                 step=1,

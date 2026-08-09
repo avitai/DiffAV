@@ -1,3 +1,3 @@
 # estimators
 
-::: simulacrax.evaluation.estimators
+::: diffav.evaluation.estimators

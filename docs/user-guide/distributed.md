@@ -1,7 +1,7 @@
 # Distributed Training
 
-Simulacrax supports data-parallel training across multiple JAX devices via a
-thin mesh-sharding layer in `simulacrax.core.distributed`.  The same code runs
+DiffAV supports data-parallel training across multiple JAX devices via a
+thin mesh-sharding layer in `diffav.core.distributed`.  The same code runs
 on a single CPU, a single GPU, or a multi-GPU pod — single-device behaviour is
 always the silent default.
 
@@ -24,7 +24,7 @@ On a single device `train_step_distributed()` is functionally identical to
 ## DistributedConfig options
 
 ```python
-from simulacrax.core import DistributedConfig
+from diffav.core import DistributedConfig
 
 # Default — single-device, data-parallel
 config = DistributedConfig()
@@ -64,9 +64,9 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 
-from simulacrax.core import DistributedConfig, create_device_mesh
-from simulacrax.models.trainer import TrainerConfig, TrajectoryTrainer
-from simulacrax.models.trajectory_diffusion import (
+from diffav.core import DistributedConfig, create_device_mesh
+from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig,
     TrajectoryDiffusionModel,
 )
@@ -114,8 +114,8 @@ import jax
 import optax
 from flax import nnx
 
-from simulacrax.core import DistributedConfig, create_device_mesh
-from simulacrax.alignment.dpo_trainer import DPOAlignmentConfig, DPOAlignmentTrainer
+from diffav.core import DistributedConfig, create_device_mesh
+from diffav.alignment.dpo_trainer import DPOAlignmentConfig, DPOAlignmentTrainer
 
 optimizer = nnx.Optimizer(model, optax.adam(1e-5), wrt=nnx.Param)
 dpo_trainer = DPOAlignmentTrainer(

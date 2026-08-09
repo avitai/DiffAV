@@ -42,9 +42,9 @@ jobs:
           df -h /
 
       - name: Build image
-        run: docker build -t simulacrax:ci .
+        run: docker build -t diffav:ci .
 
       - name: CPU import smoke test
         run: |
-          docker run --rm -e JAX_PLATFORMS=cpu simulacrax:ci \
-            python -c "import simulacrax, jax; print(jax.devices())"
+          docker run --rm -e JAX_PLATFORMS=cpu diffav:ci \
+            python -c "import diffav, jax; print(jax.devices())"

@@ -7,8 +7,8 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.evaluation.metrics import (
+from diffav.core.geometry import RoadEdges
+from diffav.evaluation.metrics import (
     ade,
     benchmark_min_ade,
     fde,

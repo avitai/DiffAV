@@ -4,7 +4,7 @@
 |----------|-------|
 | **Level** | Beginner |
 | **Runtime** | ~2 min (CPU) |
-| **Prerequisites** | Simulacrax installed, WOD TFRecord data |
+| **Prerequisites** | DiffAV installed, WOD TFRecord data |
 | **Format** | Python + Jupyter |
 
 A Tier 1 quick reference (~5 min) demonstrating how to load real Waymo Open Dataset
@@ -14,8 +14,8 @@ objects.
 
 ## Files
 
-- **Python Script**: [`examples/core/01_wod_loading_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/core/01_wod_loading_quickref.py)
-- **Jupyter Notebook**: [`examples/core/01_wod_loading_quickref.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/core/01_wod_loading_quickref.ipynb)
+- **Python Script**: [`examples/core/01_wod_loading_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/core/01_wod_loading_quickref.py)
+- **Jupyter Notebook**: [`examples/core/01_wod_loading_quickref.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/core/01_wod_loading_quickref.ipynb)
 
 ## Requirements & Run
 
@@ -35,7 +35,7 @@ objects.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - At least one WOD Motion TFRecord shard downloaded
 - A `.env` file with `WOD_MOTION_TFRECORD_PATH` set (see [Installation](../../getting-started/installation.md))
 
@@ -46,7 +46,7 @@ import os
 
 from dotenv import load_dotenv
 
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
+from diffav.data.wod_source import WODSource, WODSourceConfig
 
 load_dotenv()
 
@@ -89,7 +89,7 @@ for element in source:
 ## Parse to Domain Types
 
 ```python
-from simulacrax.data.parsers import parse_scenario
+from diffav.data.parsers import parse_scenario
 
 element = source[0]
 scene = parse_scenario(element.data)

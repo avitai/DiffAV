@@ -1,3 +1,3 @@
 # metrics
 
-::: simulacrax.evaluation.metrics
+::: diffav.evaluation.metrics

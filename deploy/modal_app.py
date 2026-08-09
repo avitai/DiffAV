@@ -1,4 +1,4 @@
-"""Modal launcher for Simulacrax GPU training and the DPO ablation.
+"""Modal launcher for DiffAV GPU training and the DPO ablation.
 
 Runs the repository's existing entrypoints (``scripts/train_wod.py`` and
 ``benchmarks/steer_wod_dpo_ablation.py``) unchanged on a Modal-managed A100/H100,
@@ -24,8 +24,8 @@ import subprocess
 import modal
 
 
-APP_NAME = "simulacrax"
-REPO_PATH = "/root/simulacrax"
+APP_NAME = "diffav"
+REPO_PATH = "/root/diffav"
 DATA_MOUNT = "/data"
 CHECKPOINT_MOUNT = "/checkpoints"
 DEFAULT_GPU = "A100-80GB"
@@ -45,6 +45,7 @@ _IMAGE_IGNORE = [
     "**/*.pyc",
     "**/.pytest_cache",
     "**/.ruff_cache",
+    "**/memory-bank",
     "**/site",
 ]
 
@@ -69,6 +70,10 @@ image = (
 
 # Persistent stores: stage the tfrecords and the reference checkpoint once (see
 # deploy/README.md), then every run reuses them.
+# The volume names keep the pre-rename "simulacrax-" prefix on purpose: they are
+# the identity of already-populated remote stores. Renaming them would silently
+# create new empty volumes (create_if_missing=True) and orphan the staged WOD
+# tfrecords and trained checkpoints.
 data_volume = modal.Volume.from_name("simulacrax-wod-data", create_if_missing=True)
 checkpoint_volume = modal.Volume.from_name("simulacrax-checkpoints", create_if_missing=True)
 

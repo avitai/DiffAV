@@ -6,7 +6,7 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 
-from simulacrax.sensor.weather import (
+from diffav.sensor.weather import (
     FogAugmentation,
     FogConfig,
     GlareAugmentation,

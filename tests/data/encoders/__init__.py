@@ -1,1 +1,1 @@
-"""Tests for the simulacrax.data.encoders package."""
+"""Tests for the diffav.data.encoders package."""

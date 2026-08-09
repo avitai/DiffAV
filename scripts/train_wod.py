@@ -13,7 +13,7 @@ The training recipe is the showcase configuration: a warmup-cosine AdamW
 schedule, an exponential moving average of the parameters, and periodic
 held-out validation (minADE, off-road rate, and kinematic residual on streamed
 ``val`` scenes) run against the EMA weights, all driven by
-:class:`~simulacrax.api.map_conditioned_trainer.MapConditionedTrainer`.
+:class:`~diffav.api.map_conditioned_trainer.MapConditionedTrainer`.
 
 Usage::
 
@@ -37,37 +37,37 @@ import numpy as np
 from dotenv import load_dotenv
 from flax import nnx
 
-from simulacrax.api.map_conditioned import (
+from diffav.api.map_conditioned import (
     build_map_conditioned_model,
     MapConditionedBuildSpec,
     MapConditionedTrajectoryModel,
 )
-from simulacrax.api.map_conditioned_trainer import (
+from diffav.api.map_conditioned_trainer import (
     MapConditionedTrainer,
     TrainBatch,
     TrainingConfig,
 )
-from simulacrax.api.wod_validation import (
+from diffav.api.wod_validation import (
     prepare_scene,
     stream_validation_scenes,
     TOKENIZER_KEYS,
 )
-from simulacrax.core.constants import (
+from diffav.core.constants import (
     SCENE_BACKBONE_ARCHITECTURE_VERSION,
     WOD_CURRENT_TIME_INDEX,
     WOD_HISTORY_STEPS,
 )
-from simulacrax.core.types import DatasetMode
-from simulacrax.data import (
+from diffav.core.types import DatasetMode
+from diffav.data import (
     resolve_wod_tfrecord_path,
 )
-from simulacrax.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
-from simulacrax.evaluation.map_conditioned_evaluator import (
+from diffav.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
+from diffav.data.wod_source import WODSource, WODSourceConfig
+from diffav.evaluation.map_conditioned_evaluator import (
     MapConditionedEvaluator,
     ValidationEvalConfig,
 )
-from simulacrax.models.checkpointing import CheckpointConfig, SimulacraxCheckpointManager
+from diffav.models.checkpointing import CheckpointConfig, DiffAVCheckpointManager
 
 
 logger = logging.getLogger("train_wod")
@@ -76,7 +76,7 @@ logger = logging.getLogger("train_wod")
 def _build_model(args: argparse.Namespace, rngs: nnx.Rngs) -> MapConditionedTrajectoryModel:
     """Build the coupled map-conditioned model from CLI arguments.
 
-    Delegates to :func:`~simulacrax.api.map_conditioned.build_map_conditioned_model`
+    Delegates to :func:`~diffav.api.map_conditioned.build_map_conditioned_model`
     so the training script and the checkpoint loader construct byte-identical
     architectures; this adapter only maps the CLI namespace onto the build spec.
     """
@@ -325,7 +325,7 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps({key: str(value) for key, value in vars(args).items()}, indent=2)
     )
     logger.info("Recorded run config at %s", run_config_path)
-    with SimulacraxCheckpointManager(manager_config) as manager:
+    with DiffAVCheckpointManager(manager_config) as manager:
 
         def on_step(step: int, record: dict[str, Any]) -> None:
             # Validation fires at ``eval_every - 1`` (not a log_every multiple),

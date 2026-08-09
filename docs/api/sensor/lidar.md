@@ -1,3 +1,3 @@
 # lidar
 
-::: simulacrax.sensor.lidar
+::: diffav.sensor.lidar

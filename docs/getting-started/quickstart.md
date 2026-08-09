@@ -1,7 +1,7 @@
 # Quick Start
 
 This guide walks through loading Waymo Open Dataset scenarios from real TFRecord
-files, parsing them into Simulacrax domain types, and inspecting the result.
+files, parsing them into DiffAV domain types, and inspecting the result.
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ import os
 
 from dotenv import load_dotenv
 
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
+from diffav.data.wod_source import WODSource, WODSourceConfig
 
 load_dotenv()
 
@@ -69,12 +69,12 @@ for element in source:
 
 ## Parse into Domain Types
 
-Use the parser to convert raw WOD dicts into typed Simulacrax objects.
+Use the parser to convert raw WOD dicts into typed DiffAV objects.
 Only objects valid at the current timestep become agents, so the padding
 rows real WOD records carry never appear as phantom agents:
 
 ```python
-from simulacrax.data.parsers import parse_scenario
+from diffav.data.parsers import parse_scenario
 
 # Get the raw scenario dict from the first Element
 element = source[0]
@@ -106,8 +106,8 @@ entry carries the full `SimulatedTrajectory` proto field set —
 `object_id` (elevation and validity accept optional overrides):
 
 ```python
-from simulacrax.data.converters import to_wod_submission
-from simulacrax.core.types import TrajectoryPrediction
+from diffav.data.converters import to_wod_submission
+from diffav.core.types import TrajectoryPrediction
 import jax.numpy as jnp
 
 # Create a dummy prediction (2 agents, 80 future steps, 4 state dims)

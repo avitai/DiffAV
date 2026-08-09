@@ -45,7 +45,7 @@ By the end of this example, you will be able to:
 ### Installation
 
 ```bash
-# Install simulacrax with development dependencies
+# Install diffav with development dependencies
 uv sync
 ```
 
@@ -58,8 +58,8 @@ import jax.numpy as jnp  # noqa: F401
 import numpy as np  # noqa: F401
 from flax import nnx  # noqa: F401
 
-from simulacrax.core.types import AgentState, AgentType, SceneContext  # noqa: F401
-from simulacrax.data.wod_source import WODSource, WODSourceConfig  # noqa: F401
+from diffav.core.types import AgentState, AgentType, SceneContext  # noqa: F401
+from diffav.data.wod_source import WODSource, WODSourceConfig  # noqa: F401
 
 
 # %% [markdown]

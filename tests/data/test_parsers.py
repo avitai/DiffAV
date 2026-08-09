@@ -9,19 +9,19 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from simulacrax.core.constants import (
+from diffav.core.constants import (
     STATE_IS_SDC,
     STATE_VALID,
     WOD_CURRENT_TIME_INDEX,
     WOD_HISTORY_STEPS,
 )
-from simulacrax.core.types import (
+from diffav.core.types import (
     AgentState,
     AgentType,
     MapFeature,
     SceneContext,
 )
-from simulacrax.data.parsers import (
+from diffav.data.parsers import (
     parse_agent_tracks,
     parse_map_features,
     parse_scenario,
@@ -210,7 +210,7 @@ class TestParseMapFeatures:
 
     def test_valid_feature_types(self, raw_wod_dict: dict) -> None:
         """All features have valid MapFeatureType values."""
-        from simulacrax.core.types import MapFeatureType
+        from diffav.core.types import MapFeatureType
 
         features = parse_map_features(raw_wod_dict)
         valid_types = set(MapFeatureType)

@@ -1,13 +1,13 @@
 # ScenarioMiner SDK
 
-`ScenarioMiner` is the primary entry point for the Simulacrax public API. It wraps
+`ScenarioMiner` is the primary entry point for the DiffAV public API. It wraps
 a `TrajectoryDiffusionModel` and exposes three operations: scenario generation,
 planner evaluation, and adversarial failure-case search.
 
 ## Quick Usage
 
 ```python
-from simulacrax.api import MinerConfig, create_scenario_miner
+from diffav.api import MinerConfig, create_scenario_miner
 
 config = MinerConfig(model_path="checkpoints/wod-mini")
 miner = create_scenario_miner(config)
@@ -26,7 +26,7 @@ cases = miner.adversarial_search(my_planner_fn, budget=50)
 The boundary fails fast: an unknown `scenario_type` or `density`, or a
 negative `count`/`budget`, raises `ValueError` naming the valid choices —
 nothing silently maps to a default. The vocabularies are the
-`ScenarioType` and `Density` enums in `simulacrax.core.types` (plain
+`ScenarioType` and `Density` enums in `diffav.core.types` (plain
 strings with those values are accepted too).
 
 ## Pipeline
@@ -76,7 +76,7 @@ independent of the chunk layout.
 `planner_fn` must accept a `SceneContext` and return a `TrajectoryPrediction`:
 
 ```python
-from simulacrax.core.types import SceneContext, TrajectoryPrediction
+from diffav.core.types import SceneContext, TrajectoryPrediction
 import jax.numpy as jnp
 
 def my_planner(context: SceneContext) -> TrajectoryPrediction:
@@ -96,7 +96,7 @@ diffusion model is differentiated in `adversarial_search`.
 candidate, Adam gradient ascent on the scene context embedding finds
 perturbations that maximise physics violations in the internal model's
 trajectory predictions. The perturbed scene is then passed to the external
-planner and scored by `SimulacraxPhysicsLoss`; it becomes a `FailureCase`
+planner and scored by `DiffAVPhysicsLoss`; it becomes a `FailureCase`
 only when that severity exceeds `severity_threshold`. A healthy planner
 therefore yields fewer than `budget` cases — possibly none.
 

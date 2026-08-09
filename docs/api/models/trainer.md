@@ -1,3 +1,3 @@
 # trainer
 
-::: simulacrax.models.trainer
+::: diffav.models.trainer

@@ -23,6 +23,7 @@ temp
 .claude
 .vscode
 .idea
+memory-bank
 
 # Docs sources are not needed at runtime
 docs

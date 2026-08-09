@@ -17,22 +17,22 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.api.map_conditioned import (
+from diffav.api.map_conditioned import (
     build_map_conditioned_model,
     load_map_conditioned_from_checkpoint,
     MapConditionedBuildSpec,
     MapConditionedTrajectoryModel,
 )
-from simulacrax.core.constants import (
+from diffav.core.constants import (
     AGENT_LOCAL_STATE_SCALES,
     SCENE_BACKBONE_ARCHITECTURE_VERSION,
     WOD_HISTORY_STEPS,
 )
-from simulacrax.core.types import PredictionType
-from simulacrax.models.checkpointing import (
+from diffav.core.types import PredictionType
+from diffav.models.checkpointing import (
     CheckpointConfig,
     CheckpointCorruptError,
-    SimulacraxCheckpointManager,
+    DiffAVCheckpointManager,
 )
 
 
@@ -155,7 +155,7 @@ class TestLoadFromCheckpoint:
 
     def _save(self, model: MapConditionedTrajectoryModel, directory: Path, *, version: int) -> None:
         config = CheckpointConfig(checkpoint_dir=str(directory), save_interval_steps=1)
-        with SimulacraxCheckpointManager(config) as manager:
+        with DiffAVCheckpointManager(config) as manager:
             manager.save(model, step=1, loss=0.0, architecture_version=version)
 
     def test_round_trips_weights(self, tmp_path: Path) -> None:

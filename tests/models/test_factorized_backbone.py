@@ -15,7 +15,7 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.models.factorized_backbone import (
+from diffav.models.factorized_backbone import (
     FactorizedSceneBackbone,
     FactorizedSceneBackboneConfig,
 )

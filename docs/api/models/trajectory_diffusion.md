@@ -1,3 +1,3 @@
 # trajectory_diffusion
 
-::: simulacrax.models.trajectory_diffusion
+::: diffav.models.trajectory_diffusion

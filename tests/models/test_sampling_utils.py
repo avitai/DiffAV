@@ -5,7 +5,7 @@ from __future__ import annotations
 import jax
 import jax.numpy as jnp
 
-from simulacrax.models.sampling_utils import stratified_timestep
+from diffav.models.sampling_utils import stratified_timestep
 
 
 class TestStratifiedTimesteps:

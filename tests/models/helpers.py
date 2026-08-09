@@ -7,7 +7,7 @@ from typing import Any
 import jax
 import jax.numpy as jnp
 
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig,
     TrajectoryDiffusionModel,
 )

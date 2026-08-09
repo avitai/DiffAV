@@ -1,3 +1,3 @@
 # wosac_metametric
 
-::: simulacrax.evaluation.wosac_metametric
+::: diffav.evaluation.wosac_metametric

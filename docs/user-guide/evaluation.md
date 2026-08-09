@@ -1,6 +1,6 @@
 # Evaluation
 
-Simulacrax provides a full evaluation stack for trajectory prediction: pure JAX
+DiffAV provides a full evaluation stack for trajectory prediction: pure JAX
 metric functions, a WOD-compatible aggregator (`MotionMetrics`), a simulation
 realism evaluator (`SimAgentMetrics`), a batch orchestrator (`EvaluationRunner`),
 and a publication-ready table exporter (`MetricsDashboard`). All metric functions
@@ -44,7 +44,7 @@ scalar metrics. They are differentiable and can be used as training losses.
 ### Functions
 
 ```python
-from simulacrax.evaluation import ade, fde, min_ade, min_fde, miss_rate
+from diffav.evaluation import ade, fde, min_ade, min_fde, miss_rate
 
 # Average Displacement Error — mean L2 over valid steps
 ade_value = ade(pred, gt, valid)               # → scalar
@@ -98,7 +98,7 @@ Following the WOD convention, `predictions` has shape `(B, M, K, N, T, 2)`:
 | 2 | xy | Predicted positions |
 
 ```python
-from simulacrax.evaluation import MotionMetrics, MotionMetricsConfig
+from diffav.evaluation import MotionMetrics, MotionMetricsConfig
 
 config  = MotionMetricsConfig(miss_rate_threshold=2.0, top_k=6, num_future_steps=80)
 metrics = MotionMetrics(config)
@@ -138,7 +138,7 @@ log-likelihood metametric:
 | Map | 0.2 | Offroad and road-edge distance |
 
 ```python
-from simulacrax.evaluation import SimAgentMetrics, SimAgentMetricsConfig
+from diffav.evaluation import SimAgentMetrics, SimAgentMetricsConfig
 
 config  = SimAgentMetricsConfig(
     kinematic_weight=0.4,
@@ -167,7 +167,7 @@ accumulates metric averages into a `MetricsReport`.
 ### Model Interface
 
 The model seam is the `TrajectorySampler` protocol (exported from
-`simulacrax.evaluation`): any object with a `sample()` method of this shape
+`diffav.evaluation`): any object with a `sample()` method of this shape
 can be evaluated — `TrajectoryDiffusionModel` satisfies it structurally.
 
 ```python
@@ -183,7 +183,7 @@ def sample(
 ### Running Evaluation
 
 ```python
-from simulacrax.evaluation import EvaluationRunner, MotionMetrics, SimAgentMetrics
+from diffav.evaluation import EvaluationRunner, MotionMetrics, SimAgentMetrics
 
 runner = EvaluationRunner(
     motion_metrics=MotionMetrics(MotionMetricsConfig()),
@@ -223,8 +223,8 @@ report with nothing to render, or a metric key with an unrecognised
 agent-type prefix, raises `ValueError` instead of silently writing nothing.
 
 ```python
-from simulacrax.evaluation import MetricsDashboard
-from simulacrax.core.types import MetricsReport
+from diffav.evaluation import MetricsDashboard
+from diffav.core.types import MetricsReport
 
 dashboard = MetricsDashboard("output/evaluation")
 output_path = dashboard.generate(report)

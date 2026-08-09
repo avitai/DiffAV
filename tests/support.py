@@ -16,8 +16,8 @@ import numpy as np
 from flax import nnx
 from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
 
-from simulacrax.models.factorized_backbone import FactorizedSceneBackbone
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.factorized_backbone import FactorizedSceneBackbone
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig,
     TrajectoryDiffusionModel,
 )

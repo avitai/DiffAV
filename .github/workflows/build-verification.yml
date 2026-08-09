@@ -39,7 +39,7 @@ jobs:
         run: |
           uv venv test_venv --seed
           VIRTUAL_ENV=test_venv uv pip install dist/*.whl
-          test_venv/bin/python -c "import simulacrax; print('simulacrax imported OK')"
+          test_venv/bin/python -c "import diffav; print('diffav imported OK')"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

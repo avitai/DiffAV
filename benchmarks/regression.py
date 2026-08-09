@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Performance regression benchmarks for Simulacrax core training paths.
+"""Performance regression benchmarks for DiffAV core training paths.
 
 Measures wall-clock throughput of ``TrajectoryTrainer.compute_train_step``
 and ``DPOAlignmentTrainer.compute_dpo_step`` using
@@ -39,9 +39,9 @@ import optax
 from calibrax.profiling import TimingCollector
 from flax import nnx
 
-from simulacrax.alignment.dpo_trainer import DPOAlignmentConfig, DPOAlignmentTrainer
-from simulacrax.models.trainer import TrainerConfig, TrajectoryTrainer
-from simulacrax.models.trajectory_diffusion import (
+from diffav.alignment.dpo_trainer import DPOAlignmentConfig, DPOAlignmentTrainer
+from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig,
     TrajectoryDiffusionModel,
 )
@@ -267,7 +267,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     parser = argparse.ArgumentParser(
-        description="Run Simulacrax performance benchmarks.",
+        description="Run DiffAV performance benchmarks.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(

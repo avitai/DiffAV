@@ -11,11 +11,11 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.core.constants import (
+from diffav.core.constants import (
     FeatureEstimateConfig,
     HistogramEstimateConfig,
 )
-from simulacrax.evaluation.estimators import (
+from diffav.evaluation.estimators import (
     bernoulli_log_likelihood,
     histogram_log_likelihood,
     log_likelihood_estimate_scenario_level,

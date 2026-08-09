@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from simulacrax.core.config import (
+from diffav.core.config import (
     VALID_SPLITS,
     validate_positive,
     validate_transformer_fields,

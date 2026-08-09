@@ -1,8 +1,8 @@
 # Development Examples & Utilities
 
-> **Looking for tutorials?** See the [Documentation Examples](https://simulacrax.readthedocs.io/examples/overview/) or browse `docs/examples/` directly.
+> **Looking for tutorials?** See the [Documentation Examples](https://diffav.readthedocs.io/examples/overview/) or browse `docs/examples/` directly.
 
-This directory contains **development examples and utilities** for the Simulacrax
+This directory contains **development examples and utilities** for the DiffAV
 evaluation engine. Examples are written as Jupytext percent-format Python scripts
 with paired `.ipynb` notebooks.
 

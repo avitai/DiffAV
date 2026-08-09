@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Documentation Generator for Simulacrax.
+Documentation Generator for DiffAV.
 
 ============================================
 
@@ -20,7 +20,7 @@ USAGE:
     python scripts/generate_docs.py [OPTIONS]
 
 OPTIONS:
-    --src-path PATH      Source directory (default: src/simulacrax)
+    --src-path PATH      Source directory (default: src/diffav)
     --docs-path PATH     Documentation output directory (default: docs)
     --clean              Clean existing docs before generation
     --verbose            Enable verbose output
@@ -95,7 +95,7 @@ class ModernDocGenerator:
 
     def __init__(
         self,
-        src_path: str = "src/simulacrax",
+        src_path: str = "src/diffav",
         docs_path: str = "docs",
         clean: bool = False,
         verbose: bool = False,
@@ -328,7 +328,7 @@ class ModernDocGenerator:
         if module_title == "Init":
             module_title = "Package Initialization"
 
-        root_package = self.src_path.name  # "simulacrax"
+        root_package = self.src_path.name  # "diffav"
         full_module_path = f"{root_package}.{module_info.module_name}"
 
         lines.extend(
@@ -516,14 +516,14 @@ class ModernDocGenerator:
 def main() -> None:
     """Main entry point for the documentation generator."""
     parser = argparse.ArgumentParser(
-        description="Documentation generator for Simulacrax",
+        description="Documentation generator for DiffAV",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
     parser.add_argument(
         "--src-path",
-        default="src/simulacrax",
-        help="Source code directory (default: src/simulacrax)",
+        default="src/diffav",
+        help="Source code directory (default: src/diffav)",
     )
 
     parser.add_argument(

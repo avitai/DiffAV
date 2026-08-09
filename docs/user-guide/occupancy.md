@@ -19,7 +19,7 @@ SceneContext ──► SceneRasterizer ──► OccupancyGrid ──► Occupan
 vehicle footprint at the agent's heading); map polyline points render as Gaussian blobs:
 
 ```python
-from simulacrax.occupancy import RasterizerConfig, SceneRasterizer
+from diffav.occupancy import RasterizerConfig, SceneRasterizer
 
 config = RasterizerConfig(grid_resolution=128, grid_size_m=80.0)
 rasterizer = SceneRasterizer(config)
@@ -36,7 +36,7 @@ positions and velocities.
 which operates on the top-down grid and predicts all T=8 future steps in one forward pass:
 
 ```python
-from simulacrax.occupancy import OccupancyFlowConfig, create_occupancy_flow_model
+from diffav.occupancy import OccupancyFlowConfig, create_occupancy_flow_model
 from flax import nnx
 import jax
 
@@ -57,7 +57,7 @@ The FNO is **resolution-independent**: the same model configuration works at 64�
 $$\frac{\partial \rho}{\partial t} + \nabla \cdot (\rho \mathbf{v}) = 0$$
 
 ```python
-from simulacrax.occupancy import FlowConsistencyLoss, FlowConsistencyLossConfig
+from diffav.occupancy import FlowConsistencyLoss, FlowConsistencyLossConfig
 
 loss_fn = FlowConsistencyLoss(
     FlowConsistencyLossConfig(weight=0.1, dt=1.0, cell_size_m=config.cell_size_m)

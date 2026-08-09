@@ -9,11 +9,11 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.alignment.scenario_steering import ScenarioSteeringConfig
-from simulacrax.api.config import Scenario
-from simulacrax.api.scenario_miner import ScenarioMiner
-from simulacrax.core.types import TrajectoryPrediction
-from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionModel
+from diffav.alignment.scenario_steering import ScenarioSteeringConfig
+from diffav.api.config import Scenario
+from diffav.api.scenario_miner import ScenarioMiner
+from diffav.core.types import TrajectoryPrediction
+from diffav.models.trajectory_diffusion import TrajectoryDiffusionModel
 
 
 class TestScenarioMinerGenerate:
@@ -58,7 +58,7 @@ class TestScenarioMinerGenerate:
 
 class TestScenarioMinerEvaluatePlanner:
     def test_returns_metrics_report(self, miner: ScenarioMiner) -> None:
-        from simulacrax.core.types import MetricsReport
+        from diffav.core.types import MetricsReport
 
         scenarios = miner.generate(scenario_type="forward", density="low", count=2)
 
@@ -108,7 +108,7 @@ class TestScenarioMinerEvaluatePlanner:
         assert perfect_report.metric_values["ade"] < bad_report.metric_values["ade"]
 
     def test_empty_scenarios_returns_empty_report(self, miner: ScenarioMiner) -> None:
-        from simulacrax.core.types import MetricsReport
+        from diffav.core.types import MetricsReport
 
         def dummy_planner(context):
             return TrajectoryPrediction(
@@ -124,7 +124,7 @@ class TestScenarioMinerEvaluatePlanner:
 @pytest.mark.slow
 class TestScenarioMinerAdversarialSearch:
     def test_returns_list_of_failure_cases(self, miner: ScenarioMiner) -> None:
-        from simulacrax.api.config import FailureCase
+        from diffav.api.config import FailureCase
 
         def dummy_planner(context):
             n = len(context.agent_states)
@@ -224,7 +224,7 @@ class TestBoundaryFailFast:
             miner.adversarial_search(lambda ctx: None, budget=-2)  # type: ignore[arg-type,return-value]
 
     def test_enum_values_accepted(self, miner: ScenarioMiner) -> None:
-        from simulacrax.core.types import Density, ScenarioType
+        from diffav.core.types import Density, ScenarioType
 
         scenarios = miner.generate(
             scenario_type=ScenarioType.LANE_CHANGE, density=Density.LOW, count=1
@@ -265,7 +265,7 @@ class TestSteer:
         assert len(scenarios) == 2
         for i, scenario in enumerate(scenarios):
             assert scenario.metadata.scenario_id == f"steered_forward_{i:06d}"
-            assert scenario.metadata.source_dataset == "simulacrax_steered"
+            assert scenario.metadata.source_dataset == "diffav_steered"
             assert "steered_forward" in scenario.metadata.tags
 
     def test_miner_model_untouched(self, miner: ScenarioMiner) -> None:
@@ -304,7 +304,7 @@ class TestSteerWeightSoup:
 
     @staticmethod
     def _soup_config(strength: float) -> ScenarioSteeringConfig:
-        from simulacrax.alignment.scenario_steering import SteeringStrategy
+        from diffav.alignment.scenario_steering import SteeringStrategy
 
         return ScenarioSteeringConfig(
             target_scenario="forward",
@@ -322,7 +322,7 @@ class TestSteerWeightSoup:
             key=jax.random.key(0),
         )
         assert len(scenarios) == 2
-        assert scenarios[0].metadata.source_dataset == "simulacrax_steered"
+        assert scenarios[0].metadata.source_dataset == "diffav_steered"
 
     def test_strength_moves_generation(self, miner: ScenarioMiner) -> None:
         """Same key, different soup strength: the interpolated weights differ."""
@@ -486,7 +486,7 @@ class TestSteerGuidance:
 
     @staticmethod
     def _guidance_config(strength: float) -> ScenarioSteeringConfig:
-        from simulacrax.alignment.scenario_steering import SteeringStrategy
+        from diffav.alignment.scenario_steering import SteeringStrategy
 
         return ScenarioSteeringConfig(
             target_scenario="forward",
@@ -503,7 +503,7 @@ class TestSteerGuidance:
             key=jax.random.key(0),
         )
         assert len(scenarios) == 2
-        assert scenarios[0].metadata.source_dataset == "simulacrax_steered"
+        assert scenarios[0].metadata.source_dataset == "diffav_steered"
 
     def test_strength_moves_generation(self, miner: ScenarioMiner) -> None:
         weak = miner.steer(
@@ -545,18 +545,18 @@ class TestClassifyFailureMode:
     """_classify_failure_mode labels the dominant physics-loss component."""
 
     def test_kinematics_dominant(self) -> None:
-        from simulacrax.api.scenario_miner import _classify_failure_mode
+        from diffav.api.scenario_miner import _classify_failure_mode
 
         components = {"kinematic_loss": jnp.array(2.0), "collision_loss": jnp.array(1.0)}
         assert _classify_failure_mode(components) == "kinematics_violation"
 
     def test_collision_dominant(self) -> None:
-        from simulacrax.api.scenario_miner import _classify_failure_mode
+        from diffav.api.scenario_miner import _classify_failure_mode
 
         components = {"kinematic_loss": jnp.array(0.5), "collision_loss": jnp.array(3.0)}
         assert _classify_failure_mode(components) == "collision_risk"
 
     def test_missing_components_default_to_kinematics(self) -> None:
-        from simulacrax.api.scenario_miner import _classify_failure_mode
+        from diffav.api.scenario_miner import _classify_failure_mode
 
         assert _classify_failure_mode({}) == "kinematics_violation"

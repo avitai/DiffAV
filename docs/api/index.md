@@ -1,6 +1,6 @@
 # API Reference
 
-Complete API documentation for all Simulacrax modules, auto-generated from
+Complete API documentation for all DiffAV modules, auto-generated from
 source code docstrings.
 
 ## Module Groups
@@ -23,7 +23,7 @@ API pages use the `:::` directive to auto-generate documentation from Python
 docstrings:
 
 ```markdown
-::: simulacrax.data.tokenizer
+::: diffav.data.tokenizer
 ```
 
 This pulls class signatures, method documentation, type annotations, and
@@ -67,7 +67,7 @@ Trajectory generation models, physics-informed training loop, and checkpointing.
 | [trajectory_diffusion](models/trajectory_diffusion.md) | `TrajectoryDiffusionModel` — DDPM with FactorizedSceneBackbone |
 | [factorized_backbone](models/factorized_backbone.md) | `FactorizedSceneBackbone` — factorized temporal + social backbone for trajectory diffusion |
 | [trainer](models/trainer.md) | `TrajectoryTrainer` — physics-informed training loop with adaptive weighting |
-| [checkpointing](models/checkpointing.md) | `SimulacraxCheckpointManager` — Orbax-backed model state persistence |
+| [checkpointing](models/checkpointing.md) | `DiffAVCheckpointManager` — Orbax-backed model state persistence |
 
 ## Physics
 
@@ -76,7 +76,7 @@ Kinematic vehicle constraints and composite physics-informed loss functions.
 | Module | Description |
 |--------|-------------|
 | [kinematics](physics/kinematics.md) | `BicycleModelConstraint`, `AckermanSteeringConstraint` — differentiable vehicle dynamics |
-| [losses](physics/losses.md) | `SimulacraxPhysicsLoss` — adaptive-weighted kinematic + collision + boundary penalties |
+| [losses](physics/losses.md) | `DiffAVPhysicsLoss` — adaptive-weighted kinematic + collision + boundary penalties |
 
 ## Alignment
 

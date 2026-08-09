@@ -10,8 +10,8 @@ import pytest
 from datarax.core.element_batch import Batch, Element
 from flax import nnx
 
-from simulacrax.core.types import FusionStrategy
-from simulacrax.data.encoders import (
+from diffav.core.types import FusionStrategy
+from diffav.data.encoders import (
     SceneFusionConfig,
     SceneFusionOperator,
 )

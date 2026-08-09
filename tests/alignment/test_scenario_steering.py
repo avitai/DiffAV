@@ -11,19 +11,19 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.alignment.dpo_trainer import (
+from diffav.alignment.dpo_trainer import (
     create_reference_model,
     DPOAlignmentConfig,
     DPOAlignmentMetrics,
     DPOAlignmentTrainer,
 )
-from simulacrax.alignment.scenario_steering import (
+from diffav.alignment.scenario_steering import (
     compute_scenario_reward,
     ScenarioSteeringConfig,
     ScenarioSteeringTrainer,
     SteeringStrategy,
 )
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionModel,
 )
 from tests import support

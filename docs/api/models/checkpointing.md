@@ -1,3 +1,3 @@
 # checkpointing
 
-::: simulacrax.models.checkpointing
+::: diffav.models.checkpointing

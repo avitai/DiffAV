@@ -63,13 +63,13 @@ ScenarioMiner (frozen dataclass)
 | Component | Source | Role |
 |-----------|--------|------|
 | `create_optimizer`, `OptimizerConfig` | `opifex.core.training.optimizers` | Adam ascent |
-| `nan_safe_gradients` | `simulacrax.core.training_utils` | NaN-safe gradient filtering |
-| `ade`, `fde` | `simulacrax.evaluation.metrics` | Per-agent displacement errors |
-| `SimulacraxPhysicsLoss` | `simulacrax.physics.losses` | Physics violation scoring |
+| `nan_safe_gradients` | `diffav.core.training_utils` | NaN-safe gradient filtering |
+| `ade`, `fde` | `diffav.evaluation.metrics` | Per-agent displacement errors |
+| `DiffAVPhysicsLoss` | `diffav.physics.losses` | Physics violation scoring |
 
 ## Coming from Other Tools?
 
-| Tool | Simulacrax ScenarioMiner |
+| Tool | DiffAV ScenarioMiner |
 |------|--------------------------|
 | Static scenario databases | Physics-informed synthesis from diffusion model |
 | Hand-crafted edge cases | Gradient-based adversarial search |
@@ -88,8 +88,8 @@ from pathlib import Path
 
 import jax.numpy as jnp
 
-from simulacrax.api import create_scenario_miner, MinerConfig
-from simulacrax.core.types import TrajectoryPrediction
+from diffav.api import create_scenario_miner, MinerConfig
+from diffav.core.types import TrajectoryPrediction
 
 
 # Full config with all fields documented. When the WOD-trained checkpoint
@@ -158,7 +158,7 @@ print("-" * 52)
 # reuse the counts across types — 3 reverse-diffusion runs instead of 12.
 # Smoke mode (set by the example execution tests) shrinks sampling counts;
 # real runs keep the showcase scale.
-_SMOKE = os.environ.get("SIMULACRAX_EXAMPLES_SMOKE") == "1"
+_SMOKE = os.environ.get("DIFFAV_EXAMPLES_SMOKE") == "1"
 density_counts = [
     len(miner.generate("forward", density=d, count=1)[0].context.agent_states) for d in densities
 ]
@@ -261,7 +261,7 @@ print(
 ## Step 4: Adversarial Search Deep Dive
 
 `adversarial_search()` uses Adam gradient ascent on the scene context
-embedding to find perturbations that maximise `SimulacraxPhysicsLoss`
+embedding to find perturbations that maximise `DiffAVPhysicsLoss`
 in the model's predictions. The perturbed scenes are then passed to
 your planner and the physics loss scores the failure severity.
 
@@ -319,7 +319,7 @@ print(f"  Adversarial predictions:    {fc.scenario.predictions.trajectories.shap
 #   failure_mode : kinematics_violation (or collision_risk)
 #   severity     : X.XXXX
 #   scenario_id  : adv_adversarial_000000
-#   source       : simulacrax_adversarial
+#   source       : diffav_adversarial
 #   tags         : ('adversarial',)
 
 # %%

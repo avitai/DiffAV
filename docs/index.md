@@ -1,6 +1,6 @@
-# Simulacrax: Evaluation Engine for Autonomous Driving
+# DiffAV: Evaluation Engine for Autonomous Driving
 
-Simulacrax is a physics-informed, RL-aligned evaluation engine for autonomous vehicle
+DiffAV is a physics-informed, RL-aligned evaluation engine for autonomous vehicle
 motion planning. It generates realistic, adversarial, and physically plausible
 counterfactual scenarios to evaluate the safety and performance of AV stacks.
 
@@ -26,8 +26,8 @@ Built on the JAX ecosystem with [datarax](https://github.com/avitai/datarax),
 
 ```bash
 # Clone and set up the environment (auto-detects CUDA/Metal/CPU)
-git clone https://github.com/avitai/simulacrax.git
-cd simulacrax
+git clone https://github.com/avitai/DiffAV.git
+cd DiffAV
 ./setup.sh
 ```
 

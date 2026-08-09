@@ -15,8 +15,8 @@ physics-informed training loss.
 
 ## Files
 
-- **Python Script**: [`examples/advanced/01_occupancy_flow_tutorial.py`](https://github.com/avitai/simulacrax/blob/main/examples/advanced/01_occupancy_flow_tutorial.py)
-- **Jupyter Notebook**: [`examples/advanced/01_occupancy_flow_tutorial.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/advanced/01_occupancy_flow_tutorial.ipynb)
+- **Python Script**: [`examples/advanced/01_occupancy_flow_tutorial.py`](https://github.com/avitai/DiffAV/blob/main/examples/advanced/01_occupancy_flow_tutorial.py)
+- **Jupyter Notebook**: [`examples/advanced/01_occupancy_flow_tutorial.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/advanced/01_occupancy_flow_tutorial.ipynb)
 
 ## Requirements & Run
 
@@ -28,7 +28,7 @@ physics-informed training loss.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - WOD Motion validation shard downloaded (see [Installation](../../getting-started/installation.md))
 - `WOD_MOTION_TFRECORD_PATH` environment variable set
 
@@ -65,7 +65,7 @@ FlowConsistencyLoss.compute(pred)  → scalar physics loss
 ## Quick Usage
 
 ```python
-from simulacrax.occupancy import (
+from diffav.occupancy import (
     OccupancyFlowConfig, RasterizerConfig, SceneRasterizer,
     FlowConsistencyLoss, FlowConsistencyLossConfig,
     create_occupancy_flow_model,
@@ -96,15 +96,15 @@ physics_loss = loss_fn.compute(prediction)
 | Component | Source | Purpose |
 |-----------|--------|---------|
 | `MultiScaleFourierNeuralOperator` | opifex.neural.operators.fno.multiscale | FNO backbone |
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading |
+| `WODSource` | diffav.data | Real WOD TFRecord loading |
 | `solve_diffusion_advection_2d` | opifex.physics.solvers.diffusion_advection | Classical solver validation |
 
 ## Coming from Occupancy Grid Baselines?
 
 If you're familiar with occupancy grid methods from motion prediction literature,
-here's how Simulacrax compares:
+here's how DiffAV compares:
 
-| Baseline | Simulacrax |
+| Baseline | DiffAV |
 |----------|------------|
 | Fixed-size CNN grid | Resolution-independent FNO (same model at 64×64 or 256×256) |
 | Hard voxelisation | Gaussian soft rasterization (differentiable, `jax.grad` through positions) |

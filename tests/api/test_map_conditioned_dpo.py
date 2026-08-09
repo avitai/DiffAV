@@ -16,21 +16,21 @@ import numpy as np
 import pytest
 from flax import nnx
 
-from simulacrax.alignment.dpo_trainer import DPOAlignmentConfig
-from simulacrax.api.map_conditioned import (
+from diffav.alignment.dpo_trainer import DPOAlignmentConfig
+from diffav.api.map_conditioned import (
     build_map_conditioned_model,
     MapConditionedBuildSpec,
     MapConditionedTrajectoryModel,
 )
-from simulacrax.api.map_conditioned_dpo import (
+from diffav.api.map_conditioned_dpo import (
     _scene_pair_log_probs,
     assemble_dpo_batch,
     build_dpo_arm,
     map_conditioned_dpo_loss,
     map_conditioned_dpo_step,
 )
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.evaluation.map_conditioned_evaluator import ValidationScene
+from diffav.core.geometry import RoadEdges
+from diffav.evaluation.map_conditioned_evaluator import ValidationScene
 from tests import support
 from tests.api.test_map_conditioned import (
     _agent_rows,

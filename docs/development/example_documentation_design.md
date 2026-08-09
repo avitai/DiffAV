@@ -1,7 +1,7 @@
 # Example Documentation Design Framework
 
 > **Purpose**: Establish unified standards for creating educational examples and tutorials
-> for the Simulacrax autonomous driving trajectory generation library.
+> for the DiffAV autonomous driving trajectory generation library.
 
 ---
 
@@ -32,7 +32,7 @@
 
 ### Purpose
 
-This document defines complete standards for documenting Simulacrax examples and
+This document defines complete standards for documenting DiffAV examples and
 tutorials. It ensures consistent, high-quality educational content that serves users
 from first-time learners to production engineers building autonomous driving
 trajectory generation systems.
@@ -77,7 +77,7 @@ flowchart TB
 
 ### Five Core Principles
 
-These principles guide every documentation decision in Simulacrax:
+These principles guide every documentation decision in DiffAV:
 
 #### 2.1 Progressive Disclosure
 
@@ -89,7 +89,7 @@ scene conditioning as they understand each concept.
 
 ```python
 # Level 1: Minimal trajectory model (3 lines)
-from simulacrax.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
+from diffav.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
 
 model = TrajectoryDiffusionModel(config, rngs=nnx.Rngs(params=jax.random.key(0)))
 
@@ -149,7 +149,7 @@ print(f"Kinematic residual: {float(residual):.6f}")
 | User Type | Needs | Best Tier |
 |-----------|-------|-----------|
 | Experienced ML engineer | Quick syntax reminder | Tier 1 Quick Reference |
-| First-time Simulacrax user | Guided learning path | Tier 2 Tutorial |
+| First-time DiffAV user | Guided learning path | Tier 2 Tutorial |
 | Production engineer | JIT optimization, scaling | Tier 3 Advanced Guide |
 | Researcher exploring | Conceptual understanding | Tier 2 with theory focus |
 
@@ -160,7 +160,7 @@ print(f"Kinematic residual: {float(residual):.6f}")
 **Visual design serves learning, not decoration.**
 
 Good visual design reduces cognitive load and helps users understand relationships
-between concepts. Simulacrax documentation uses Material for MkDocs features purposefully:
+between concepts. DiffAV documentation uses Material for MkDocs features purposefully:
 
 | Element | Purpose | Example Usage |
 |---------|---------|---------------|
@@ -241,7 +241,7 @@ flowchart TB
 | Scenario | Recommended Tier | Rationale |
 |----------|------------------|-----------|
 | "How do I create a trajectory diffusion model?" | Tier 1 | Single concept, quick answer |
-| "Never used Simulacrax before" | Tier 2 | Needs guided introduction |
+| "Never used DiffAV before" | Tier 2 | Needs guided introduction |
 | "How do I JIT-compile physics-informed training?" | Tier 3 | Complex production topic |
 | "What physics constraints are available?" | Tier 2 | Overview of multiple concepts |
 | "How do I debug NaN gradients in training?" | Tier 3 | Requires deep understanding |
@@ -278,11 +278,11 @@ flowchart LR
 
 ### Directory Structure
 
-Simulacrax separates documentation from code, following a clean pattern where markdown
+DiffAV separates documentation from code, following a clean pattern where markdown
 files in `docs/examples/` explain and link to runnable code in `examples/`:
 
 ```text
-simulacrax/
+diffav/
 ├── docs/
 │   └── examples/
 │       ├── overview.md                      # Entry point with cards
@@ -366,8 +366,8 @@ Each markdown file in `docs/examples/` follows this pattern:
 
 ## Files
 
-- **Python Script**: [`examples/physics/01_bicycle_model_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/physics/01_bicycle_model_quickref.py)
-- **Jupyter Notebook**: [`examples/physics/01_bicycle_model_quickref.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/physics/01_bicycle_model_quickref.ipynb)
+- **Python Script**: [`examples/physics/01_bicycle_model_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/physics/01_bicycle_model_quickref.py)
+- **Jupyter Notebook**: [`examples/physics/01_bicycle_model_quickref.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/physics/01_bicycle_model_quickref.ipynb)
 
 ## Quick Start
 
@@ -413,7 +413,7 @@ jupyter lab examples/physics/01_bicycle_model_quickref.ipynb
 
 ### Philosophy
 
-Simulacrax examples use a **dual-format approach**:
+DiffAV examples use a **dual-format approach**:
 
 1. **Python scripts (`.py`)** as the source of truth
 2. **Jupyter notebooks (`.ipynb`)** generated automatically via Jupytext
@@ -642,7 +642,7 @@ graph LR
 
 ### The 7-Part Structure
 
-Every Simulacrax example follows this structure, adapted by tier:
+Every DiffAV example follows this structure, adapted by tier:
 
 ```mermaid
 flowchart TB
@@ -725,7 +725,7 @@ By the end of this example, you will be able to:
 ## Setup
 
 ```bash
-# Install simulacrax with development dependencies
+# Install diffav with development dependencies
 uv sync
 ```
 
@@ -739,8 +739,8 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 
-from simulacrax.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
-from simulacrax.physics.kinematics import BicycleModelConstraint, BicycleModelConfig
+from diffav.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
+from diffav.physics.kinematics import BicycleModelConstraint, BicycleModelConfig
 ```
 ````
 
@@ -753,7 +753,7 @@ For tutorials and advanced guides, include theoretical background:
 
 ### The Diffusion Training Loop
 
-Simulacrax training combines diffusion noise prediction loss with physics-informed
+DiffAV training combines diffusion noise prediction loss with physics-informed
 penalties in a single backward pass. The trainer composes building blocks from
 sister repositories:
 
@@ -863,7 +863,7 @@ that occurs when physics constraints dominate early optimization.
 
 ### Design Tokens
 
-Simulacrax documentation uses Material for MkDocs with these design choices:
+DiffAV documentation uses Material for MkDocs with these design choices:
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -934,7 +934,7 @@ Always use syntax highlighting and copy buttons:
 
 ````markdown
 ```python title="Creating a Trajectory Model" linenums="1"
-from simulacrax.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
+from diffav.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
 
 config = TrajectoryDiffusionConfig(hidden_dim=256, num_blocks=4)
 model = TrajectoryDiffusionModel(config, rngs=nnx.Rngs(params=jax.random.key(0)))
@@ -963,7 +963,7 @@ graph TD
     subgraph Trainer["TrajectoryTrainer"]
         M[TrajectoryDiffusionModel]
         O[nnx.Optimizer]
-        P[SimulacraxPhysicsLoss]
+        P[DiffAVPhysicsLoss]
         C[CheckpointManager]
     end
 
@@ -997,7 +997,7 @@ graph TD
 | **Length** | 100-200 lines of code |
 | **Time to Complete** | 5-10 minutes |
 | **Code/Explanation Ratio** | 70% code / 30% explanation |
-| **Prerequisites** | Working Simulacrax knowledge |
+| **Prerequisites** | Working DiffAV knowledge |
 
 #### Structure Template
 
@@ -1069,7 +1069,7 @@ All operations are vectorized JAX, JIT-compatible, and differentiable.
 
 #### Tier 1 Exemplar: Bicycle Model Quick Reference
 
-Reference: [`examples/physics/01_bicycle_model_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/physics/01_bicycle_model_quickref.py)
+Reference: [`examples/physics/01_bicycle_model_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/physics/01_bicycle_model_quickref.py)
 
 This example demonstrates ideal Tier 1 structure:
 
@@ -1090,7 +1090,7 @@ This example demonstrates ideal Tier 1 structure:
 | **Length** | 200-400 lines |
 | **Time to Complete** | 15-30 minutes |
 | **Code/Explanation Ratio** | 50% code / 50% explanation |
-| **Prerequisites** | Basic Simulacrax, relevant domain knowledge |
+| **Prerequisites** | Basic DiffAV, relevant domain knowledge |
 
 #### Structure Template
 
@@ -1174,13 +1174,13 @@ jit_step = nnx.jit(trainer.compute_train_step)
 | Component | Source | Purpose |
 |-----------|--------|---------|
 | [Component 1] | [sister repo] | [purpose] |
-| [Component 2] | simulacrax | [purpose] |
+| [Component 2] | diffav | [purpose] |
 """
 ````
 
 #### Tier 2 Exemplar: Physics-Informed Training Tutorial
 
-Reference: [`examples/models/02_physics_informed_training_tutorial.py`](https://github.com/avitai/simulacrax/blob/main/examples/models/02_physics_informed_training_tutorial.py)
+Reference: [`examples/models/02_physics_informed_training_tutorial.py`](https://github.com/avitai/DiffAV/blob/main/examples/models/02_physics_informed_training_tutorial.py)
 
 ### Tier 3: Advanced Guide
 
@@ -1345,9 +1345,9 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 
-# Simulacrax
-from simulacrax.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
-from simulacrax.physics.kinematics import BicycleModelConstraint, BicycleModelConfig
+# DiffAV
+from diffav.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
+from diffav.physics.kinematics import BicycleModelConstraint, BicycleModelConfig
 
 # Verify setup
 print(f"JAX version: {jax.__version__}")
@@ -1361,7 +1361,7 @@ print(f"Devices: {jax.devices()}")
 
 By the end of this example, you will be able to:
 
-1. **Create** [specific outcome with Simulacrax component]
+1. **Create** [specific outcome with DiffAV component]
 2. **Configure** [settings/parameters for specific use case]
 3. **Implement** [working code pattern]
 4. **Validate** [physics constraints or model outputs]
@@ -1514,13 +1514,13 @@ Gradients are computed by the trainer in a single backward pass.
 
 | Rule | Example |
 |------|---------|
-| Capitalize proper nouns | "Simulacrax", "JAX", "Flax NNX" |
+| Capitalize proper nouns | "DiffAV", "JAX", "Flax NNX" |
 | Use code formatting for code | "`compute_loss()`", "`TrajectoryDiffusionModel`" |
 | Use present tense | "The constraint validates" not "will validate" |
 
 ### Technical Terms
 
-#### Simulacrax-Specific Terminology
+#### DiffAV-Specific Terminology
 
 | Term | Definition | Usage |
 |------|------------|-------|
@@ -1554,7 +1554,7 @@ config = BicycleModelConfig()  # This is obvious
 
 ### Executable Code Philosophy
 
-**All code in Simulacrax examples must be executable.**
+**All code in DiffAV examples must be executable.**
 
 - No pseudocode or placeholder syntax
 - All imports must be real and available
@@ -1576,11 +1576,11 @@ import jax.numpy as jnp
 from flax import nnx
 from opifex.core.training.optimizers import OptimizerConfig
 
-# Simulacrax (alphabetical by submodule)
-from simulacrax.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
-from simulacrax.models.trainer import TrainerConfig, TrajectoryTrainer
-from simulacrax.physics.kinematics import BicycleModelConstraint, BicycleModelConfig
-from simulacrax.physics.losses import SimulacraxPhysicsConfig, SimulacraxPhysicsLoss
+# DiffAV (alphabetical by submodule)
+from diffav.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
+from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
+from diffav.physics.kinematics import BicycleModelConstraint, BicycleModelConfig
+from diffav.physics.losses import DiffAVPhysicsConfig, DiffAVPhysicsLoss
 ```
 
 #### Configuration Examples
@@ -1606,7 +1606,7 @@ trainer_config = TrainerConfig(
         learning_rate=1e-3,
         gradient_clip=1.0,
     ),
-    physics_config=SimulacraxPhysicsConfig(
+    physics_config=DiffAVPhysicsConfig(
         kinematic_weight=1.0,
         collision_weight=1.0,
         adaptive_weighting=True,
@@ -1631,8 +1631,8 @@ When using components from sister repositories, always note their origin:
 | `create_optimizer` | opifex | Build optax optimizer from config |
 | `ErrorRecoveryManager` | opifex | NaN/instability detection |
 | `FlopsCounter` | calibrax | FLOPs profiling per training step |
-| `SimulacraxPhysicsLoss` | simulacrax | Bicycle model + collision penalties |
-| `SimulacraxCheckpointManager` | simulacrax | Periodic checkpoint saving |
+| `DiffAVPhysicsLoss` | diffav | Bicycle model + collision penalties |
+| `DiffAVCheckpointManager` | diffav | Periodic checkpoint saving |
 """
 ```
 
@@ -1662,7 +1662,7 @@ flowchart TB
 Before writing any code, answer these questions:
 
 1. **Who is the audience?**
-    - [ ] First-time Simulacrax user
+    - [ ] First-time DiffAV user
     - [ ] Developer familiar with basics
     - [ ] Production engineer
     - [ ] Autonomous driving researcher
@@ -1820,7 +1820,7 @@ print(f"Loss: {metrics.total_loss:.4f}")
 # %%
 # Add physics-informed training
 trainer = TrajectoryTrainer(model, TrainerConfig(
-    physics_config=SimulacraxPhysicsConfig(kinematic_weight=1.0),
+    physics_config=DiffAVPhysicsConfig(kinematic_weight=1.0),
 ))
 metrics = trainer.train_step(trajectories, scene_context, key=jax.random.key(42))
 print(f"Physics loss: {metrics.physics_loss:.4f}")
@@ -1877,7 +1877,7 @@ for i in range(5):
 
 ### Handling Breaking Changes
 
-When Simulacrax APIs change:
+When DiffAV APIs change:
 
 1. **Update all affected examples** before release
 2. **Add migration notes** to examples
@@ -1911,7 +1911,7 @@ When Simulacrax APIs change:
 
 #### Example Contribution Template
 
-Contributors should use the template at [`examples/_templates/example_template.py`](https://github.com/avitai/simulacrax/blob/main/examples/_templates/example_template.py)
+Contributors should use the template at [`examples/_templates/example_template.py`](https://github.com/avitai/DiffAV/blob/main/examples/_templates/example_template.py)
 as a starting point for new examples.
 
 ---
@@ -1978,21 +1978,21 @@ These existing examples demonstrate the principles in this guide:
 
 | Example | Location | Demonstrates |
 |---------|----------|--------------|
-| WOD Loading | [`examples/core/01_wod_loading_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/core/01_wod_loading_quickref.py) | Data loading quick reference |
-| Trajectory Diffusion | [`examples/models/01_trajectory_diffusion_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/models/01_trajectory_diffusion_quickref.py) | Model architecture quick reference |
-| Bicycle Model | [`examples/physics/01_bicycle_model_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/physics/01_bicycle_model_quickref.py) | Physics constraints quick reference |
+| WOD Loading | [`examples/core/01_wod_loading_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/core/01_wod_loading_quickref.py) | Data loading quick reference |
+| Trajectory Diffusion | [`examples/models/01_trajectory_diffusion_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/models/01_trajectory_diffusion_quickref.py) | Model architecture quick reference |
+| Bicycle Model | [`examples/physics/01_bicycle_model_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/physics/01_bicycle_model_quickref.py) | Physics constraints quick reference |
 
 ### Tier 2 Exemplars
 
 | Example | Location | Demonstrates |
 |---------|----------|--------------|
-| Physics-Informed Training | [`examples/models/02_physics_informed_training_tutorial.py`](https://github.com/avitai/simulacrax/blob/main/examples/models/02_physics_informed_training_tutorial.py) | Full tutorial with JIT and sister repo composition |
+| Physics-Informed Training | [`examples/models/02_physics_informed_training_tutorial.py`](https://github.com/avitai/DiffAV/blob/main/examples/models/02_physics_informed_training_tutorial.py) | Full tutorial with JIT and sister repo composition |
 
 ### Template
 
 | File | Purpose |
 |------|---------|
-| [`examples/_templates/example_template.py`](https://github.com/avitai/simulacrax/blob/main/examples/_templates/example_template.py) | Starting point for new examples |
+| [`examples/_templates/example_template.py`](https://github.com/avitai/DiffAV/blob/main/examples/_templates/example_template.py) | Starting point for new examples |
 
 ### Documentation Pages
 

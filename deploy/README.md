@@ -1,4 +1,4 @@
-# Running Simulacrax on Modal
+# Running DiffAV on Modal
 
 Launch GPU training and the DPO ablation on a Modal-managed A100/H100 — the fix
 for the 24 GB local-card OOM. The container runs the repository's existing
@@ -29,6 +29,10 @@ is required.
 A run-time function mount creates its Volume lazily, but the `modal volume put`
 CLI needs the Volume to exist first — so create the two Volumes explicitly, then
 upload the Waymo tfrecords and the reference checkpoint into them:
+
+The Volume names keep the pre-rename `simulacrax-` prefix deliberately — they
+identify already-populated remote stores, and renaming them would create new
+empty Volumes rather than move the data.
 
 ```bash
 modal volume create simulacrax-wod-data

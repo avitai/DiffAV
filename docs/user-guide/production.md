@@ -2,7 +2,7 @@
 
 ## Overview
 
-Simulacrax supports these deployment paths:
+DiffAV supports these deployment paths:
 
 - **Docker** — ship the complete Python runtime in a container for training, batch
   evaluation, and benchmarks. This is the supported production path today.
@@ -37,7 +37,7 @@ can consume.
 ### Export command
 
 ```bash
-# Writes artifacts/simulacrax_scenario_miner.mlir
+# Writes artifacts/diffav_scenario_miner.mlir
 uv run python scripts/export_stablehlo.py
 
 # Choose a different output directory
@@ -53,16 +53,16 @@ demonstration dimensions: 8 agents, 80 future steps, `hidden_dim=128`, `context_
 ... INFO ... Built TrajectoryDiffusionModel: hidden_dim=128, num_blocks=2, num_agents=8
 ... INFO ... Tracing predict_noise for StableHLO export ...
 ... INFO ... Serialising to StableHLO MLIR ...
-StableHLO export written to: /.../artifacts/simulacrax_scenario_miner.mlir
+StableHLO export written to: /.../artifacts/diffav_scenario_miner.mlir
 ```
 
 The resulting `.mlir` can be compiled for a target device with `iree-compile`:
 
 ```bash
-iree-compile artifacts/simulacrax_scenario_miner.mlir \
+iree-compile artifacts/diffav_scenario_miner.mlir \
     --iree-input-type=stablehlo \
     --iree-hal-target-backends=cuda \
-    -o artifacts/simulacrax_scenario_miner_cuda.vmfb
+    -o artifacts/diffav_scenario_miner_cuda.vmfb
 ```
 
 ---
@@ -77,12 +77,12 @@ container runs whatever entrypoint you pass it.
 ### Build
 
 ```bash
-docker build -t simulacrax:latest .
+docker build -t diffav:latest .
 ```
 
 The build installs dependencies from the pinned `uv.lock`, copies `src/`, `tests/`,
 `scripts/`, `benchmarks/`, and `examples/`, installs the project, and verifies that
-`simulacrax` imports on CPU so a broken image fails the build.
+`diffav` imports on CPU so a broken image fails the build.
 
 ### Run
 
@@ -90,18 +90,18 @@ The default command runs the fast test suite; override it to run any entrypoint.
 
 ```bash
 # Verify the GPU runtime
-docker run --rm --gpus all simulacrax:latest \
-    python -c "import simulacrax, jax; print(jax.devices())"
+docker run --rm --gpus all diffav:latest \
+    python -c "import diffav, jax; print(jax.devices())"
 
 # Run the fast tests on CPU
-docker run --rm -e JAX_PLATFORMS=cpu simulacrax:latest \
+docker run --rm -e JAX_PLATFORMS=cpu diffav:latest \
     python -m pytest tests/ -x -q -m "not slow"
 
 # Train against a mounted checkpoint directory
 docker run --gpus all \
     -e JAX_PLATFORMS=cuda \
     -v /local/checkpoints:/checkpoints \
-    simulacrax:latest \
+    diffav:latest \
     python scripts/train_wod.py --help
 ```
 
@@ -112,7 +112,7 @@ Environment variables:
 | `JAX_PLATFORMS` | `cuda`, `tpu`, or `cpu`. |
 | `XLA_PYTHON_CLIENT_PREALLOCATE` | Preallocate GPU memory (image default: `false`). |
 | `XLA_PYTHON_CLIENT_MEM_FRACTION` | Fraction of GPU memory to allocate (image default: `0.75`). |
-| `SIMULACRAX_BACKEND` | Backend policy reported by `scripts/verify_simulacrax_gpu.py`. |
+| `DIFFAV_BACKEND` | Backend policy reported by `scripts/verify_diffav_gpu.py`. |
 
 For managed GPU runs without a local card, `deploy/modal_app.py` launches the same
 entrypoints on a Modal A100/H100 — see `deploy/README.md` in the repository.
@@ -127,7 +127,7 @@ entrypoints on a Modal A100/H100 — see `deploy/README.md` in the repository.
 calibrax's `FlopsCounter` and cached; with profiling off the field is `0.0`.
 
 ```python
-from simulacrax.models.trainer import TrainerConfig, TrajectoryTrainer
+from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
 
 trainer = TrajectoryTrainer(model, TrainerConfig(profile_flops=True))
 metrics = trainer.train_step(trajectories, scene_context, key=jax.random.key(0))

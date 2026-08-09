@@ -4,17 +4,17 @@
 |----------|-------|
 | **Level** | Core |
 | **Runtime** | ~2 min (CPU) |
-| **Prerequisites** | Simulacrax installed (`uv sync`) |
+| **Prerequisites** | DiffAV installed (`uv sync`) |
 | **Format** | Python + Jupyter |
 
-The "hello world" of Simulacrax: generate synthetic driving scenarios,
+The "hello world" of DiffAV: generate synthetic driving scenarios,
 evaluate a planner with ADE/FDE metrics, and search for adversarial failure
 cases — all in under 15 lines of Python.
 
 ## Files
 
-- **Python Script**: [`examples/core/03_end_to_end_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/core/03_end_to_end_quickref.py)
-- **Jupyter Notebook**: [`examples/core/03_end_to_end_quickref.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/core/03_end_to_end_quickref.ipynb)
+- **Python Script**: [`examples/core/03_end_to_end_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/core/03_end_to_end_quickref.py)
+- **Jupyter Notebook**: [`examples/core/03_end_to_end_quickref.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/core/03_end_to_end_quickref.ipynb)
 
 ## Requirements & Run
 
@@ -46,8 +46,8 @@ adversarial_search(planner_fn, budget)   →  list[FailureCase]
 ## Quick Usage
 
 ```python
-from simulacrax.api import MinerConfig, create_scenario_miner
-from simulacrax.core.types import TrajectoryPrediction
+from diffav.api import MinerConfig, create_scenario_miner
+from diffav.core.types import TrajectoryPrediction
 import jax.numpy as jnp
 
 config = MinerConfig(max_agents=8, prediction_horizon=20, context_dim=64)

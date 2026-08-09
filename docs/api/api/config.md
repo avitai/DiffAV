@@ -1,3 +1,3 @@
 # config
 
-::: simulacrax.api.config
+::: diffav.api.config

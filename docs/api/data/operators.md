@@ -1,3 +1,3 @@
 # operators
 
-::: simulacrax.data.operators
+::: diffav.data.operators

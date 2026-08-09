@@ -9,7 +9,7 @@ from __future__ import annotations
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.core.types import (
+from diffav.core.types import (
     AgentState,
     AgentType,
     MapFeature,
@@ -300,12 +300,12 @@ class TestSdkBoundaryEnums:
     """Density and ScenarioType define the SDK's input vocabulary."""
 
     def test_density_values(self) -> None:
-        from simulacrax.core.types import Density
+        from diffav.core.types import Density
 
         assert [d.value for d in Density] == ["low", "medium", "high"]
 
     def test_scenario_type_values(self) -> None:
-        from simulacrax.core.types import ScenarioType
+        from diffav.core.types import ScenarioType
 
         assert [s.value for s in ScenarioType] == [
             "forward",
@@ -315,6 +315,6 @@ class TestSdkBoundaryEnums:
         ]
 
     def test_density_is_str_compatible(self) -> None:
-        from simulacrax.core.types import Density
+        from diffav.core.types import Density
 
         assert Density("medium") == "medium"

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from simulacrax.api.config import MinerConfig
-from simulacrax.api.scenario_miner import ScenarioMiner
-from simulacrax.models.trajectory_diffusion import (
+from diffav.api.config import MinerConfig
+from diffav.api.scenario_miner import ScenarioMiner
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionModel,
 )
 from tests import support

@@ -1,6 +1,6 @@
 # Examples Overview
 
-Simulacrax examples follow a three-tier system.
+DiffAV examples follow a three-tier system.
 
 <div class="grid cards" markdown>
 
@@ -135,6 +135,6 @@ Each example includes:
 
     Jupytext percent-format template with all required sections pre-filled.
 
-    [:octicons-arrow-right-24: examples/_templates/example_template.py](https://github.com/avitai/simulacrax/blob/main/examples/_templates/example_template.py)
+    [:octicons-arrow-right-24: examples/_templates/example_template.py](https://github.com/avitai/DiffAV/blob/main/examples/_templates/example_template.py)
 
 </div>

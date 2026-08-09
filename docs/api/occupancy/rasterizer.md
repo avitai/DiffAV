@@ -1,3 +1,3 @@
 # rasterizer
 
-::: simulacrax.occupancy.rasterizer
+::: diffav.occupancy.rasterizer

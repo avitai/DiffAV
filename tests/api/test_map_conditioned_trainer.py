@@ -11,19 +11,19 @@ import optax
 import pytest
 from flax import nnx
 
-from simulacrax.api.map_conditioned import (
+from diffav.api.map_conditioned import (
     MapConditionedTrajectoryConfig,
     MapConditionedTrajectoryModel,
 )
-from simulacrax.api.map_conditioned_trainer import (
+from diffav.api.map_conditioned_trainer import (
     build_optimizer,
     MapConditionedTrainer,
     TrainBatch,
     TrainingConfig,
 )
-from simulacrax.core.types import ModalityMode
-from simulacrax.data.tokenizer import TokenizerConfig
-from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionConfig
+from diffav.core.types import ModalityMode
+from diffav.data.tokenizer import TokenizerConfig
+from diffav.models.trajectory_diffusion import TrajectoryDiffusionConfig
 
 
 _AGENTS = 2

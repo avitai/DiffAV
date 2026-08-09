@@ -1,3 +1,3 @@
 # kinematics
 
-::: simulacrax.physics.kinematics
+::: diffav.physics.kinematics

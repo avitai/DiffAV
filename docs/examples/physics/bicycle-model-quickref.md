@@ -14,8 +14,8 @@ heading, acceleration, steering angle, and velocity constraints.
 
 ## Files
 
-- **Python Script**: [`examples/physics/01_bicycle_model_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/physics/01_bicycle_model_quickref.py)
-- **Jupyter Notebook**: [`examples/physics/01_bicycle_model_quickref.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/physics/01_bicycle_model_quickref.ipynb)
+- **Python Script**: [`examples/physics/01_bicycle_model_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/physics/01_bicycle_model_quickref.py)
+- **Jupyter Notebook**: [`examples/physics/01_bicycle_model_quickref.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/physics/01_bicycle_model_quickref.ipynb)
 
 ## Requirements & Run
 
@@ -35,13 +35,13 @@ heading, acceleration, steering angle, and velocity constraints.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - JAX arrays, vehicle kinematics basics
 
 ## Quick Usage
 
 ```python
-from simulacrax.physics.kinematics import (
+from diffav.physics.kinematics import (
     BicycleModelConfig, BicycleModelConstraint,
 )
 
@@ -71,4 +71,4 @@ All operations are vectorized JAX, JIT-compatible, and differentiable.
 
 - [Physics-Informed Training Tutorial](../models/physics-informed-training-tutorial.md)
 - [BicycleModelConstraint API](../../api/physics/kinematics.md)
-- [SimulacraxPhysicsLoss API](../../api/physics/losses.md)
+- [DiffAVPhysicsLoss API](../../api/physics/losses.md)

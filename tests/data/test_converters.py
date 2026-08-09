@@ -10,16 +10,16 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.core.types import (
+from diffav.core.types import (
     AgentType,
     SceneContext,
     TrajectoryPrediction,
 )
-from simulacrax.data.converters import (
+from diffav.data.converters import (
     from_wod_scenario,
     to_wod_submission,
 )
-from simulacrax.data.parsers import parse_scenario
+from diffav.data.parsers import parse_scenario
 from tests.data.helpers import FUTURE_STEPS
 
 

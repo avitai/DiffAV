@@ -58,8 +58,8 @@ DPOAlignmentTrainer.train_step(batch, key) → implicit-reward metrics
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading |
-| `create_scenario_miner` | simulacrax.api | Checkpoint restore into the SDK model |
+| `WODSource` | diffav.data | Real WOD TFRecord loading |
+| `create_scenario_miner` | diffav.api | Checkpoint restore into the SDK model |
 | `NoiseSchedule` | artifex | Forward diffusion for log-prob estimation |
 | `create_optimizer` | opifex | Gradient-clipped optimizer creation |
 | `nnx.clone` | Flax NNX | Deep-copy for frozen reference model |
@@ -104,7 +104,7 @@ from dotenv import load_dotenv
 from flax import nnx
 from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
 
-from simulacrax.alignment import (
+from diffav.alignment import (
     create_reference_model,
     DPOAlignmentConfig,
     DPOAlignmentTrainer,
@@ -112,11 +112,11 @@ from simulacrax.alignment import (
     PreferencePairConfig,
     SafetyReward,
 )
-from simulacrax.api import create_scenario_miner, MinerConfig
-from simulacrax.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
-from simulacrax.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
-from simulacrax.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
+from diffav.api import create_scenario_miner, MinerConfig
+from diffav.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
+from diffav.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
+from diffav.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
+from diffav.data.wod_source import WODSource, WODSourceConfig
 
 
 load_dotenv()

@@ -1,8 +1,8 @@
-site_name: Simulacrax Documentation
-site_url: https://docs.avitai.bio/simulacrax
-repo_url: https://github.com/avitai/simulacrax
+site_name: DiffAV Documentation
+site_url: https://diffav.readthedocs.io/en/latest/
+repo_url: https://github.com/avitai/DiffAV
 site_description: Physics-informed, RL-aligned evaluation engine for autonomous driving
-site_author: The Simulacrax Team
+site_author: The DiffAV Team
 
 # Internal contributor spec kept in-repo but not published to the site.
 exclude_docs: |
@@ -62,9 +62,9 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/avitai/simulacrax
+      link: https://github.com/avitai/DiffAV
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/simulacrax/
+      link: https://pypi.org/project/diffav/
 
 plugins:
   - search

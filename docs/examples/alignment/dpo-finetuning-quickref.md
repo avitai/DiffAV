@@ -15,8 +15,8 @@ error and aligning the model toward safer trajectories.
 
 ## Files
 
-- **Python Script**: [`examples/alignment/02_dpo_finetuning_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/alignment/02_dpo_finetuning_quickref.py)
-- **Jupyter Notebook**: [`examples/alignment/02_dpo_finetuning_quickref.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/alignment/02_dpo_finetuning_quickref.ipynb)
+- **Python Script**: [`examples/alignment/02_dpo_finetuning_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/alignment/02_dpo_finetuning_quickref.py)
+- **Jupyter Notebook**: [`examples/alignment/02_dpo_finetuning_quickref.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/alignment/02_dpo_finetuning_quickref.ipynb)
 
 ## Requirements & Run
 
@@ -36,7 +36,7 @@ error and aligning the model toward safer trajectories.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - JAX arrays, reward functions, DPO basics
 - Familiarity with [Preference Construction](preference-construction-quickref.md)
 
@@ -61,7 +61,7 @@ DPOAlignmentTrainer
 ## Quick Usage
 
 ```python
-from simulacrax.alignment import (
+from diffav.alignment import (
     DPOAlignmentConfig,
     DPOAlignmentTrainer,
     create_reference_model,

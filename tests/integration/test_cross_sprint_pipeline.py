@@ -1,4 +1,4 @@
-"""Cross-sprint integration tests for the full Simulacrax pipeline.
+"""Cross-sprint integration tests for the full DiffAV pipeline.
 
 Exercises data types -> metrics, SDK generation -> evaluation, and
 occupancy flow -> PDE loss without any real WOD TFRecord dependency.
@@ -15,16 +15,16 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.api import create_scenario_miner, MinerConfig
-from simulacrax.core.types import MetricsReport, TrajectoryPrediction
-from simulacrax.evaluation.metrics import MotionMetrics, MotionMetricsConfig
-from simulacrax.evaluation.runner import EvaluationRunner
-from simulacrax.occupancy.flow_model import (
+from diffav.api import create_scenario_miner, MinerConfig
+from diffav.core.types import MetricsReport, TrajectoryPrediction
+from diffav.evaluation.metrics import MotionMetrics, MotionMetricsConfig
+from diffav.evaluation.runner import EvaluationRunner
+from diffav.occupancy.flow_model import (
     OccupancyFlowConfig,
     OccupancyFlowModel,
     OccupancyGrid,
 )
-from simulacrax.occupancy.losses import FlowConsistencyLoss, FlowConsistencyLossConfig
+from diffav.occupancy.losses import FlowConsistencyLoss, FlowConsistencyLossConfig
 
 
 # ---------------------------------------------------------------------------

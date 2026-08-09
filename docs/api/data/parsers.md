@@ -1,3 +1,3 @@
 # parsers
 
-::: simulacrax.data.parsers
+::: diffav.data.parsers

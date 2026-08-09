@@ -1,14 +1,14 @@
 # =============================================================================
-# Simulacrax — GPU-capable, CPU-fallback runtime image
+# DiffAV — GPU-capable, CPU-fallback runtime image
 # =============================================================================
 # One image for training, evaluation, benchmarks, and tests. GPU support comes
 # from JAX's pip-managed CUDA wheels (the [gpu] extra); on hosts without a GPU
 # the same image runs on CPU (set JAX_PLATFORMS=cpu to force it).
 #
-# Build:  docker build -t simulacrax:latest .
-# Run:    docker run --rm --gpus all simulacrax:latest \
-#           python -c "import simulacrax, jax; print(jax.devices())"
-# Test:   docker run --rm -e JAX_PLATFORMS=cpu simulacrax:latest \
+# Build:  docker build -t diffav:latest .
+# Run:    docker run --rm --gpus all diffav:latest \
+#           python -c "import diffav, jax; print(jax.devices())"
+# Test:   docker run --rm -e JAX_PLATFORMS=cpu diffav:latest \
 #           python -m pytest tests/ -x -q -m "not slow"
 # =============================================================================
 
@@ -64,11 +64,11 @@ COPY examples ./examples
 RUN uv sync --frozen --extra gpu
 
 # Verify the package imports (CPU works on GPU-less build hosts)
-RUN JAX_PLATFORMS=cpu python -c "import simulacrax, jax; print(f'JAX {jax.__version__} OK')"
+RUN JAX_PLATFORMS=cpu python -c "import diffav, jax; print(f'JAX {jax.__version__} OK')"
 
 # Non-root runtime user
-RUN useradd --create-home simulacrax && chown -R simulacrax:simulacrax /app
-USER simulacrax
+RUN useradd --create-home diffav && chown -R diffav:diffav /app
+USER diffav
 
 # Default command — overridable at runtime
 CMD ["python", "-m", "pytest", "tests/", "-x", "-q", "-m", "not slow"]

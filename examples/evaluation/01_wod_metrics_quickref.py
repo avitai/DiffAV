@@ -64,7 +64,7 @@ MetricsDashboard.generate(report) → motion/table.csv + .html
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading |
+| `WODSource` | diffav.data | Real WOD TFRecord loading |
 | `PublicationGenerator` | calibrax | Table export (CSV, HTML) |
 """
 
@@ -110,10 +110,10 @@ import jax.numpy as jnp
 import numpy as np
 from dotenv import load_dotenv
 
-from simulacrax.core.types import MetricsReport, TrajectoryPrediction
-from simulacrax.data import resolve_wod_tfrecord_path
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
-from simulacrax.evaluation import (
+from diffav.core.types import MetricsReport, TrajectoryPrediction
+from diffav.data import resolve_wod_tfrecord_path
+from diffav.data.wod_source import WODSource, WODSourceConfig
+from diffav.evaluation import (
     ade,
     EvaluationRunner,
     fde,

@@ -6,8 +6,8 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.occupancy.flow_model import OccupancyGridPrediction
-from simulacrax.occupancy.losses import FlowConsistencyLoss, FlowConsistencyLossConfig
+from diffav.occupancy.flow_model import OccupancyGridPrediction
+from diffav.occupancy.losses import FlowConsistencyLoss, FlowConsistencyLossConfig
 
 
 def _make_pred(

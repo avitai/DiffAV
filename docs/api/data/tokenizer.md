@@ -1,3 +1,3 @@
 # tokenizer
 
-::: simulacrax.data.tokenizer
+::: diffav.data.tokenizer

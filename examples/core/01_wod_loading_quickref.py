@@ -25,7 +25,7 @@
 
 This quick reference demonstrates how to load real Waymo Open Dataset (WOD)
 Motion scenarios from TFRecord files using `WODSource`, iterate over datarax
-`Element` objects, and parse raw scenario dicts into typed Simulacrax domain
+`Element` objects, and parse raw scenario dicts into typed DiffAV domain
 objects.
 
 `WODSource` extends datarax's `DataSourceModule`, making WOD data
@@ -82,10 +82,10 @@ uv sync
 import numpy as np
 from dotenv import load_dotenv
 
-from simulacrax.core.types import AgentType  # noqa: F401
-from simulacrax.data import resolve_wod_tfrecord_path
-from simulacrax.data.parsers import parse_scenario
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
+from diffav.core.types import AgentType  # noqa: F401
+from diffav.data import resolve_wod_tfrecord_path
+from diffav.data.parsers import parse_scenario
+from diffav.data.wod_source import WODSource, WODSourceConfig
 
 
 load_dotenv()

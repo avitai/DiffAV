@@ -1,3 +1,3 @@
 # losses
 
-::: simulacrax.occupancy.losses
+::: diffav.occupancy.losses

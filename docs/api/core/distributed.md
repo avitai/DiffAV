@@ -1,3 +1,3 @@
 # distributed
 
-::: simulacrax.core.distributed
+::: diffav.core.distributed

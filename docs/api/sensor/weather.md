@@ -1,3 +1,3 @@
 # weather
 
-::: simulacrax.sensor.weather
+::: diffav.sensor.weather

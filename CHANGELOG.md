@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Simulacrax are documented in this file.
+All notable changes to DiffAV are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -34,6 +34,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING — the project is renamed from Simulacrax to DiffAV.** The
+  distribution and import package are now `diffav` (`import diffav`,
+  `pip install diffav`); the repository is
+  [avitai/DiffAV](https://github.com/avitai/DiffAV) and the documentation
+  moves to <https://diffav.readthedocs.io>. The `SIMULACRAX_*` environment
+  variables are now `DIFFAV_*`, the generated backend file is `.diffav.env`,
+  and the `Simulacrax`-prefixed classes (`SimulacraxPhysicsLoss`,
+  `SimulacraxPhysicsConfig`, `SimulacraxCheckpointManager`,
+  `SimulacraxScenarioMiner`) are `DiffAV`-prefixed. No release carried the
+  old name, so no compatibility shim is provided.
 - `adversarial_search` explores exactly its budget of candidates, filters by
   a severity threshold, accepts caller-supplied keys with a documented
   reproducibility contract, and attaches predictions regenerated on the

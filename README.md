@@ -1,4 +1,4 @@
-# Simulacrax
+# DiffAV
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](https://www.python.org/)
 [![JAX](https://img.shields.io/badge/JAX-0.6%2B-green)](https://github.com/google/jax)
@@ -7,22 +7,22 @@
 
 ## A physics-informed, RL-aligned evaluation engine for autonomous driving
 
-*From Latin "simulacrum" — image, likeness, semblance*
+*Diffusion models for autonomous vehicles*
 
 ---
 
 > **Early Development — API Unstable**
 >
-> Simulacrax is in early development and undergoing rapid iteration.
+> DiffAV is in early development and undergoing rapid iteration.
 > Breaking changes are expected. Pin to specific commits if stability is required.
 
 ---
 
 ## Overview
 
-Simulacrax generates and evaluates adversarial driving scenarios to stress-test autonomous vehicle (AV) stacks. It combines generative trajectory prediction with physics constraints and reinforcement learning alignment to produce realistic yet safety-critical counterfactual scenarios, evaluated against the [Waymo Open Dataset Sim Agents Challenge (WOSAC)](https://waymo.com/open/challenges/sim-agents/) metrics.
+DiffAV generates and evaluates adversarial driving scenarios to stress-test autonomous vehicle (AV) stacks. It combines generative trajectory prediction with physics constraints and reinforcement learning alignment to produce realistic yet safety-critical counterfactual scenarios, evaluated against the [Waymo Open Dataset Sim Agents Challenge (WOSAC)](https://waymo.com/open/challenges/sim-agents/) metrics.
 
-### Why Simulacrax?
+### Why DiffAV?
 
 - **Physics-Informed**: Bicycle model kinematics constraints ensure generated trajectories are physically plausible — no teleporting vehicles or impossible accelerations
 - **RL-Aligned**: Reinforcement learning fine-tuning steers generation toward safety-critical scenarios that expose AV stack weaknesses
@@ -32,7 +32,7 @@ Simulacrax generates and evaluates adversarial driving scenarios to stress-test 
 
 ## Status & Results
 
-Simulacrax is a working research scaffold: every pillar (diffusion world model, DPO/steering alignment, physics feasibility, occupancy flow, evaluation metrics) is built, and its core has been exercised on real Waymo Open Dataset data. It is not a leaderboard-tuned system — results are reported honestly.
+DiffAV is a working research scaffold: every pillar (diffusion world model, DPO/steering alignment, physics feasibility, occupancy flow, evaluation metrics) is built, and its core has been exercised on real Waymo Open Dataset data. It is not a leaderboard-tuned system — results are reported honestly.
 
 - **Trajectory prediction.** A map-conditioned diffusion baseline trained on real WOD reaches **minADE₆ ≈ 5.6 m** on held-out validation (`tracks_to_predict`, WOMD 2 Hz). That is roughly 9× the ~0.6 m of full-scale WOSAC leaders: the model is **over-dispersed** (best-of-64 ≈ 2.5 m) and **under-fit**, trained on ~1.6% of WOMD. The map is load-bearing — zeroing the scene tokens degrades minADE ~8.6× (4.4 → 38 m).
 - **Adversarial steering (the differentiator).** Test-time reward guidance on the frozen baseline steers a real scene's adversary from **7.30 m → 2.88 m** from its victim while *improving* off-road feasibility (0.21 → 0.08) and holding WOSAC realism (0.673 → 0.653). A map-conditioned Diffusion-DPO fine-tune reproduces this at training time.
@@ -44,7 +44,7 @@ The map-conditioned model (`MapConditionedTrajectoryModel`) and its trainer are 
 
 ### Generative Trajectory Prediction
 
-Simulacrax models multi-agent future trajectories conditioned on scene context (ego state, surrounding agents, HD map features). The generative backbone is a diffusion model:
+DiffAV models multi-agent future trajectories conditioned on scene context (ego state, surrounding agents, HD map features). The generative backbone is a diffusion model:
 
 - **Diffusion Models** — iterative denoising for high-quality multi-modal trajectory distributions
 
@@ -63,7 +63,7 @@ An RL fine-tuning stage (DPO) optimizes the generator to produce scenarios that 
 ## Architecture
 
 ```
-src/simulacrax/
+src/diffav/
   core/         # Domain types, protocols, and configuration
   data/         # WOD TFRecord loading and scene tokenization
   models/       # Trajectory prediction model wrappers (diffusion)
@@ -77,7 +77,7 @@ src/simulacrax/
 
 ### Sister Repositories
 
-Simulacrax builds on four companion libraries in the JAX ecosystem:
+DiffAV builds on four companion libraries in the JAX ecosystem:
 
 | Repository | Role | Key Components Used |
 |---|---|---|
@@ -90,8 +90,8 @@ Simulacrax builds on four companion libraries in the JAX ecosystem:
 
 ```bash
 # Clone and set up the environment (auto-detects CUDA/Metal/CPU)
-git clone https://github.com/avitai/simulacrax.git
-cd simulacrax
+git clone https://github.com/avitai/DiffAV.git
+cd DiffAV
 ./setup.sh
 
 # Or manually with uv (dev tooling is installed by default)
@@ -110,7 +110,7 @@ uv sync --extra gpu     # Linux with NVIDIA GPU (CUDA 12)
 ## Quick Start
 
 ```python
-from simulacrax.api import MinerConfig, create_scenario_miner
+from diffav.api import MinerConfig, create_scenario_miner
 
 # Configure and create the scenario miner
 config = MinerConfig(model_path="checkpoints/wod-mini")
@@ -124,7 +124,7 @@ print(report.metric_values)  # {"ade": ..., "fde": ...}
 
 ## Development
 
-Simulacrax uses `uv` as its package manager and enforces code quality via pre-commit hooks.
+DiffAV uses `uv` as its package manager and enforces code quality via pre-commit hooks.
 
 ### Running Tests
 
@@ -133,7 +133,7 @@ Simulacrax uses `uv` as its package manager and enforces code quality via pre-co
 uv run pytest tests/core/ -v
 
 # Full test suite with coverage
-uv run pytest -v --cov=src/simulacrax --cov-report=term-missing
+uv run pytest -v --cov=src/diffav --cov-report=term-missing
 
 # Skip tests requiring WOD data
 uv run pytest -v -m "not wod"
@@ -153,4 +153,4 @@ uv run pyright src/             # Type check
 
 ## License
 
-Simulacrax is licensed under the [MIT License](LICENSE).
+DiffAV is licensed under the [MIT License](LICENSE).

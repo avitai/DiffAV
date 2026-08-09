@@ -6,13 +6,13 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.core.constants import (
+from diffav.core.constants import (
     MAX_ROAD_EDGE_POINTS,
     MAX_ROAD_EDGE_POLYLINES,
     ROAD_EDGE_TYPES,
 )
-from simulacrax.core.geometry import RoadEdges, signed_distances_to_road_edges
-from simulacrax.data import fixed_shape_road_edges_from_wod_dict, road_edges_from_wod_dict
+from diffav.core.geometry import RoadEdges, signed_distances_to_road_edges
+from diffav.data import fixed_shape_road_edges_from_wod_dict, road_edges_from_wod_dict
 
 
 def _roadgraph_dict(

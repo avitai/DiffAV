@@ -6,7 +6,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.sensor.lidar import LiDARConfig, LiDARRayCaster, PointCloud
+from diffav.sensor.lidar import LiDARConfig, LiDARRayCaster, PointCloud
 
 
 _VOXEL_RES = 8

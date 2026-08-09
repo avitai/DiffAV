@@ -15,8 +15,8 @@ files.
 
 ## Files
 
-- **Python Script**: [`examples/evaluation/02_evaluation_pipeline_tutorial.py`](https://github.com/avitai/simulacrax/blob/main/examples/evaluation/02_evaluation_pipeline_tutorial.py)
-- **Jupyter Notebook**: [`examples/evaluation/02_evaluation_pipeline_tutorial.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/evaluation/02_evaluation_pipeline_tutorial.ipynb)
+- **Python Script**: [`examples/evaluation/02_evaluation_pipeline_tutorial.py`](https://github.com/avitai/DiffAV/blob/main/examples/evaluation/02_evaluation_pipeline_tutorial.py)
+- **Jupyter Notebook**: [`examples/evaluation/02_evaluation_pipeline_tutorial.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/evaluation/02_evaluation_pipeline_tutorial.ipynb)
 
 ## Requirements & Run
 
@@ -38,7 +38,7 @@ files.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - Familiarity with [WOD Metrics Quick Reference](wod-metrics-quickref.md)
 - JAX arrays and Flax NNX basics
 
@@ -77,7 +77,7 @@ MetricsDashboard.generate(report) → motion/table.csv + .html
 ```python
 import jax
 import jax.numpy as jnp
-from simulacrax.evaluation import (
+from diffav.evaluation import (
     EvaluationRunner,
     MetricsDashboard,
     MotionMetrics,
@@ -154,9 +154,9 @@ CYCLIST,0.15,0.79,0.95,2.10
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading for production batches |
+| `WODSource` | diffav.data | Real WOD TFRecord loading for production batches |
 | `PublicationGenerator` | calibrax | Table export to CSV and HTML |
-| `TrajectoryDiffusionModel` | simulacrax.models | Production model for `runner.run()` |
+| `TrajectoryDiffusionModel` | diffav.models | Production model for `runner.run()` |
 
 ## Related
 

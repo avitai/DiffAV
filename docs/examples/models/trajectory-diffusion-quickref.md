@@ -15,8 +15,8 @@ probabilistic model (DDPM) with a FactorizedSceneBackbone.
 
 ## Files
 
-- **Python Script**: [`examples/models/01_trajectory_diffusion_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/models/01_trajectory_diffusion_quickref.py)
-- **Jupyter Notebook**: [`examples/models/01_trajectory_diffusion_quickref.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/models/01_trajectory_diffusion_quickref.ipynb)
+- **Python Script**: [`examples/models/01_trajectory_diffusion_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/models/01_trajectory_diffusion_quickref.py)
+- **Jupyter Notebook**: [`examples/models/01_trajectory_diffusion_quickref.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/models/01_trajectory_diffusion_quickref.ipynb)
 
 ## Requirements & Run
 
@@ -35,7 +35,7 @@ probabilistic model (DDPM) with a FactorizedSceneBackbone.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - JAX arrays, Flax NNX basics, diffusion models
 
 ## Pipeline Overview
@@ -57,7 +57,7 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig,
     TrajectoryDiffusionModel,
     create_trajectory_model,

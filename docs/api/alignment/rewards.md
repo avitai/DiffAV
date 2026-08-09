@@ -1,3 +1,3 @@
 # rewards
 
-::: simulacrax.alignment.rewards
+::: diffav.alignment.rewards

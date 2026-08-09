@@ -11,7 +11,7 @@ import pytest
 from datarax.core.element_batch import Batch, Element
 from flax import nnx
 
-from simulacrax.data.encoders import (
+from diffav.data.encoders import (
     MapEncoder,
     MapEncoderConfig,
 )

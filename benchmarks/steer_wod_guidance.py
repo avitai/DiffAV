@@ -5,7 +5,7 @@ Demonstrates the Pillar B steering loop end to end on real, map-carrying Waymo
 Open Dataset validation scenes with the frozen tier-0 checkpoint. For each
 scene one *adversary* agent is steered toward one *victim* (a
 ``tracks_to_predict`` agent) via test-time x̂₀ guidance
-(:func:`~simulacrax.alignment.steering_spine.make_adversarial_guidance`), and
+(:func:`~diffav.alignment.steering_spine.make_adversarial_guidance`), and
 three axes are reported across a guidance-strength sweep:
 
 - **adversariality** — the minimum adversary-to-victim distance over the
@@ -35,23 +35,23 @@ import numpy as np
 from dotenv import load_dotenv
 from flax import nnx
 
-from simulacrax.alignment.steering_spine import make_adversarial_guidance
-from simulacrax.api.adversarial_metrics import (
+from diffav.alignment.steering_spine import make_adversarial_guidance
+from diffav.api.adversarial_metrics import (
     adversary_offroad_fraction,
     rollout_realism,
     select_adversary_victim,
     victim_min_distance,
 )
-from simulacrax.api.map_conditioned import (
+from diffav.api.map_conditioned import (
     load_map_conditioned_from_checkpoint,
     MapConditionedTrajectoryModel,
 )
-from simulacrax.api.map_conditioned_steering import sample_scene_candidates
-from simulacrax.api.wod_validation import stream_validation_scenes
-from simulacrax.core.constants import WOD_CURRENT_TIME_INDEX
-from simulacrax.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
-from simulacrax.evaluation.map_conditioned_evaluator import ValidationScene
-from simulacrax.models.trajectory_diffusion import GuidanceSpec
+from diffav.api.map_conditioned_steering import sample_scene_candidates
+from diffav.api.wod_validation import stream_validation_scenes
+from diffav.core.constants import WOD_CURRENT_TIME_INDEX
+from diffav.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
+from diffav.evaluation.map_conditioned_evaluator import ValidationScene
+from diffav.models.trajectory_diffusion import GuidanceSpec
 
 
 logger = logging.getLogger("steer_wod_guidance")

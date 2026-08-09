@@ -10,7 +10,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.core.training_utils import nan_safe_gradients
+from diffav.core.training_utils import nan_safe_gradients
 
 
 # ---------------------------------------------------------------------------

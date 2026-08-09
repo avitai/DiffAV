@@ -7,8 +7,8 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.evaluation.wosac_metametric import (
+from diffav.core.geometry import RoadEdges
+from diffav.evaluation.wosac_metametric import (
     compute_metametric_features,
     MetametricFeatures,
     WosacMetametric,

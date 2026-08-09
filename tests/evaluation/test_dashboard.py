@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from simulacrax.core.types import MetricsReport
-from simulacrax.evaluation.dashboard import MetricsDashboard
+from diffav.core.types import MetricsReport
+from diffav.evaluation.dashboard import MetricsDashboard
 
 
 # ---------------------------------------------------------------------------

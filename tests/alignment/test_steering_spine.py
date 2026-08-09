@@ -7,14 +7,14 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.alignment.steering_spine import (
+from diffav.alignment.steering_spine import (
     build_steering_pairs,
     candidate_offroad_fractions,
     CandidatePool,
     sample_and_score,
 )
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionModel
+from diffav.core.geometry import RoadEdges
+from diffav.models.trajectory_diffusion import TrajectoryDiffusionModel
 from tests.alignment.helpers import CONTEXT_DIM, FUTURE_STEPS, NUM_AGENTS
 
 
@@ -241,7 +241,7 @@ class TestBuildSteeringPairs:
 
 class TestMakeSteeringGuidance:
     def test_returns_scalar_reward(self) -> None:
-        from simulacrax.alignment.steering_spine import make_steering_guidance
+        from diffav.alignment.steering_spine import make_steering_guidance
 
         guidance = make_steering_guidance("forward", reference_speed=10.0)
         x_0 = jnp.ones((NUM_AGENTS, FUTURE_STEPS, 4))
@@ -250,7 +250,7 @@ class TestMakeSteeringGuidance:
         assert bool(jnp.isfinite(reward))
 
     def test_gradient_is_finite_and_nonzero(self) -> None:
-        from simulacrax.alignment.steering_spine import make_steering_guidance
+        from diffav.alignment.steering_spine import make_steering_guidance
 
         guidance = make_steering_guidance("forward", reference_speed=100.0)
         x_0 = jnp.linspace(0.0, 1.0, NUM_AGENTS * FUTURE_STEPS * 4).reshape(
@@ -290,7 +290,7 @@ class TestMakeAdversarialGuidance:
     """
 
     def _guidance(self, **overrides: object):  # noqa: ANN202 - test-local closure type
-        from simulacrax.alignment.steering_spine import make_adversarial_guidance
+        from diffav.alignment.steering_spine import make_adversarial_guidance
 
         kwargs: dict[str, object] = {
             "adversary_index": _ADVERSARY,
@@ -360,7 +360,7 @@ class TestMakeAdversarialGuidance:
         Identical local positions, but a reference pose that translates the
         adversary 20 m away from the victim must reduce the reward.
         """
-        from simulacrax.alignment.steering_spine import make_adversarial_guidance
+        from diffav.alignment.steering_spine import make_adversarial_guidance
 
         local = _adv_x0([(0.0, 0.0), (0.0, 0.0), (50.0, 50.0), (60.0, 60.0)])
         aligned_pose = jnp.zeros((_ADV_AGENTS, 3))

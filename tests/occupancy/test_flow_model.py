@@ -9,7 +9,7 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.occupancy.flow_model import (
+from diffav.occupancy.flow_model import (
     create_occupancy_flow_model,
     OccupancyFlowConfig,
     OccupancyFlowModel,

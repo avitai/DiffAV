@@ -74,7 +74,7 @@ image's left.
 | Component | Source | Purpose |
 |-----------|--------|---------|
 | `MultiScaleFourierNeuralOperator` | opifex.neural.operators.fno.multiscale | FNO backbone |
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading |
+| `WODSource` | diffav.data | Real WOD TFRecord loading |
 | `solve_diffusion_advection_2d` | opifex.physics.solvers | Classical solver (optional) |
 """
 
@@ -122,7 +122,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-PLOT_DIR = Path(os.environ.get("SIMULACRAX_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
+PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
 PLOT_DIR.mkdir(parents=True, exist_ok=True)
 
 import numpy as np
@@ -130,16 +130,16 @@ import optax
 from dotenv import load_dotenv
 from flax import nnx
 
-from simulacrax.core.types import (
+from diffav.core.types import (
     AgentState,
     AgentType,
     MapFeature,
     MapFeatureType,
     SceneContext,
 )
-from simulacrax.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
-from simulacrax.occupancy import (
+from diffav.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
+from diffav.data.wod_source import WODSource, WODSourceConfig
+from diffav.occupancy import (
     create_occupancy_flow_model,
     FlowConsistencyLoss,
     FlowConsistencyLossConfig,

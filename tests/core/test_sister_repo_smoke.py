@@ -1,10 +1,10 @@
-"""Smoke checks for sister-repo APIs consumed by Simulacrax."""
+"""Smoke checks for sister-repo APIs consumed by DiffAV."""
 
 from __future__ import annotations
 
 
 def test_datarax_symbols_importable() -> None:
-    """Critical datarax interfaces used by Simulacrax should be importable."""
+    """Critical datarax interfaces used by DiffAV should be importable."""
     from datarax.core.config import OperatorConfig, StructuralConfig
     from datarax.core.cross_modal import CrossModalOperator, CrossModalOperatorConfig
     from datarax.core.data_source import DataSourceModule
@@ -21,7 +21,7 @@ def test_datarax_symbols_importable() -> None:
 
 
 def test_artifex_symbols_importable() -> None:
-    """Critical artifex interfaces used by Simulacrax should be importable."""
+    """Critical artifex interfaces used by DiffAV should be importable."""
     from artifex.generative_models.core.configuration import NoiseScheduleConfig
     from artifex.generative_models.core.layers.egnn import EGNNLayer
     from artifex.generative_models.core.layers.transformers import (
@@ -44,7 +44,7 @@ def test_artifex_symbols_importable() -> None:
 
 
 def test_opifex_symbols_importable() -> None:
-    """Critical opifex interfaces used by Simulacrax should be importable."""
+    """Critical opifex interfaces used by DiffAV should be importable."""
     from opifex.core.physics.losses import AdaptiveWeightScheduler
     from opifex.core.training.components.checkpoint_store import OrbaxCheckpointStore
     from opifex.core.training.components.recovery import ErrorRecoveryManager

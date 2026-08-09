@@ -13,8 +13,8 @@ adversarial failure-case search with physics-informed scoring.
 
 ## Files
 
-- **Python Script**: [`examples/advanced/02_scenario_miner_guide.py`](https://github.com/avitai/simulacrax/blob/main/examples/advanced/02_scenario_miner_guide.py)
-- **Jupyter Notebook**: [`examples/advanced/02_scenario_miner_guide.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/advanced/02_scenario_miner_guide.ipynb)
+- **Python Script**: [`examples/advanced/02_scenario_miner_guide.py`](https://github.com/avitai/DiffAV/blob/main/examples/advanced/02_scenario_miner_guide.py)
+- **Jupyter Notebook**: [`examples/advanced/02_scenario_miner_guide.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/advanced/02_scenario_miner_guide.ipynb)
 
 ## Requirements & Run
 
@@ -76,7 +76,7 @@ All counts are capped at `MinerConfig.max_agents`.
 
 ## Coming from Other Tools?
 
-| Tool | Simulacrax ScenarioMiner |
+| Tool | DiffAV ScenarioMiner |
 |------|--------------------------|
 | Static scenario databases | Physics-informed synthesis from diffusion model |
 | Hand-crafted edge cases | Gradient-based adversarial search |
@@ -88,9 +88,9 @@ All counts are capped at `MinerConfig.max_agents`.
 | Component | Source | Role |
 |-----------|--------|------|
 | `create_optimizer`, `OptimizerConfig` | `opifex.core.training.optimizers` | Adam for gradient ascent |
-| `nan_safe_gradients` | `simulacrax.core.training_utils` | NaN-safe gradient filtering |
-| `ade`, `fde` | `simulacrax.evaluation.metrics` | Per-agent displacement errors |
-| `SimulacraxPhysicsLoss` | `simulacrax.physics.losses` | Physics violation scoring |
+| `nan_safe_gradients` | `diffav.core.training_utils` | NaN-safe gradient filtering |
+| `ade`, `fde` | `diffav.evaluation.metrics` | Per-agent displacement errors |
+| `DiffAVPhysicsLoss` | `diffav.physics.losses` | Physics violation scoring |
 
 ## API References
 

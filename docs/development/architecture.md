@@ -1,6 +1,6 @@
 # Architecture
 
-Simulacrax is structured as a modular evaluation pipeline for autonomous driving,
+DiffAV is structured as a modular evaluation pipeline for autonomous driving,
 built on the JAX ecosystem with integration across four sister repositories.
 
 ## High-Level Architecture
@@ -24,7 +24,7 @@ graph TB
     end
 
     subgraph "Validation & Evaluation"
-        TP --> PV[SimulacraxPhysicsLoss]
+        TP --> PV[DiffAVPhysicsLoss]
         PV --> VR[loss components]
         TP --> EV[EvaluationRunner]
         EV --> MR[MetricsReport]
@@ -51,7 +51,7 @@ agent's own local frame, with one context row per agent.
 
 ```mermaid
 graph LR
-    subgraph "simulacrax"
+    subgraph "diffav"
         core[core.types<br/>core.constants<br/>core.config]
         data[data.wod_source<br/>data.parsers<br/>data.encoders]
         models[models]

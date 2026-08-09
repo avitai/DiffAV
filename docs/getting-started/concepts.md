@@ -1,12 +1,12 @@
 # Core Concepts
 
-Simulacrax is built around immutable domain types, protocol-based dependency inversion,
+DiffAV is built around immutable domain types, protocol-based dependency inversion,
 and integration with the datarax data pipeline ecosystem.
 
 ## Domain Types
 
 All data containers are frozen dataclasses with `slots=True` and `kw_only=True`
-for performance and safety. They are defined in `simulacrax.core.types`.
+for performance and safety. They are defined in `diffav.core.types`.
 
 ### AgentState
 
@@ -61,7 +61,7 @@ class TrajectoryPrediction:
 ## The Model Seam
 
 The evaluation pipeline is decoupled from concrete model classes through one
-consumer-side protocol, `simulacrax.evaluation.TrajectorySampler`: anything
+consumer-side protocol, `diffav.evaluation.TrajectorySampler`: anything
 with a `sample(scene_context, *, key) -> TrajectoryPrediction`
 method can be evaluated. `TrajectoryDiffusionModel` satisfies it
 structurally — no inheritance required — and tests can pass lightweight
@@ -92,7 +92,7 @@ import os
 
 from dotenv import load_dotenv
 
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
+from diffav.data.wod_source import WODSource, WODSourceConfig
 
 load_dotenv()
 
@@ -122,5 +122,5 @@ Each module owns its configuration dataclass next to the code it configures:
 | `MinerConfig` | `api.config` | SDK entry-point settings |
 
 All configs are frozen dataclasses that validate constraints in
-`__post_init__` — via the shared validators in `simulacrax.core.config` —
+`__post_init__` — via the shared validators in `diffav.core.config` —
 and raise `ValueError` on invalid inputs.

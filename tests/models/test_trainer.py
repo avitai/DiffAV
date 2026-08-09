@@ -11,15 +11,15 @@ import pytest
 from flax import nnx
 from opifex.core.training.optimizers import OptimizerConfig
 
-from simulacrax.core.constants import SCENE_BACKBONE_ARCHITECTURE_VERSION
-from simulacrax.models.checkpointing import CheckpointConfig, CheckpointCorruptError
-from simulacrax.models.sampling_utils import stratified_timestep
-from simulacrax.models.trainer import (
+from diffav.core.constants import SCENE_BACKBONE_ARCHITECTURE_VERSION
+from diffav.models.checkpointing import CheckpointConfig, CheckpointCorruptError
+from diffav.models.sampling_utils import stratified_timestep
+from diffav.models.trainer import (
     TrainerConfig,
     TrainingMetrics,
     TrajectoryTrainer,
 )
-from simulacrax.physics.losses import SimulacraxPhysicsConfig
+from diffav.physics.losses import DiffAVPhysicsConfig
 from tests.models.helpers import (
     make_model as _make_model,
     sample_data as _sample_data,
@@ -78,7 +78,7 @@ class TestTrainerConfig:
 
     def test_with_physics_config(self) -> None:
         """Physics config can be set."""
-        physics = SimulacraxPhysicsConfig(kinematic_weight=2.0)
+        physics = DiffAVPhysicsConfig(kinematic_weight=2.0)
         cfg = TrainerConfig(physics_config=physics)
         assert cfg.physics_config is not None
         assert cfg.physics_config.kinematic_weight == 2.0
@@ -239,7 +239,7 @@ class TestTrajectoryTrainer:
     def test_physics_loss_in_metrics(self) -> None:
         """With physics config, physics loss is tracked."""
         model = _make_model()
-        cfg = TrainerConfig(physics_config=SimulacraxPhysicsConfig())
+        cfg = TrainerConfig(physics_config=DiffAVPhysicsConfig())
         trainer = TrajectoryTrainer(model, cfg)
         traj, ctx = _sample_data()
         key = jax.random.key(42)
@@ -252,7 +252,7 @@ class TestTrajectoryTrainer:
         """Physics weight increases with epoch number."""
         model = _make_model()
         cfg = TrainerConfig(
-            physics_config=SimulacraxPhysicsConfig(
+            physics_config=DiffAVPhysicsConfig(
                 adaptive_weighting=True,
                 transition_epochs=10,
             ),
@@ -498,7 +498,7 @@ class TestTrajectoryTrainer:
     def test_compute_train_step_jit_with_physics(self) -> None:
         """JIT-compiled compute_train_step works with physics loss."""
         model = _make_model()
-        cfg = TrainerConfig(physics_config=SimulacraxPhysicsConfig())
+        cfg = TrainerConfig(physics_config=DiffAVPhysicsConfig())
         trainer = TrajectoryTrainer(model, cfg)
         traj, ctx = _sample_data()
         key = jax.random.key(42)
@@ -554,7 +554,7 @@ class TestTrajectoryTrainer:
         gradients rather than being a constant of the batch.
         """
         cfg = TrainerConfig(
-            physics_config=SimulacraxPhysicsConfig(adaptive_weighting=False),
+            physics_config=DiffAVPhysicsConfig(adaptive_weighting=False),
         )
         traj, ctx = _sample_data()
         key = jax.random.key(42)
@@ -571,7 +571,7 @@ class TestTrajectoryTrainer:
     def test_epoch_is_traced_under_jit(self) -> None:
         """The adaptive physics weight advances across epochs under one jit."""
         cfg = TrainerConfig(
-            physics_config=SimulacraxPhysicsConfig(
+            physics_config=DiffAVPhysicsConfig(
                 adaptive_weighting=True,
                 transition_epochs=10,
             ),
@@ -809,7 +809,7 @@ class TestBatchedTrainStep:
         """Physics loss on a batch stays finite and non-negative per scene."""
         model = _make_model()
         config = TrainerConfig(
-            physics_config=SimulacraxPhysicsConfig(kinematic_weight=1.0, collision_weight=1.0)
+            physics_config=DiffAVPhysicsConfig(kinematic_weight=1.0, collision_weight=1.0)
         )
         trainer = TrajectoryTrainer(model, config)
         traj, ctx = _sample_data()
@@ -834,7 +834,7 @@ class TestPhysicsAlphaBarAnnealing:
         """Run one unbatched step and return its aux dict (pre-update params)."""
         model = _make_model()
         config = TrainerConfig(
-            physics_config=SimulacraxPhysicsConfig(
+            physics_config=DiffAVPhysicsConfig(
                 kinematic_weight=1.0,
                 collision_weight=1.0,
                 adaptive_weighting=False,
@@ -851,13 +851,13 @@ class TestPhysicsAlphaBarAnnealing:
     @staticmethod
     def _reference_outputs_and_physics() -> tuple[jax.Array, jax.Array]:
         """Recompute (ᾱ_t, unannealed physics loss) with matched seed/key."""
-        from simulacrax.physics.losses import SimulacraxPhysicsLoss
+        from diffav.physics.losses import DiffAVPhysicsLoss
 
         reference_model = _make_model()
         traj, ctx = _sample_data()
         outputs = reference_model.compute_loss_outputs(traj, ctx, key=jax.random.key(21))
-        physics = SimulacraxPhysicsLoss(
-            SimulacraxPhysicsConfig(
+        physics = DiffAVPhysicsLoss(
+            DiffAVPhysicsConfig(
                 kinematic_weight=1.0,
                 collision_weight=1.0,
                 adaptive_weighting=False,

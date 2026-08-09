@@ -7,8 +7,8 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.alignment.weight_soup import make_weight_soup
-from simulacrax.models.trajectory_diffusion import (
+from diffav.alignment.weight_soup import make_weight_soup
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionModel,
 )
 from tests import support

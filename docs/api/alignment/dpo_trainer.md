@@ -1,3 +1,3 @@
 # dpo_trainer
 
-::: simulacrax.alignment.dpo_trainer
+::: diffav.alignment.dpo_trainer

@@ -3,7 +3,7 @@
 JAX selects the best available backend automatically: GPU when the ``gpu``
 extra is installed (``./setup.sh`` handles this on CUDA hosts) and CPU
 otherwise. ``[tool.pytest-env]`` in pyproject.toml only supplies defaults;
-``source ./activate.sh`` layers the generated ``.simulacrax.env`` plus any
+``source ./activate.sh`` layers the generated ``.diffav.env`` plus any
 user-owned ``.env``/``.env.data`` overrides on top.
 """
 

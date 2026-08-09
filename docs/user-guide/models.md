@@ -1,6 +1,6 @@
 # Trajectory Generation Models
 
-Simulacrax generates multi-agent future trajectories using denoising diffusion
+DiffAV generates multi-agent future trajectories using denoising diffusion
 probabilistic models (DDPM). This guide explains the architecture, how it
 connects to the rest of the pipeline, and how to configure it for different
 use cases.
@@ -88,7 +88,7 @@ each token can attend to map tokens directly; the map-conditioned entrypoint is
 `TrajectoryDiffusionConfig` controls all model parameters:
 
 ```python
-from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionConfig
+from diffav.models.trajectory_diffusion import TrajectoryDiffusionConfig
 
 config = TrajectoryDiffusionConfig(
     # Backbone architecture
@@ -145,7 +145,7 @@ a trajectory at a random timestep.
 import jax
 from flax import nnx
 
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionModel,
     TrajectoryDiffusionConfig,
 )

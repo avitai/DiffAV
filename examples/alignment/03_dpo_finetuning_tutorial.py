@@ -103,14 +103,14 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
 
-PLOT_DIR = Path(os.environ.get("SIMULACRAX_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
+PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
 PLOT_DIR.mkdir(parents=True, exist_ok=True)
 import numpy as np
 from dotenv import load_dotenv
 from flax import nnx
 from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
 
-from simulacrax.alignment import (
+from diffav.alignment import (
     compute_scenario_reward,
     create_reference_model,
     DPOAlignmentConfig,
@@ -121,13 +121,13 @@ from simulacrax.alignment import (
     ScenarioSteeringConfig,
     ScenarioSteeringTrainer,
 )
-from simulacrax.api import create_scenario_miner, MinerConfig
-from simulacrax.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
-from simulacrax.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
-from simulacrax.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
-from simulacrax.models.trainer import TrainerConfig, TrajectoryTrainer
-from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionModel
+from diffav.api import create_scenario_miner, MinerConfig
+from diffav.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
+from diffav.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
+from diffav.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
+from diffav.data.wod_source import WODSource, WODSourceConfig
+from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
+from diffav.models.trajectory_diffusion import TrajectoryDiffusionModel
 
 
 load_dotenv()
@@ -140,7 +140,7 @@ CONTEXT_DIM = 128  # Scene embedding dimension — matches the checkpoint
 NUM_CANDIDATES = 8  # Trajectory hypotheses per scene
 # Smoke mode (set by the example execution tests) shrinks the loops so the
 # CPU tier finishes quickly; real runs keep the full showcase schedule.
-_SMOKE = os.environ.get("SIMULACRAX_EXAMPLES_SMOKE") == "1"
+_SMOKE = os.environ.get("DIFFAV_EXAMPLES_SMOKE") == "1"
 NUM_SCENES = 8 if _SMOKE else 32  # WOD scenes contributing preference pairs
 # Pairs per optimizer update. Reference DPO recipes update on large
 # effective batches, not the 1-2 pairs a single device holds: Diffusion-DPO

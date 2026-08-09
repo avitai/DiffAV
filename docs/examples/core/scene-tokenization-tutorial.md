@@ -13,8 +13,8 @@ dicts into multi-modal embeddings via a sequential datarax operator DAG.
 
 ## Files
 
-- **Python Script**: [`examples/core/02_scene_tokenization_tutorial.py`](https://github.com/avitai/simulacrax/blob/main/examples/core/02_scene_tokenization_tutorial.py)
-- **Jupyter Notebook**: [`examples/core/02_scene_tokenization_tutorial.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/core/02_scene_tokenization_tutorial.ipynb)
+- **Python Script**: [`examples/core/02_scene_tokenization_tutorial.py`](https://github.com/avitai/DiffAV/blob/main/examples/core/02_scene_tokenization_tutorial.py)
+- **Jupyter Notebook**: [`examples/core/02_scene_tokenization_tutorial.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/core/02_scene_tokenization_tutorial.ipynb)
 
 ## Requirements & Run
 
@@ -37,7 +37,7 @@ dicts into multi-modal embeddings via a sequential datarax operator DAG.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - WOD data loading basics (see [WOD Loading Quick Reference](wod-loading-quickref.md))
 - JAX arrays, Flax NNX basics
 
@@ -61,8 +61,8 @@ Raw WOD dict
 ## Quick Usage
 
 ```python
-from simulacrax.data.tokenizer import SceneTokenizer, TokenizerConfig
-from simulacrax.core.types import FusionStrategy
+from diffav.data.tokenizer import SceneTokenizer, TokenizerConfig
+from diffav.core.types import FusionStrategy
 
 config = TokenizerConfig(
     embed_dim=256,

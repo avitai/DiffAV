@@ -12,14 +12,14 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.alignment.steering_spine import AdversarialRewardConfig
-from simulacrax.api.map_conditioned_steering import (
+from diffav.alignment.steering_spine import AdversarialRewardConfig
+from diffav.api.map_conditioned_steering import (
     build_scene_pairs,
     sample_scene_candidates,
     score_scene_candidates,
 )
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.evaluation.map_conditioned_evaluator import ValidationScene
+from diffav.core.geometry import RoadEdges
+from diffav.evaluation.map_conditioned_evaluator import ValidationScene
 from tests.api.test_map_conditioned import _agent_rows, _model, _scene
 
 

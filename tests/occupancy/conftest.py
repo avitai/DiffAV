@@ -7,9 +7,9 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.core.types import AgentState, AgentType, SceneContext
-from simulacrax.occupancy.flow_model import OccupancyFlowConfig, OccupancyFlowModel, OccupancyGrid
-from simulacrax.occupancy.rasterizer import RasterizerConfig, SceneRasterizer
+from diffav.core.types import AgentState, AgentType, SceneContext
+from diffav.occupancy.flow_model import OccupancyFlowConfig, OccupancyFlowModel, OccupancyGrid
+from diffav.occupancy.rasterizer import RasterizerConfig, SceneRasterizer
 
 
 @pytest.fixture()
@@ -28,7 +28,7 @@ def small_config() -> OccupancyFlowConfig:
 @pytest.fixture()
 def small_model(small_config: OccupancyFlowConfig) -> OccupancyFlowModel:
     """Session-scoped OccupancyFlowModel for shape/gradient tests."""
-    from simulacrax.occupancy.flow_model import create_occupancy_flow_model
+    from diffav.occupancy.flow_model import create_occupancy_flow_model
 
     return create_occupancy_flow_model(small_config, nnx.Rngs(params=jax.random.key(0)))
 

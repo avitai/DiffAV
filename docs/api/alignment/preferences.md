@@ -1,3 +1,3 @@
 # preferences
 
-::: simulacrax.alignment.preferences
+::: diffav.alignment.preferences

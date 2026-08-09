@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from simulacrax.core.constants import (
+from diffav.core.constants import (
     DEFAULT_NUM_BLOCKS,
     DEFAULT_NUM_SOCIAL_LAYERS,
     DEFAULT_NUM_TEMPORAL_LAYERS,
@@ -274,12 +274,12 @@ class TestMinerNormalizationConstants:
     """Miner normalization coefficients match the template family."""
 
     def test_offsets_are_zero(self) -> None:
-        from simulacrax.core.constants import MINER_STATE_OFFSETS
+        from diffav.core.constants import MINER_STATE_OFFSETS
 
         assert MINER_STATE_OFFSETS == (0.0, 0.0, 0.0, 0.0)
 
     def test_scales_positive_and_state_dim_length(self) -> None:
-        from simulacrax.core.constants import MINER_STATE_SCALES
+        from diffav.core.constants import MINER_STATE_SCALES
 
         assert len(MINER_STATE_SCALES) == 4
         assert all(scale > 0 for scale in MINER_STATE_SCALES)
@@ -290,12 +290,12 @@ class TestAgentLocalNormalizationConstants:
 
     def test_offsets_are_zero(self) -> None:
         """The per-agent frame is already origin-centred, so offsets are zero."""
-        from simulacrax.core.constants import AGENT_LOCAL_STATE_OFFSETS
+        from diffav.core.constants import AGENT_LOCAL_STATE_OFFSETS
 
         assert AGENT_LOCAL_STATE_OFFSETS == (0.0, 0.0, 0.0, 0.0)
 
     def test_scales_positive_and_state_dim_length(self) -> None:
-        from simulacrax.core.constants import AGENT_LOCAL_STATE_SCALES
+        from diffav.core.constants import AGENT_LOCAL_STATE_SCALES
 
         assert len(AGENT_LOCAL_STATE_SCALES) == 4
         assert all(scale > 0 for scale in AGENT_LOCAL_STATE_SCALES)
@@ -305,7 +305,7 @@ class TestAgentLocalNormalizationConstants:
         deviation, so the diffusion target has ~unit variance. Using the p99 tail
         maxima instead left the target at ~0.15 std, starving the noise schedule
         (only the top few percent of timesteps carried learnable signal)."""
-        from simulacrax.core.constants import AGENT_LOCAL_STATE_SCALES
+        from diffav.core.constants import AGENT_LOCAL_STATE_SCALES
 
         forward, lateral, heading, speed = AGENT_LOCAL_STATE_SCALES
         # Agents move mostly forward, so the forward std exceeds the lateral std.

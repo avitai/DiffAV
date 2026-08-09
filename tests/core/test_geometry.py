@@ -13,7 +13,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.core.geometry import (
+from diffav.core.geometry import (
     from_agent_frame,
     mean_offroad_penalty,
     RoadEdges,

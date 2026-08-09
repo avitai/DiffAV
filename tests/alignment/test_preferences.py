@@ -6,14 +6,14 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.alignment.preferences import (
+from diffav.alignment.preferences import (
     PreferenceBatch,
     PreferencePair,
     PreferencePairBuilder,
     PreferencePairConfig,
     RankingStrategy,
 )
-from simulacrax.alignment.rewards import CollisionReward, SafetyReward
+from diffav.alignment.rewards import CollisionReward, SafetyReward
 from tests.alignment.helpers import FUTURE_STEPS, NUM_AGENTS, STATE_DIM
 
 

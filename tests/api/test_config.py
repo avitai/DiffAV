@@ -1,12 +1,12 @@
-"""Tests for simulacrax.api.config data containers."""
+"""Tests for diffav.api.config data containers."""
 
 from __future__ import annotations
 
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.api.config import FailureCase, MinerConfig, Scenario
-from simulacrax.core.types import (
+from diffav.api.config import FailureCase, MinerConfig, Scenario
+from diffav.core.types import (
     AgentState,
     AgentType,
     ScenarioMetadata,

@@ -11,8 +11,8 @@ import pytest
 from datarax.core.element_batch import Batch, Element
 from flax import nnx
 
-from simulacrax.core.types import Modality, ModalityMode
-from simulacrax.data.tokenizer import (
+from diffav.core.types import Modality, ModalityMode
+from diffav.data.tokenizer import (
     resolve_active_modalities,
     SceneTokenizer,
     TokenizerConfig,

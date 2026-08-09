@@ -18,10 +18,10 @@
 |----------|-------|
 | **Level** | Core |
 | **Runtime** | ~2 min (CPU) |
-| **Prerequisites** | Simulacrax installed (`uv sync`) |
+| **Prerequisites** | DiffAV installed (`uv sync`) |
 | **Format** | Python + Jupyter |
 
-The "hello world" of Simulacrax: generate synthetic driving scenarios,
+The "hello world" of DiffAV: generate synthetic driving scenarios,
 evaluate a planner with ADE/FDE metrics, and search for adversarial
 failure cases — all in under 15 lines of Python.
 
@@ -60,12 +60,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-PLOT_DIR = Path(os.environ.get("SIMULACRAX_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
+PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
 PLOT_DIR.mkdir(parents=True, exist_ok=True)
 
 
-from simulacrax.api import create_scenario_miner, MinerConfig
-from simulacrax.core.types import TrajectoryPrediction
+from diffav.api import create_scenario_miner, MinerConfig
+from diffav.core.types import TrajectoryPrediction
 
 
 # Load the WOD-trained checkpoint when available (produce one with
@@ -107,7 +107,7 @@ seconds. Production runs skip this and load a trained checkpoint via
 """
 
 # %%
-from simulacrax.models.trainer import TrainerConfig, TrajectoryTrainer
+from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
 
 
 def _convoy_batch(key, num_agents, horizon):
@@ -160,7 +160,7 @@ features) and a reference `TrajectoryPrediction` from the diffusion model.
 
 # %%
 # Smoke mode (set by the example execution tests) shrinks sampling counts.
-_SMOKE = os.environ.get("SIMULACRAX_EXAMPLES_SMOKE") == "1"
+_SMOKE = os.environ.get("DIFFAV_EXAMPLES_SMOKE") == "1"
 scenarios = miner.generate("unprotected_left_turn", density="medium", count=2 if _SMOKE else 5)
 s = scenarios[0]
 

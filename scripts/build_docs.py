@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Documentation build script for Simulacrax.
+Documentation build script for DiffAV.
 
 This script handles the complete documentation build process:
 1. Generate documentation from source code
@@ -50,7 +50,7 @@ def run_command(
 
 def main() -> None:
     """Main build process."""
-    parser = argparse.ArgumentParser(description="Build Simulacrax documentation")
+    parser = argparse.ArgumentParser(description="Build DiffAV documentation")
     parser.add_argument(
         "--serve", action="store_true", help="Serve documentation after building (for preview)"
     )
@@ -65,7 +65,7 @@ def main() -> None:
 
     project_root = Path(__file__).parent.parent
 
-    print("Starting Simulacrax documentation build process...")
+    print("Starting DiffAV documentation build process...")
 
     # Step 1: Generate documentation from source code
     if not args.skip_generation:

@@ -8,7 +8,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.physics.kinematics import (
+from diffav.physics.kinematics import (
     AckermanSteeringConstraint,
     BicycleModelConfig,
     BicycleModelConstraint,

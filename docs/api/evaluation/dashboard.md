@@ -1,3 +1,3 @@
 # dashboard
 
-::: simulacrax.evaluation.dashboard
+::: diffav.evaluation.dashboard

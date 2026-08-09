@@ -7,14 +7,14 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.alignment.dpo_trainer import (
+from diffav.alignment.dpo_trainer import (
     create_reference_model,
     DPOAlignmentConfig,
     DPOAlignmentMetrics,
     DPOAlignmentTrainer,
 )
-from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionModel
-from simulacrax.physics.losses import SimulacraxPhysicsLoss
+from diffav.models.trajectory_diffusion import TrajectoryDiffusionModel
+from diffav.physics.losses import DiffAVPhysicsLoss
 from tests import support
 from tests.alignment.helpers import BATCH_SIZE, CONTEXT_DIM, NUM_AGENTS
 
@@ -32,7 +32,7 @@ def _make_optimizer(model: TrajectoryDiffusionModel) -> nnx.Optimizer:
 def _make_trainer(
     model: TrajectoryDiffusionModel,
     config: DPOAlignmentConfig | None = None,
-    physics: SimulacraxPhysicsLoss | None = None,
+    physics: DiffAVPhysicsLoss | None = None,
 ) -> DPOAlignmentTrainer:
     """Create a DPO trainer with reference model for testing.
 
@@ -518,7 +518,7 @@ class TestPhysicsRegularisation:
     ) -> None:
         """physics_weight > 0 produces larger total loss."""
         ref = create_reference_model(small_diffusion_model)
-        physics = SimulacraxPhysicsLoss()
+        physics = DiffAVPhysicsLoss()
 
         optimizer_no = _make_optimizer(small_diffusion_model)
         trainer_no = DPOAlignmentTrainer(
@@ -561,7 +561,7 @@ class TestPhysicsRegularisation:
     ) -> None:
         """Physics loss component appears in aux dict."""
         ref = create_reference_model(small_diffusion_model)
-        physics = SimulacraxPhysicsLoss()
+        physics = DiffAVPhysicsLoss()
         optimizer = _make_optimizer(small_diffusion_model)
         trainer = DPOAlignmentTrainer(
             model=small_diffusion_model,

@@ -1,6 +1,6 @@
 # Preference-Based Alignment
 
-Simulacrax steers the trajectory diffusion model toward adversarial,
+DiffAV steers the trajectory diffusion model toward adversarial,
 physically plausible edge-cases through preference-based alignment.
 This guide explains the reward composition, preference pair construction,
 and the DPO data pipeline that connects generation to fine-tuning.
@@ -50,8 +50,8 @@ penalty, low kinematic residual, and smooth velocity gets a reward near zero.
 ### Configuration
 
 ```python
-from simulacrax.alignment import SafetyReward, SafetyRewardConfig
-from simulacrax.physics.kinematics import BicycleModelConfig
+from diffav.alignment import SafetyReward, SafetyRewardConfig
+from diffav.physics.kinematics import BicycleModelConfig
 
 config = SafetyRewardConfig(
     collision_threshold=2.0,   # metres
@@ -115,7 +115,7 @@ Set `min_reward_margin` to discard pairs where chosen and rejected are
 too similar. This prevents the DPO trainer from learning noise:
 
 ```python
-from simulacrax.alignment import PreferencePairConfig, RankingStrategy
+from diffav.alignment import PreferencePairConfig, RankingStrategy
 
 config = PreferencePairConfig(
     ranking_strategy=RankingStrategy.BEST_VS_WORST,
@@ -131,7 +131,7 @@ The complete pipeline from generation to DPO training data:
 
 ```python
 import jax
-from simulacrax.alignment import (
+from diffav.alignment import (
     PreferencePairBuilder,
     PreferencePairConfig,
     SafetyReward,
@@ -215,7 +215,7 @@ supports an optional physics regularisation term:
 
 $$\mathcal{L}_\text{total} = \mathcal{L}_\text{DPO} + \lambda_\text{phys} \cdot \mathcal{L}_\text{physics}$$
 
-This reuses `SimulacraxPhysicsLoss` from the physics-informed training
+This reuses `DiffAVPhysicsLoss` from the physics-informed training
 pipeline, applied to chosen trajectories via `jax.vmap`.
 
 ### Training Example
@@ -225,14 +225,14 @@ import jax
 from flax import nnx
 from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
 
-from simulacrax.alignment import (
+from diffav.alignment import (
     DPOAlignmentConfig,
     DPOAlignmentTrainer,
     create_reference_model,
     PreferencePairBuilder,
     SafetyReward,
 )
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig,
     TrajectoryDiffusionModel,
 )
@@ -296,7 +296,7 @@ span the top/bottom `ceil((1 − α) · num_feasible)` of the ranking, so higher
 no steering).
 
 ```python
-from simulacrax.alignment import ScenarioSteeringConfig, ScenarioSteeringTrainer
+from diffav.alignment import ScenarioSteeringConfig, ScenarioSteeringTrainer
 
 config = ScenarioSteeringConfig(
     target_scenario="forward",

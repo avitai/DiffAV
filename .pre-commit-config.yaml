@@ -1,4 +1,4 @@
-# Simulacrax pre-commit configuration.
+# DiffAV pre-commit configuration.
 # Layered strictness:
 # - src/: strict blocking rules
 # - tests/: strict core correctness rules (without docstring burden)
@@ -19,24 +19,33 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^memory-bank/
       - id: end-of-file-fixer
+        exclude: ^memory-bank/
       - id: check-yaml
         args: [--unsafe]
+        exclude: ^memory-bank/
       - id: check-added-large-files
         args: ["--maxkb=2000"]
+        exclude: ^memory-bank/
       - id: check-merge-conflict
       - id: check-toml
       - id: check-json
+        exclude: ^memory-bank/
       - id: debug-statements
+        exclude: ^memory-bank/
       - id: mixed-line-ending
+        exclude: ^memory-bank/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.5
     hooks:
       - id: ruff
         args: [--fix, --unsafe-fixes]
+        exclude: ^memory-bank/
         types_or: [python, pyi, jupyter, toml]
       - id: ruff-format
+        exclude: ^memory-bank/
         types_or: [python, pyi, jupyter, toml]
 
   - repo: https://github.com/Yelp/detect-secrets
@@ -44,7 +53,7 @@ repos:
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
-        exclude: ^(uv\.lock$|.*\.ipynb$)
+        exclude: ^(memory-bank/|uv\.lock$|.*\.ipynb$)
 
   - repo: local
     hooks:
@@ -66,7 +75,7 @@ repos:
           - --
         language: system
         types: [python]
-        exclude: ^tests/
+        exclude: ^(memory-bank|tests)/
 
       - id: ruff-src-blocking
         name: ruff-src-blocking
@@ -179,7 +188,7 @@ repos:
 
       - id: mkdocs-strict-blocking
         name: mkdocs-strict-blocking
-        entry: uv run mkdocs build --strict -d /tmp/simulacrax-mkdocs-precommit
+        entry: uv run mkdocs build --strict -d /tmp/diffav-mkdocs-precommit
         language: system
         pass_filenames: false
 

@@ -1,3 +1,3 @@
 # losses
 
-::: simulacrax.physics.losses
+::: diffav.physics.losses

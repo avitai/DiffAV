@@ -7,9 +7,9 @@ import jax.numpy as jnp
 import pytest
 from flax import nnx
 
-from simulacrax.core.types import TrajectoryPrediction
-from simulacrax.models.sampling_utils import stratified_timestep
-from simulacrax.models.trajectory_diffusion import (
+from diffav.core.types import TrajectoryPrediction
+from diffav.models.sampling_utils import stratified_timestep
+from diffav.models.trajectory_diffusion import (
     create_trajectory_model,
     GuidanceSpec,
     TrajectoryDiffusionConfig,

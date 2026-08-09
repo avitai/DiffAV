@@ -12,19 +12,19 @@ import numpy as np
 import pytest
 from flax import nnx
 
-from simulacrax.api.map_conditioned import (
+from diffav.api.map_conditioned import (
     MapConditionedTrajectoryConfig,
     MapConditionedTrajectoryModel,
 )
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.core.types import ModalityMode, TrajectoryPrediction
-from simulacrax.data.tokenizer import TokenizerConfig
-from simulacrax.evaluation.map_conditioned_evaluator import (
+from diffav.core.geometry import RoadEdges
+from diffav.core.types import ModalityMode, TrajectoryPrediction
+from diffav.data.tokenizer import TokenizerConfig
+from diffav.evaluation.map_conditioned_evaluator import (
     MapConditionedEvaluator,
     ValidationEvalConfig,
     ValidationScene,
 )
-from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionConfig
+from diffav.models.trajectory_diffusion import TrajectoryDiffusionConfig
 
 
 _AGENTS = 2

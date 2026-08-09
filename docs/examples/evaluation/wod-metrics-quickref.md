@@ -14,8 +14,8 @@ the input shape convention of
 
 ## Files
 
-- **Python Script**: [`examples/evaluation/01_wod_metrics_quickref.py`](https://github.com/avitai/simulacrax/blob/main/examples/evaluation/01_wod_metrics_quickref.py)
-- **Jupyter Notebook**: [`examples/evaluation/01_wod_metrics_quickref.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/evaluation/01_wod_metrics_quickref.ipynb)
+- **Python Script**: [`examples/evaluation/01_wod_metrics_quickref.py`](https://github.com/avitai/DiffAV/blob/main/examples/evaluation/01_wod_metrics_quickref.py)
+- **Jupyter Notebook**: [`examples/evaluation/01_wod_metrics_quickref.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/evaluation/01_wod_metrics_quickref.ipynb)
 
 ## Requirements & Run
 
@@ -35,7 +35,7 @@ the input shape convention of
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - At least one WOD Motion validation TFRecord shard (see Setup in the example)
 - `WOD_MOTION_TFRECORD_PATH` env var pointing to the TFRecord directory
 
@@ -57,7 +57,7 @@ MetricsDashboard.generate(report) → motion/table.csv + .html
 ## Quick Usage
 
 ```python
-from simulacrax.evaluation import (
+from diffav.evaluation import (
     ade, fde, min_ade, min_fde, miss_rate,
     MotionMetrics, MotionMetricsConfig,
     EvaluationRunner, MetricsDashboard,
@@ -127,7 +127,7 @@ CYCLIST,x.xx,x.xx,x.xx,x.xx
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading |
+| `WODSource` | diffav.data | Real WOD TFRecord loading |
 | `PublicationGenerator` | calibrax | Table export (CSV, HTML) |
 
 ## Related

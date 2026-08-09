@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Export the SimulacraxScenarioMiner trajectory diffusion model to StableHLO.
+"""Export the DiffAVScenarioMiner trajectory diffusion model to StableHLO.
 
 Exports the ``TrajectoryDiffusionModel.predict_noise`` method using
 ``jax.export`` and serialises the result as a StableHLO ``.mlir`` artifact.
@@ -24,7 +24,7 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 
-from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionModel
+from diffav.models.trajectory_diffusion import TrajectoryDiffusionModel
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ _NUM_HEADS = 4
 _NUM_DIFFUSION_STEPS = 10  # small value — only shapes matter for export
 
 _DEFAULT_OUTPUT_DIR = "artifacts"
-_ARTIFACT_FILENAME = "simulacrax_scenario_miner.mlir"
+_ARTIFACT_FILENAME = "diffav_scenario_miner.mlir"
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -55,7 +55,7 @@ def _build_parser() -> argparse.ArgumentParser:
         Configured ``ArgumentParser`` instance.
     """
     parser = argparse.ArgumentParser(
-        description="Export SimulacraxScenarioMiner to StableHLO .mlir format.",
+        description="Export DiffAVScenarioMiner to StableHLO .mlir format.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -75,7 +75,7 @@ def _build_model() -> TrajectoryDiffusionModel:
     Returns:
         Freshly initialised ``TrajectoryDiffusionModel``.
     """
-    from simulacrax.models.trajectory_diffusion import (
+    from diffav.models.trajectory_diffusion import (
         TrajectoryDiffusionConfig,
         TrajectoryDiffusionModel,
     )

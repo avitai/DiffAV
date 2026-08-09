@@ -1,3 +1,3 @@
 # steering_spine
 
-::: simulacrax.alignment.steering_spine
+::: diffav.alignment.steering_spine

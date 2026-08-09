@@ -9,8 +9,8 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.physics.losses import SimulacraxPhysicsConfig, SimulacraxPhysicsLoss
+from diffav.core.geometry import RoadEdges
+from diffav.physics.losses import DiffAVPhysicsConfig, DiffAVPhysicsLoss
 from tests.physics.helpers import FUTURE_STEPS as _FUTURE_STEPS, STATE_DIM as _STATE_DIM
 
 
@@ -73,12 +73,12 @@ def _overlapping_trajectories() -> jax.Array:
     return jnp.broadcast_to(traj_single[None, :, :], (3, _FUTURE_STEPS, _STATE_DIM))
 
 
-class TestSimulacraxPhysicsConfig:
-    """Tests for SimulacraxPhysicsConfig validation."""
+class TestDiffAVPhysicsConfig:
+    """Tests for DiffAVPhysicsConfig validation."""
 
     def test_defaults(self) -> None:
         """Default config creates with expected values."""
-        cfg = SimulacraxPhysicsConfig()
+        cfg = DiffAVPhysicsConfig()
         assert cfg.kinematic_weight == 1.0
         assert cfg.collision_threshold == 2.0
         assert cfg.adaptive_weighting is True
@@ -88,45 +88,45 @@ class TestSimulacraxPhysicsConfig:
     def test_negative_kinematic_weight_raises(self) -> None:
         """Negative kinematic weight raises ValueError."""
         with pytest.raises(ValueError, match="kinematic_weight"):
-            SimulacraxPhysicsConfig(kinematic_weight=-1.0)
+            DiffAVPhysicsConfig(kinematic_weight=-1.0)
 
     def test_negative_collision_weight_raises(self) -> None:
         """Negative collision weight raises ValueError."""
         with pytest.raises(ValueError, match="collision_weight"):
-            SimulacraxPhysicsConfig(collision_weight=-0.5)
+            DiffAVPhysicsConfig(collision_weight=-0.5)
 
     def test_negative_road_boundary_weight_raises(self) -> None:
         """Negative road boundary weight raises ValueError."""
         with pytest.raises(ValueError, match="road_boundary_weight"):
-            SimulacraxPhysicsConfig(road_boundary_weight=-1.0)
+            DiffAVPhysicsConfig(road_boundary_weight=-1.0)
 
     def test_invalid_schedule_type_raises(self) -> None:
         """Invalid schedule type raises ValueError."""
         with pytest.raises(ValueError, match="is not a valid PhysicsScheduleType"):
-            SimulacraxPhysicsConfig(schedule_type=cast(Any, "cosine"))
+            DiffAVPhysicsConfig(schedule_type=cast(Any, "cosine"))
 
     def test_non_positive_offroad_chunk_size_raises(self) -> None:
         """A zero or negative offroad_chunk_size raises ValueError."""
         with pytest.raises(ValueError, match="offroad_chunk_size"):
-            SimulacraxPhysicsConfig(offroad_chunk_size=0)
+            DiffAVPhysicsConfig(offroad_chunk_size=0)
 
     def test_zero_collision_threshold_raises(self) -> None:
         """Zero collision threshold raises ValueError."""
         with pytest.raises(ValueError, match="collision_threshold"):
-            SimulacraxPhysicsConfig(collision_threshold=0.0)
+            DiffAVPhysicsConfig(collision_threshold=0.0)
 
     def test_negative_momentum_weight_raises(self) -> None:
         """Negative momentum-variation weight raises ValueError."""
         with pytest.raises(ValueError, match="momentum_variation_weight"):
-            SimulacraxPhysicsConfig(momentum_variation_weight=-0.1)
+            DiffAVPhysicsConfig(momentum_variation_weight=-0.1)
 
 
-class TestSimulacraxPhysicsLoss:
-    """Tests for SimulacraxPhysicsLoss compute_loss."""
+class TestDiffAVPhysicsLoss:
+    """Tests for DiffAVPhysicsLoss compute_loss."""
 
     def test_returns_scalar_and_dict(self) -> None:
         """compute_loss returns (scalar, dict)."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories()
         total, components = loss_fn.compute_loss(traj, epoch=0)
         assert total.shape == ()
@@ -139,14 +139,14 @@ class TestSimulacraxPhysicsLoss:
 
     def test_loss_nonnegative(self) -> None:
         """Total loss is non-negative."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories()
         total, _ = loss_fn.compute_loss(traj, epoch=0)
         assert float(total) >= 0.0
 
     def test_differentiable(self) -> None:
         """Loss is differentiable with respect to trajectories."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories()
 
         def scalar_loss(t: jax.Array) -> jax.Array:
@@ -159,7 +159,7 @@ class TestSimulacraxPhysicsLoss:
 
     def test_jit_compatible(self) -> None:
         """Loss computes correctly under JIT."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories()
 
         @jax.jit
@@ -173,42 +173,42 @@ class TestSimulacraxPhysicsLoss:
 
     def test_collision_separated_agents_zero(self) -> None:
         """Well-separated agents have zero collision loss."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _separated_trajectories()
         _, components = loss_fn.compute_loss(traj, epoch=0)
         assert float(components["collision_loss"]) == pytest.approx(0.0, abs=1e-6)
 
     def test_collision_overlapping_agents_positive(self) -> None:
         """Overlapping agents produce positive collision loss."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _overlapping_trajectories()
         _, components = loss_fn.compute_loss(traj, epoch=0)
         assert float(components["collision_loss"]) > 0.0
 
     def test_adaptive_weight_changes_with_epoch(self) -> None:
         """Adaptive weight increases from early to late epochs."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         weight_early = float(loss_fn.get_current_weight(0))
         weight_late = float(loss_fn.get_current_weight(1000))
         assert weight_late > weight_early
 
     def test_no_road_edges_zero_boundary_loss(self) -> None:
         """No road edges → zero boundary loss."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories()
         _, components = loss_fn.compute_loss(traj, epoch=0, road_edges=None)
         assert float(components["boundary_loss"]) == pytest.approx(0.0)
 
     def test_on_road_zero_boundary_loss(self) -> None:
         """Agents inside the drivable area incur no boundary loss."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _trajectories_at_y(20.0)
         _, components = loss_fn.compute_loss(traj, epoch=0, road_edges=_square_road_edges())
         assert float(components["boundary_loss"]) == pytest.approx(0.0)
 
     def test_off_road_boundary_loss_is_squared_distance(self) -> None:
         """Off-road agents are penalized by squared distance to the boundary."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         # 5 m below the bottom road edge → signed distance +5 → penalty 25.
         traj = _trajectories_at_y(-5.0)
         _, components = loss_fn.compute_loss(traj, epoch=0, road_edges=_square_road_edges())
@@ -216,7 +216,7 @@ class TestSimulacraxPhysicsLoss:
 
     def test_boundary_loss_grows_with_off_road_distance(self) -> None:
         """Driving further off-road increases the boundary loss."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         edges = _square_road_edges()
         _, near = loss_fn.compute_loss(_trajectories_at_y(-5.0), epoch=0, road_edges=edges)
         _, far = loss_fn.compute_loss(_trajectories_at_y(-10.0), epoch=0, road_edges=edges)
@@ -224,7 +224,7 @@ class TestSimulacraxPhysicsLoss:
 
     def test_boundary_gradient_points_back_toward_road(self) -> None:
         """For off-road agents, moving back on-road reduces the boundary loss."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         edges = _square_road_edges()
 
         def boundary_loss(traj: jax.Array) -> jax.Array:
@@ -238,27 +238,27 @@ class TestSimulacraxPhysicsLoss:
 
     def test_momentum_variation_in_components(self) -> None:
         """Momentum loss is present in component dict."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories()
         _, components = loss_fn.compute_loss(traj, epoch=0)
         assert "momentum_loss" in components
 
     def test_default_config(self) -> None:
-        """SimulacraxPhysicsLoss() works without arguments."""
-        loss_fn = SimulacraxPhysicsLoss()
+        """DiffAVPhysicsLoss() works without arguments."""
+        loss_fn = DiffAVPhysicsLoss()
         assert loss_fn.config.kinematic_weight == 1.0
 
     def test_disabled_adaptive_weighting(self) -> None:
         """Disabled adaptive weighting returns constant weight."""
-        cfg = SimulacraxPhysicsConfig(adaptive_weighting=False)
-        loss_fn = SimulacraxPhysicsLoss(cfg)
+        cfg = DiffAVPhysicsConfig(adaptive_weighting=False)
+        loss_fn = DiffAVPhysicsLoss(cfg)
         w0 = float(loss_fn.get_current_weight(0))
         w100 = float(loss_fn.get_current_weight(100))
         assert w0 == pytest.approx(w100)
 
     def test_single_agent_no_collision(self) -> None:
         """Single agent produces zero collision loss."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories(num_agents=1)
         _, components = loss_fn.compute_loss(traj, epoch=0)
         assert float(components["collision_loss"]) == pytest.approx(0.0)
@@ -269,7 +269,7 @@ class TestValidityAwarePhysics:
 
     def test_valid_mask_excludes_padded_agent_from_collision(self) -> None:
         """A padded slot sitting on a real agent collides only when unmasked."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         two = _straight_trajectories(num_agents=2, future_steps=6)
         overlap = two[:1]  # a duplicate sitting exactly on agent 0
         three = jnp.concatenate([two, overlap], axis=0)
@@ -282,7 +282,7 @@ class TestValidityAwarePhysics:
 
     def test_valid_mask_excludes_padded_agent_from_kinematic(self) -> None:
         """A teleporting padded agent inflates the kinematic residual unless masked."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         good = _straight_trajectories(num_agents=1, future_steps=6)
         bad = (
             jnp.zeros((1, 6, _STATE_DIM))
@@ -304,7 +304,7 @@ class TestValidityAwarePhysics:
 
     def test_valid_mask_excludes_padded_agent_from_boundary(self) -> None:
         """An off-road padded agent adds boundary loss only when unmasked."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         on_road = _trajectories_at_y(10.0, num_agents=2, future_steps=6)
         off_road = jnp.full((1, 6, _STATE_DIM), 100.0)  # far outside the square
         three = jnp.concatenate([on_road, off_road], axis=0)
@@ -320,7 +320,7 @@ class TestValidityAwarePhysics:
 
     def test_none_mask_matches_unmasked(self) -> None:
         """valid_mask=None reproduces the unmasked loss exactly."""
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories(num_agents=3, future_steps=6)
         edges = _square_road_edges()
         total_default, _ = loss_fn.compute_loss(traj, epoch=0, road_edges=edges)
@@ -333,7 +333,7 @@ class TestValidityAwarePhysics:
         The kinematic term combines per-step validity with a boolean ``&``, so
         a float32 mask must be accepted rather than raising in ``bitwise_and``.
         """
-        loss_fn = SimulacraxPhysicsLoss()
+        loss_fn = DiffAVPhysicsLoss()
         traj = _straight_trajectories(num_agents=3, future_steps=6)
         edges = _square_road_edges()
         bool_mask = jnp.array([[True] * 6, [False] * 6, [True] * 6])
@@ -353,8 +353,8 @@ class TestValidityAwarePhysics:
             [_ROAD_EDGE_SQUARE, _ROAD_EDGE_SQUARE + 30.0, _ROAD_EDGE_SQUARE + 60.0]
         )
         traj = _straight_trajectories(num_agents=3, future_steps=6)
-        chunked = SimulacraxPhysicsLoss(SimulacraxPhysicsConfig(offroad_chunk_size=2))
-        unchunked = SimulacraxPhysicsLoss(SimulacraxPhysicsConfig())
+        chunked = DiffAVPhysicsLoss(DiffAVPhysicsConfig(offroad_chunk_size=2))
+        unchunked = DiffAVPhysicsLoss(DiffAVPhysicsConfig())
         _, chunked_components = chunked.compute_loss(traj, epoch=0, road_edges=edges)
         _, unchunked_components = unchunked.compute_loss(traj, epoch=0, road_edges=edges)
         assert float(chunked_components["boundary_loss"]) == pytest.approx(

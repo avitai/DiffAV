@@ -15,15 +15,15 @@ import jax.numpy as jnp
 import numpy as np
 from flax import nnx
 
-from simulacrax.api.adversarial_metrics import (
+from diffav.api.adversarial_metrics import (
     map_sensitivity,
     map_zeroed_scene,
     select_adversary_victim,
 )
-from simulacrax.api.map_conditioned import build_map_conditioned_model, MapConditionedBuildSpec
-from simulacrax.core.constants import ROADGRAPH_VALID
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.evaluation.map_conditioned_evaluator import ValidationScene
+from diffav.api.map_conditioned import build_map_conditioned_model, MapConditionedBuildSpec
+from diffav.core.constants import ROADGRAPH_VALID
+from diffav.core.geometry import RoadEdges
+from diffav.evaluation.map_conditioned_evaluator import ValidationScene
 
 
 _RAW_AGENTS = 4

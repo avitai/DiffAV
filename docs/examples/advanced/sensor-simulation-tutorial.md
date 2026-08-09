@@ -7,14 +7,14 @@
 | **Prerequisites** | JAX basics, ScenarioMiner Quick Reference |
 | **Format** | Python + Jupyter |
 
-A complete walkthrough of Simulacrax's differentiable sensor simulation stack:
+A complete walkthrough of DiffAV's differentiable sensor simulation stack:
 NeRF-based RGB rendering, physics-inspired weather augmentations, and LiDAR
 point cloud generation from voxel density grids.
 
 ## Files
 
-- **Python Script**: [`examples/advanced/03_sensor_simulation_tutorial.py`](https://github.com/avitai/simulacrax/blob/main/examples/advanced/03_sensor_simulation_tutorial.py)
-- **Jupyter Notebook**: [`examples/advanced/03_sensor_simulation_tutorial.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/advanced/03_sensor_simulation_tutorial.ipynb)
+- **Python Script**: [`examples/advanced/03_sensor_simulation_tutorial.py`](https://github.com/avitai/DiffAV/blob/main/examples/advanced/03_sensor_simulation_tutorial.py)
+- **Jupyter Notebook**: [`examples/advanced/03_sensor_simulation_tutorial.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/advanced/03_sensor_simulation_tutorial.ipynb)
 
 ## Requirements & Run
 
@@ -24,7 +24,7 @@ point cloud generation from voxel density grids.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - No dataset required — all examples use synthetic data
 
 ## What You'll Learn
@@ -76,7 +76,7 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 
-from simulacrax.sensor import (
+from diffav.sensor import (
     CameraPose, NeRFRenderer, NeRFRendererConfig,
     RainAugmentation, RainConfig,
     FogAugmentation, FogConfig,

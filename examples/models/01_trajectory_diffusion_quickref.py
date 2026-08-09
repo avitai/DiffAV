@@ -90,13 +90,13 @@ import jax.numpy as jnp
 from dotenv import load_dotenv
 from flax import nnx
 
-from simulacrax.api import create_scenario_miner, MinerConfig
-from simulacrax.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
-from simulacrax.core.types import TrajectoryPrediction
-from simulacrax.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
-from simulacrax.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
-from simulacrax.models.trajectory_diffusion import (
+from diffav.api import create_scenario_miner, MinerConfig
+from diffav.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
+from diffav.core.types import TrajectoryPrediction
+from diffav.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
+from diffav.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
+from diffav.data.wod_source import WODSource, WODSourceConfig
+from diffav.models.trajectory_diffusion import (
     create_trajectory_model,
     TrajectoryDiffusionConfig,
     TrajectoryDiffusionModel,

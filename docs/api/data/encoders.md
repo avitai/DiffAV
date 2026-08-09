@@ -5,14 +5,14 @@ provides one encoder operator and its configuration; the
 [`SceneTokenizer`](tokenizer.md) composes the negotiated set into the
 full pipeline.
 
-::: simulacrax.data.encoders.agent
+::: diffav.data.encoders.agent
 
-::: simulacrax.data.encoders.map
+::: diffav.data.encoders.map
 
-::: simulacrax.data.encoders.ego
+::: diffav.data.encoders.ego
 
-::: simulacrax.data.encoders.lidar
+::: diffav.data.encoders.lidar
 
-::: simulacrax.data.encoders.camera
+::: diffav.data.encoders.camera
 
-::: simulacrax.data.encoders.fusion
+::: diffav.data.encoders.fusion

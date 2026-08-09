@@ -8,14 +8,14 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.core.types import MetricsReport, TrajectoryPrediction
-from simulacrax.evaluation.metrics import (
+from diffav.core.types import MetricsReport, TrajectoryPrediction
+from diffav.evaluation.metrics import (
     MotionMetrics,
     MotionMetricsConfig,
     SimAgentMetrics,
     SimAgentMetricsConfig,
 )
-from simulacrax.evaluation.runner import EvaluationRunner
+from diffav.evaluation.runner import EvaluationRunner
 
 
 # ---------------------------------------------------------------------------
@@ -129,8 +129,8 @@ class TestTrajectorySamplerSeam:
     """The runner's model seam is a typed consumer-side Protocol."""
 
     def test_diffusion_model_satisfies_protocol(self) -> None:
-        from simulacrax.evaluation.runner import TrajectorySampler
-        from simulacrax.models.trajectory_diffusion import TrajectoryDiffusionModel
+        from diffav.evaluation.runner import TrajectorySampler
+        from diffav.models.trajectory_diffusion import TrajectoryDiffusionModel
 
         assert isinstance(TrajectoryDiffusionModel, type)
         assert hasattr(TrajectoryDiffusionModel, "sample")
@@ -143,6 +143,6 @@ class TestTrajectorySamplerSeam:
         assert isinstance(_Stub(), TrajectorySampler)
 
     def test_object_without_sample_rejected(self) -> None:
-        from simulacrax.evaluation.runner import TrajectorySampler
+        from diffav.evaluation.runner import TrajectorySampler
 
         assert not isinstance(object(), TrajectorySampler)

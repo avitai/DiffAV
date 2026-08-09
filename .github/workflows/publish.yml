@@ -58,7 +58,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/project/simulacrax/
+      url: https://test.pypi.org/project/diffav/
 
     steps:
       - name: Download distribution
@@ -84,7 +84,7 @@ jobs:
 
     environment:
       name: pypi
-      url: https://pypi.org/project/simulacrax/
+      url: https://pypi.org/project/diffav/
 
     steps:
       - name: Download distribution

@@ -34,29 +34,29 @@ import numpy as np
 from dotenv import load_dotenv
 from flax import nnx
 
-from simulacrax.alignment.dpo_trainer import DPOAlignmentConfig
-from simulacrax.alignment.steering_spine import AdversarialRewardConfig
-from simulacrax.api.adversarial_metrics import (
+from diffav.alignment.dpo_trainer import DPOAlignmentConfig
+from diffav.alignment.steering_spine import AdversarialRewardConfig
+from diffav.api.adversarial_metrics import (
     adversary_offroad_fraction,
     map_sensitivity,
     rollout_realism,
     select_adversary_victim,
     victim_min_distance,
 )
-from simulacrax.api.map_conditioned import (
+from diffav.api.map_conditioned import (
     load_map_conditioned_from_checkpoint,
     MapConditionedTrajectoryModel,
 )
-from simulacrax.api.map_conditioned_dpo import (
+from diffav.api.map_conditioned_dpo import (
     assemble_dpo_batch,
     build_dpo_arm,
     map_conditioned_dpo_step,
 )
-from simulacrax.api.map_conditioned_steering import build_scene_pairs, sample_scene_candidates
-from simulacrax.api.wod_validation import stream_validation_scenes
-from simulacrax.core.constants import WOD_CURRENT_TIME_INDEX
-from simulacrax.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
-from simulacrax.evaluation.map_conditioned_evaluator import ValidationScene
+from diffav.api.map_conditioned_steering import build_scene_pairs, sample_scene_candidates
+from diffav.api.wod_validation import stream_validation_scenes
+from diffav.core.constants import WOD_CURRENT_TIME_INDEX
+from diffav.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
+from diffav.evaluation.map_conditioned_evaluator import ValidationScene
 
 
 logger = logging.getLogger("steer_wod_dpo_ablation")

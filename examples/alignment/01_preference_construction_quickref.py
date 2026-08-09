@@ -53,8 +53,8 @@ PreferenceBatch.to_dpo_batch() → {"chosen", "rejected", "scene_contexts"}
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading |
-| `BicycleModelConstraint` | simulacrax.physics | Kinematic reward computation |
+| `WODSource` | diffav.data | Real WOD TFRecord loading |
+| `BicycleModelConstraint` | diffav.physics | Kinematic reward computation |
 | `RewardFunction` protocol | artifex | Interface contract for reward functions |
 """
 
@@ -94,15 +94,15 @@ import jax
 import jax.numpy as jnp
 from dotenv import load_dotenv
 
-from simulacrax.alignment import (
+from diffav.alignment import (
     PreferencePairBuilder,
     PreferencePairConfig,
     RankingStrategy,
     SafetyReward,
     SafetyRewardConfig,
 )
-from simulacrax.data import resolve_wod_tfrecord_path
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
+from diffav.data import resolve_wod_tfrecord_path
+from diffav.data.wod_source import WODSource, WODSourceConfig
 
 
 load_dotenv()

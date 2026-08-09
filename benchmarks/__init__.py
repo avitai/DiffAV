@@ -1,1 +1,1 @@
-"""Benchmark harnesses for Simulacrax."""
+"""Benchmark harnesses for DiffAV."""

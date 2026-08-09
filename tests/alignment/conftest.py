@@ -11,7 +11,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionModel,
 )
 from tests import support

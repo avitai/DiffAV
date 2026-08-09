@@ -8,7 +8,7 @@ import pytest
 from datarax.core.element_batch import Batch, Element
 from flax import nnx
 
-from simulacrax.data.operators import (
+from diffav.data.operators import (
     AgentNormalizationConfig,
     AgentNormalizationOperator,
     MapCroppingConfig,

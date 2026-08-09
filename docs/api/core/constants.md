@@ -1,3 +1,3 @@
 # constants
 
-::: simulacrax.core.constants
+::: diffav.core.constants

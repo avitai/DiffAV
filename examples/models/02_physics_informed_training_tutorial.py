@@ -54,7 +54,7 @@ Four reference-grounded training techniques keep the objective well-behaved:
 WODSource → real vehicle trajectories (x, y, heading, speed)
                         ↓
 TrajectoryDiffusionModel.compute_loss()  →  diffusion_loss (Min-SNR-weighted)
-SimulacraxPhysicsLoss.compute()          →  ᾱ_t × (kinematic + collision)
+DiffAVPhysicsLoss.compute()          →  ᾱ_t × (kinematic + collision)
                         ↓
 total_loss = diffusion_loss + physics_weight × physics_loss
                         ↓
@@ -85,7 +85,7 @@ of the *samples* — the outcome the loss is a proxy for.
 | `GaussianNormalizer` | opifex | Add/div standardization of context rows |
 | `ErrorRecoveryManager` | opifex | Stability checks + stable-state rollback |
 | `TimingCollector` | calibrax | Wall-clock timing |
-| `SimulacraxPhysicsLoss` | simulacrax | Bicycle model + collision penalties |
+| `DiffAVPhysicsLoss` | diffav | Bicycle model + collision penalties |
 """
 
 # %% [markdown]
@@ -133,7 +133,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-PLOT_DIR = Path(os.environ.get("SIMULACRAX_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
+PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
 PLOT_DIR.mkdir(parents=True, exist_ok=True)
 
 from dotenv import load_dotenv
@@ -141,17 +141,17 @@ from flax import nnx
 from opifex.core.normalization import GaussianNormalizer
 from opifex.core.training.optimizers import OptimizerConfig
 
-from simulacrax.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
-from simulacrax.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
-from simulacrax.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
-from simulacrax.models.trainer import TrainerConfig, TrajectoryTrainer
-from simulacrax.models.trajectory_diffusion import (
+from diffav.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
+from diffav.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
+from diffav.data.operators import AgentNormalizationConfig, AgentNormalizationOperator
+from diffav.data.wod_source import WODSource, WODSourceConfig
+from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig,
     TrajectoryDiffusionModel,
 )
-from simulacrax.physics.kinematics import BicycleModelConstraint
-from simulacrax.physics.losses import SimulacraxPhysicsConfig, SimulacraxPhysicsLoss
+from diffav.physics.kinematics import BicycleModelConstraint
+from diffav.physics.losses import DiffAVPhysicsConfig, DiffAVPhysicsLoss
 
 
 load_dotenv()
@@ -166,7 +166,7 @@ BATCH_SCENES = 8  # Scenes stacked per training step (reference practice)
 
 # Smoke mode (set by the example execution tests) shrinks the loop and the
 # milestone sampling.
-_SMOKE = os.environ.get("SIMULACRAX_EXAMPLES_SMOKE") == "1"
+_SMOKE = os.environ.get("DIFFAV_EXAMPLES_SMOKE") == "1"
 NUM_TRAIN_STEPS = 60 if _SMOKE else 500
 
 # %% [markdown]
@@ -348,7 +348,7 @@ trainer_config = TrainerConfig(
         warmup_steps=max(3 * NUM_TRAIN_STEPS // 10, 1),
         decay_steps=3 * NUM_TRAIN_STEPS,
     ),
-    physics_config=SimulacraxPhysicsConfig(
+    physics_config=DiffAVPhysicsConfig(
         kinematic_weight=1.0,
         collision_weight=1.0,
         adaptive_weighting=True,
@@ -653,8 +653,8 @@ kinematic plausibility on the real WOD trajectories.
 """
 
 # %%
-phys = SimulacraxPhysicsLoss(
-    SimulacraxPhysicsConfig(
+phys = DiffAVPhysicsLoss(
+    DiffAVPhysicsConfig(
         initial_physics_weight=0.01,
         final_physics_weight=1.0,
         transition_epochs=100,

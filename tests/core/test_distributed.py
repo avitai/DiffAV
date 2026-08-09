@@ -16,22 +16,22 @@ import optax
 import pytest
 from flax import nnx
 
-from simulacrax.alignment.dpo_trainer import (
+from diffav.alignment.dpo_trainer import (
     DPOAlignmentConfig,
     DPOAlignmentMetrics,
     DPOAlignmentTrainer,
 )
-from simulacrax.core.distributed import (
+from diffav.core.distributed import (
     create_device_mesh,
     DistributedConfig,
     shard_batch,
 )
-from simulacrax.models.trainer import (
+from diffav.models.trainer import (
     TrainerConfig,
     TrainingMetrics,
     TrajectoryTrainer,
 )
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionModel,
 )
 from tests import support
@@ -344,7 +344,7 @@ class TestShardingContract:
     def test_data_parallel_sharding_partitions_batch_axis(self) -> None:
         from jax.sharding import PartitionSpec
 
-        from simulacrax.core.distributed import get_data_parallel_sharding
+        from diffav.core.distributed import get_data_parallel_sharding
 
         mesh = create_device_mesh(DistributedConfig())
         sharding = get_data_parallel_sharding(mesh)

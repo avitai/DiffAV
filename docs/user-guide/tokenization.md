@@ -1,6 +1,6 @@
 # Scene Tokenization
 
-Simulacrax converts raw Waymo Open Dataset (WOD) scenarios into
+DiffAV converts raw Waymo Open Dataset (WOD) scenarios into
 differentiable embeddings through a hierarchical multi-modal
 tokenization pipeline. This guide explains the architecture and
 how it integrates with the datarax operator abstraction.
@@ -203,8 +203,8 @@ differentiable and JIT-compatible.
 ## Configuration
 
 ```python
-from simulacrax.data.tokenizer import SceneTokenizer, TokenizerConfig
-from simulacrax.core.types import FusionStrategy
+from diffav.data.tokenizer import SceneTokenizer, TokenizerConfig
+from diffav.core.types import FusionStrategy
 
 config = TokenizerConfig(
     embed_dim=256,          # Embedding dimension for all modalities

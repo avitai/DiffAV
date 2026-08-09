@@ -14,8 +14,8 @@ import numpy as np
 import pytest
 from datarax.typing import Element
 
-from simulacrax.core.types import DatasetMode
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
+from diffav.core.types import DatasetMode
+from diffav.data.wod_source import WODSource, WODSourceConfig
 
 
 # ---------------------------------------------------------------------------

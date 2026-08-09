@@ -1,3 +1,3 @@
 # wod_source
 
-::: simulacrax.data.wod_source
+::: diffav.data.wod_source

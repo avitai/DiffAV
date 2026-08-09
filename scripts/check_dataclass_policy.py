@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Enforce dataclass immutability policy across the Simulacrax package.
+"""Enforce dataclass immutability policy across the DiffAV package.
 
 Policy: every dataclass uses ``frozen=True, slots=True, kw_only=True``.
 No exemptions — the datarax v0.1.4+ config bases are frozen, so subclasses
@@ -51,8 +51,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--package",
-        default="simulacrax",
-        help="Package to scan (default: simulacrax)",
+        default="diffav",
+        help="Package to scan (default: diffav)",
     )
     args = parser.parse_args()
 

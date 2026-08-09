@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from simulacrax.alignment.rewards import (
+from diffav.alignment.rewards import (
     BoundaryReward,
     CollisionReward,
     ComfortReward,
@@ -15,8 +15,8 @@ from simulacrax.alignment.rewards import (
     SafetyReward,
     SafetyRewardConfig,
 )
-from simulacrax.core.geometry import RoadEdges
-from simulacrax.physics.kinematics import BicycleModelConfig
+from diffav.core.geometry import RoadEdges
+from diffav.physics.kinematics import BicycleModelConfig
 from tests.alignment.helpers import BATCH_SIZE, FUTURE_STEPS, NUM_AGENTS
 
 

@@ -1,3 +1,3 @@
 # types
 
-::: simulacrax.core.types
+::: diffav.core.types

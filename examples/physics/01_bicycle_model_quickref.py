@@ -63,7 +63,7 @@ driving behaviour.
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading |
+| `WODSource` | diffav.data | Real WOD TFRecord loading |
 """
 
 # %% [markdown]
@@ -103,9 +103,9 @@ import jax.numpy as jnp
 import numpy as np
 from dotenv import load_dotenv
 
-from simulacrax.data import resolve_wod_tfrecord_path
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
-from simulacrax.physics.kinematics import (
+from diffav.data import resolve_wod_tfrecord_path
+from diffav.data.wod_source import WODSource, WODSourceConfig
+from diffav.physics.kinematics import (
     AckermanSteeringConstraint,
     BicycleModelConfig,
     BicycleModelConstraint,
@@ -342,7 +342,7 @@ print(f"Gradient norm:      {float(jnp.linalg.norm(grad)):.4f}")
    grow — stationary agents' yaw noise violates the steering-rate bound
 2. Loosen `max_acceleration` back to 8.0 m/s² and compare the acceleration
    violation percentiles
-3. Replace `constraint.compute_residuals` with `SimulacraxPhysicsLoss` for
+3. Replace `constraint.compute_residuals` with `DiffAVPhysicsLoss` for
    full training integration
 
 ### Related Examples

@@ -64,7 +64,7 @@ and JIT-compatible.
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `WODSource` | simulacrax.data | Real WOD TFRecord loading |
+| `WODSource` | diffav.data | Real WOD TFRecord loading |
 | `EGNNLayer` | artifex | MapEncoder equivariant graph |
 | `TransformerEncoderBlock` | artifex | AgentEncoder, LiDAREncoder |
 | `CrossModalAttention` | artifex | SceneFusionOperator default fusion |
@@ -109,9 +109,9 @@ import numpy as np
 from dotenv import load_dotenv
 from flax import nnx
 
-from simulacrax.core.types import FusionStrategy
-from simulacrax.data import resolve_wod_tfrecord_path
-from simulacrax.data.encoders import (
+from diffav.core.types import FusionStrategy
+from diffav.data import resolve_wod_tfrecord_path
+from diffav.data.encoders import (
     AgentEncoder,
     AgentEncoderConfig,
     CameraEncoder,
@@ -123,7 +123,7 @@ from simulacrax.data.encoders import (
     MapEncoder,
     MapEncoderConfig,
 )
-from simulacrax.data.operators import (
+from diffav.data.operators import (
     AgentNormalizationConfig,
     AgentNormalizationOperator,
     MapCroppingConfig,
@@ -131,8 +131,8 @@ from simulacrax.data.operators import (
     TemporalStackingConfig,
     TemporalStackingOperator,
 )
-from simulacrax.data.tokenizer import SceneTokenizer, TokenizerConfig
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
+from diffav.data.tokenizer import SceneTokenizer, TokenizerConfig
+from diffav.data.wod_source import WODSource, WODSourceConfig
 
 
 load_dotenv()

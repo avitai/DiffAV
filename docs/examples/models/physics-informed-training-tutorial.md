@@ -18,8 +18,8 @@ visible sample improvement.
 
 ## Files
 
-- **Python Script**: [`examples/models/02_physics_informed_training_tutorial.py`](https://github.com/avitai/simulacrax/blob/main/examples/models/02_physics_informed_training_tutorial.py)
-- **Jupyter Notebook**: [`examples/models/02_physics_informed_training_tutorial.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/models/02_physics_informed_training_tutorial.ipynb)
+- **Python Script**: [`examples/models/02_physics_informed_training_tutorial.py`](https://github.com/avitai/DiffAV/blob/main/examples/models/02_physics_informed_training_tutorial.py)
+- **Jupyter Notebook**: [`examples/models/02_physics_informed_training_tutorial.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/models/02_physics_informed_training_tutorial.ipynb)
 
 ## Requirements & Run
 
@@ -40,13 +40,13 @@ visible sample improvement.
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - Trajectory diffusion model basics, bicycle model, JAX/Flax NNX
 
 ## Pipeline Overview
 
 ```
-TrajectoryDiffusionModel + SimulacraxPhysicsLoss
+TrajectoryDiffusionModel + DiffAVPhysicsLoss
     |                         |
     +-- compute_loss()        +-- kinematic + collision penalties
     |                         |
@@ -60,14 +60,14 @@ TrajectoryTrainer
 ## Quick Usage
 
 ```python
-from simulacrax.models.trainer import TrainerConfig, TrajectoryTrainer
-from simulacrax.models.trajectory_diffusion import (
+from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
+from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig, TrajectoryDiffusionModel,
 )
-from simulacrax.physics.losses import SimulacraxPhysicsConfig
+from diffav.physics.losses import DiffAVPhysicsConfig
 
 trainer_config = TrainerConfig(
-    physics_config=SimulacraxPhysicsConfig(
+    physics_config=DiffAVPhysicsConfig(
         kinematic_weight=1.0, collision_weight=1.0,
         adaptive_weighting=True, initial_physics_weight=0.01,
     ),
@@ -85,16 +85,16 @@ metrics = trainer.train_step(trajectories, scene_context, key=key)
 | `create_optimizer` | opifex | Build optax optimizer from config |
 | `ErrorRecoveryManager` | opifex | NaN/instability detection |
 | `TimingCollector` | calibrax | Wall-clock timing |
-| `SimulacraxPhysicsLoss` | simulacrax | Bicycle model + collision penalties |
+| `DiffAVPhysicsLoss` | diffav | Bicycle model + collision penalties |
 
 ## Coming from standard PyTorch training?
 
-If you're familiar with standard PyTorch training loops, here's how Simulacrax physics-informed training compares:
+If you're familiar with standard PyTorch training loops, here's how DiffAV physics-informed training compares:
 
-| PyTorch | Simulacrax |
+| PyTorch | DiffAV |
 |---------|------------|
 | Manual `loss.backward()` + `optimizer.step()` | `TrajectoryTrainer.train_step(traj, ctx, key)` |
-| Physics penalty as separate loss term | `SimulacraxPhysicsLoss` integrated via `TrainerConfig` |
+| Physics penalty as separate loss term | `DiffAVPhysicsLoss` integrated via `TrainerConfig` |
 | Manual gradient clipping | Pre-configured via `OptimizerConfig(gradient_clip=...)` |
 | Custom NaN handling | `nan_safe_gradients()` utility in training loop |
 | `torch.compile(model)` | `nnx.jit(trainer.compute_train_step)` |
@@ -110,7 +110,7 @@ If you're familiar with standard PyTorch training loops, here's how Simulacrax p
 - [Trajectory Diffusion Quick Reference](trajectory-diffusion-quickref.md)
 - [Bicycle Model Quick Reference](../physics/bicycle-model-quickref.md)
 - [TrajectoryTrainer API](../../api/models/trainer.md)
-- [SimulacraxPhysicsLoss API](../../api/physics/losses.md)
+- [DiffAVPhysicsLoss API](../../api/physics/losses.md)
 
 ## Example Output
 

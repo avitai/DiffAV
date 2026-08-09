@@ -18,8 +18,8 @@ synthetic; the preference pairs are built from real WOD trajectories.
 
 ## Files
 
-- **Python Script**: [`examples/alignment/03_dpo_finetuning_tutorial.py`](https://github.com/avitai/simulacrax/blob/main/examples/alignment/03_dpo_finetuning_tutorial.py)
-- **Jupyter Notebook**: [`examples/alignment/03_dpo_finetuning_tutorial.ipynb`](https://github.com/avitai/simulacrax/blob/main/examples/alignment/03_dpo_finetuning_tutorial.ipynb)
+- **Python Script**: [`examples/alignment/03_dpo_finetuning_tutorial.py`](https://github.com/avitai/DiffAV/blob/main/examples/alignment/03_dpo_finetuning_tutorial.py)
+- **Jupyter Notebook**: [`examples/alignment/03_dpo_finetuning_tutorial.ipynb`](https://github.com/avitai/DiffAV/blob/main/examples/alignment/03_dpo_finetuning_tutorial.ipynb)
 
 ## Requirements & Run
 
@@ -76,7 +76,7 @@ pairs, and α = 0 pairs randomly (no steering).
 ## Steering Configuration
 
 ```python
-from simulacrax.alignment import ScenarioSteeringConfig
+from diffav.alignment import ScenarioSteeringConfig
 
 config = ScenarioSteeringConfig(
     target_scenario="forward",   # kinematic target label
@@ -90,7 +90,7 @@ config = ScenarioSteeringConfig(
 ## Quick Usage
 
 ```python
-from simulacrax.alignment import (
+from diffav.alignment import (
     DPOAlignmentConfig,
     DPOAlignmentTrainer,
     ScenarioSteeringConfig,
@@ -125,9 +125,9 @@ metrics = steer_trainer.steer_step(dpo_batch, jax.random.key(0))
 ## High-Level SDK
 
 ```python
-from simulacrax.api.scenario_miner import create_scenario_miner
-from simulacrax.alignment import ScenarioSteeringConfig
-from simulacrax.api.config import MinerConfig
+from diffav.api.scenario_miner import create_scenario_miner
+from diffav.alignment import ScenarioSteeringConfig
+from diffav.api.config import MinerConfig
 
 miner = create_scenario_miner(MinerConfig(...))
 steered = miner.steer(
@@ -144,7 +144,7 @@ steered = miner.steer(
 
 ## Prerequisites
 
-- Simulacrax installed (`uv sync`)
+- DiffAV installed (`uv sync`)
 - Familiarity with [DPO Fine-Tuning Quick Reference](dpo-finetuning-quickref.md)
 - JAX arrays and basic understanding of preference-based alignment
 

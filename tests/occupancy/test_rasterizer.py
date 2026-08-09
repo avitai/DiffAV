@@ -22,14 +22,14 @@ import jax
 import jax.numpy as jnp
 import pytest
 
-from simulacrax.core.types import (
+from diffav.core.types import (
     AgentState,
     AgentType,
     MapFeature,
     MapFeatureType,
     SceneContext,
 )
-from simulacrax.occupancy.rasterizer import RasterizerConfig, SceneRasterizer
+from diffav.occupancy.rasterizer import RasterizerConfig, SceneRasterizer
 
 
 # Default config geometry: 128 px over 80 m -> 0.625 m cells,

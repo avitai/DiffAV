@@ -1,6 +1,6 @@
 # Physics-Informed Training
 
-Simulacrax enforces physically plausible trajectory generation by combining
+DiffAV enforces physically plausible trajectory generation by combining
 diffusion model training with vehicle kinematics constraints, collision
 penalties, and road boundary enforcement. This guide explains the physics
 components and how they integrate with the training loop.
@@ -95,7 +95,7 @@ each other.
 ## Road Boundary Enforcement
 
 When oriented road edges are provided (as a
-`simulacrax.core.RoadEdges`, built with `RoadEdges.from_polylines`), the
+`diffav.core.RoadEdges`, built with `RoadEdges.from_polylines`), the
 boundary penalty hinges on the WOSAC signed distance to the road edges —
 negative on-road, positive off-road:
 
@@ -168,9 +168,9 @@ when `TrainerConfig.profile_flops` is enabled.
 ### Physics Loss
 
 ```python
-from simulacrax.physics.losses import SimulacraxPhysicsConfig
+from diffav.physics.losses import DiffAVPhysicsConfig
 
-config = SimulacraxPhysicsConfig(
+config = DiffAVPhysicsConfig(
     kinematic_weight=1.0,        # Bicycle model residual weight
     collision_weight=1.0,        # Collision penalty weight
     collision_threshold=2.0,     # Safe distance (metres)
@@ -187,7 +187,7 @@ config = SimulacraxPhysicsConfig(
 ### Bicycle Model
 
 ```python
-from simulacrax.physics.kinematics import BicycleModelConfig
+from diffav.physics.kinematics import BicycleModelConfig
 
 config = BicycleModelConfig(
     wheelbase=2.7,          # metres (typical sedan)

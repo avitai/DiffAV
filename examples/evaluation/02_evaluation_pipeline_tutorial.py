@@ -68,7 +68,7 @@ MetricsDashboard.generate(report) → motion/table.csv + .html
 """
 ## 1. Overview
 
-The evaluation stack in Simulacrax has these layers:
+The evaluation stack in DiffAV has these layers:
 
 | Layer | Component | Responsibility |
 |-------|-----------|---------------|
@@ -86,7 +86,7 @@ single `MetricsReport`.
 """
 
 # %%
-# Imports — standard library, JAX, numpy, and simulacrax
+# Imports — standard library, JAX, numpy, and diffav
 import dataclasses
 import os
 import tempfile
@@ -98,16 +98,16 @@ import jax.numpy as jnp
 import numpy as np
 from dotenv import load_dotenv
 
-from simulacrax.core.constants import (
+from diffav.core.constants import (
     ROAD_EDGE_Z_STRETCH,
     WOSAC_2025_METAMETRIC_CONFIG,
     WOSAC_N_ROLLOUTS,
 )
-from simulacrax.core.geometry import RoadEdges, signed_distance_to_polylines
-from simulacrax.core.types import MetricsReport, TrajectoryPrediction
-from simulacrax.data import resolve_wod_tfrecord_path, road_edges_from_wod_dict
-from simulacrax.data.wod_source import WODSource, WODSourceConfig
-from simulacrax.evaluation import (
+from diffav.core.geometry import RoadEdges, signed_distance_to_polylines
+from diffav.core.types import MetricsReport, TrajectoryPrediction
+from diffav.data import resolve_wod_tfrecord_path, road_edges_from_wod_dict
+from diffav.data.wod_source import WODSource, WODSourceConfig
+from diffav.evaluation import (
     compute_metametric_features,
     EvaluationRunner,
     log_likelihood_estimate_timeseries,
@@ -130,7 +130,7 @@ N_SCENARIOS = 20  # scenarios to evaluate
 print(f"JAX devices: {jax.devices()}")
 # Smoke mode (set by the example execution tests) shrinks the WOSAC rollout
 # count; real runs keep the official K = 32.
-_SMOKE = os.environ.get("SIMULACRAX_EXAMPLES_SMOKE") == "1"
+_SMOKE = os.environ.get("DIFFAV_EXAMPLES_SMOKE") == "1"
 N_EVAL_ROLLOUTS = 4 if _SMOKE else WOSAC_N_ROLLOUTS
 print(f"Scenarios: {N_SCENARIOS}, future steps: {FUTURE_STEPS}, rollouts: {WOSAC_N_ROLLOUTS}")
 
