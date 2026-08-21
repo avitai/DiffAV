@@ -102,7 +102,7 @@ uv sync --extra gpu     # Linux with NVIDIA GPU (CUDA 12)
 ### Requirements
 
 - Python 3.11, 3.12, or 3.13
-- JAX >= 0.6.1
+- JAX >= 0.6.1, < 0.12 (tested on 0.9.1)
 - Flax >= 0.12.0
 - TensorFlow >= 2.20.0 (CPU-only, for WOD proto parsing)
 - Waymo Open Dataset access (requires [license agreement](https://waymo.com/open/))
