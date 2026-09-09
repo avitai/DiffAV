@@ -46,15 +46,27 @@ def test_artifex_symbols_importable() -> None:
 def test_opifex_symbols_importable() -> None:
     """Critical opifex interfaces used by DiffAV should be importable."""
     from opifex.core.physics.losses import AdaptiveWeightScheduler
-    from opifex.core.training.components.checkpoint_store import OrbaxCheckpointStore
     from opifex.core.training.components.recovery import ErrorRecoveryManager
     from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
 
     assert AdaptiveWeightScheduler is not None
-    assert OrbaxCheckpointStore is not None
     assert ErrorRecoveryManager is not None
     assert OptimizerConfig is not None
     assert create_optimizer is not None
+
+
+def test_substrax_symbols_importable() -> None:
+    """Critical substrax interfaces used by DiffAV should be importable."""
+    from substrax.checkpoint import OrbaxCheckpointStore
+    from substrax.devices import detect_devices
+    from substrax.mesh import DeviceMeshManager
+    from substrax.spmd import create_data_parallel_sharding, place_batch_on_shards
+
+    assert OrbaxCheckpointStore is not None
+    assert detect_devices is not None
+    assert DeviceMeshManager is not None
+    assert create_data_parallel_sharding is not None
+    assert place_batch_on_shards is not None
 
 
 def test_calibrax_symbols_importable() -> None:

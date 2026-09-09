@@ -59,37 +59,35 @@ classifiers = [
   "Operating System :: MacOS",
   "Operating System :: MacOS :: MacOS X",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Scientific/Engineering :: Mathematics"
 ]
 dependencies = [
   # Core JAX ecosystem.
   # Upper bound rationale: the lockfile and every CI run exercise jax 0.9.1, and
-  # avitai-artifex pins jax==0.9.1 for its CUDA extras. 0.11.1 is smoke-tested
-  # (jit, grad, and building a ScenarioMiner all pass) but the full suite has
-  # never run against it, so the cap admits the 0.9-0.11 line and excludes
-  # 0.12+, which nothing has exercised. Raise it only after a suite run.
-  "jax>=0.6.1,<0.12",
-  "jaxlib>=0.6.1,<0.12",
-  "flax>=0.12.0",
+  # The siblings floor at jax 0.11.1; 0.12+ is excluded until a suite run exercises it.
+  "jax>=0.11.1,<0.12",
+  "jaxlib>=0.11.1,<0.12",
+  "flax>=0.12.9",
   "jaxtyping>=0.2.20",
   "optax>=0.2.0",
-  "orbax-checkpoint>=0.11.0",
+  "orbax-checkpoint>=0.11.33",
   "chex>=0.1.7",
-  # Sister repos, pinned to their latest release tags via [tool.uv.sources].
-  # The artifex distribution is published as avitai-artifex; imports stay `artifex`.
-  "datarax>=0.1.4",
-  "avitai-artifex>=0.1.2",
-  "opifex>=0.2.0",
-  "calibrax>=0.1.1",
+  # Sister repos, from PyPI. The artifex distribution is published as avitai-artifex;
+  # imports stay `artifex`.
+  "datarax>=0.1.6",
+  "avitai-artifex>=0.1.5",
+  "opifex>=0.2.2",
+  "calibrax>=0.1.5",
+  "substrax>=0.1.5",
   # WOD dependencies (TF used CPU-only for proto parsing)
   "tensorflow>=2.20.0",
   "tensorflow-datasets>=4.9.2",
   "protobuf>=5.28.0",
   # Utilities
-  "numpy>=1.24,<2.4.0",
+  "numpy>=2.1,<2.4.0",
   "scipy>=1.10",
   "psutil>=5.9.0"
 ]
@@ -99,13 +97,13 @@ keywords = ["autonomous-driving", "evaluation", "jax", "diffusion", "reinforceme
 license = {file = "LICENSE"}
 name = "diffav"
 readme = "README.md"
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.12,<3.14"
 
 [project.optional-dependencies]
 gpu = [
   # GPU support via JAX's pip-managed CUDA runtime (no system CUDA toolkit required).
-  "jax[cuda12]>=0.6.1,<0.12; sys_platform == 'linux'",
-  "jaxlib>=0.6.1,<0.12; sys_platform == 'linux'"
+  "jax[cuda12]>=0.11.1,<0.12; sys_platform == 'linux'",
+  "jaxlib>=0.11.1,<0.12; sys_platform == 'linux'"
 ]
 metal = [
   "jax-metal>=0.1.0; sys_platform == 'darwin'"
@@ -293,6 +291,7 @@ max-attributes = 12
 [tool.pyright]
 exclude = ["examples", "scripts", "**/__pycache__", "**/.venv"]
 include = ["src", "tests"]
+pythonVersion = "3.12"
 reportAbstractUsage = false
 reportFunctionMemberAccess = false
 reportOptionalCall = false
@@ -348,7 +347,7 @@ exclude = ["uv.lock"]
 extend-include = ["*.ipynb"]
 line-length = 100
 src = []
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.format]
 indent-style = "space"
@@ -385,13 +384,4 @@ order-by-type = false
 convention = "google"
 
 [tool.uv]
-# datarax v0.1.4 carries a stale transitive calibrax source pin (tag v0.1.0);
-# the override forces the release actually targeted by this repo.
-override-dependencies = ["calibrax @ git+https://github.com/avitai/calibrax@v0.1.1"]
 python-preference = "only-managed"
-
-[tool.uv.sources]
-avitai-artifex = {git = "https://github.com/avitai/artifex", tag = "v0.1.2"}
-calibrax = {git = "https://github.com/avitai/calibrax", tag = "v0.1.1"}
-datarax = {git = "https://github.com/avitai/datarax", tag = "v0.1.4"}
-opifex = {git = "https://github.com/avitai/opifex", tag = "v0.2.0"}

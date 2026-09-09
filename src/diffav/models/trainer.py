@@ -91,8 +91,10 @@ class TrainerConfig:
             exceed small bounds early in training.
         profile_flops: Measure per-step FLOPs once via calibrax's
             FlopsCounter on the first step and report the value in
-            ``TrainingMetrics.flops_per_step``. Off by default — the
-            measurement adds one extra trace of the step function.
+            ``TrainingMetrics.flops_per_step``. The count is XLA's cost
+            analysis of the lowered step; a step containing a custom call
+            with no cost model raises ``FlopsUnavailableError``. Off by
+            default — the measurement adds one extra trace of the step.
         physics_x0_annealing: Scale the physics penalty on the x̂₀
             reconstruction by the drawn timestep's ᾱ_t. The
             reconstruction is only trustworthy where ᾱ_t is high —
@@ -145,9 +147,10 @@ class TrainingMetrics:
             unknown.
         has_nan: Whether NaN was detected in loss or gradients.
         wall_clock_sec: Wall-clock time for this step in seconds.
-        flops_per_step: Per-step FLOPs measured by calibrax's
-            ``FlopsCounter`` when ``TrainerConfig.profile_flops`` is
-            enabled; 0.0 when profiling is off.
+        flops_per_step: Per-step FLOPs, XLA's cost analysis of the step as
+            calibrax's ``FlopsCounter`` reads it, when
+            ``TrainerConfig.profile_flops`` is enabled; 0.0 when profiling
+            is off.
     """
 
     step: int
@@ -263,7 +266,7 @@ class TrajectoryTrainer:
             base_rate = config.optimizer_config.learning_rate
             # opifex chains scale_by_schedule(schedule) with the base
             # optimizer's learning rate, so both factors apply
-            self._lr_schedule = lambda step: float(base_rate * schedule(step))
+            self._lr_schedule = lambda step: float(base_rate * jnp.asarray(schedule(step)))
 
         # Lazily measured per-step FLOPs (profile_flops)
         self._flops_per_step: float | None = None

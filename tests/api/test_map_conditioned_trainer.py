@@ -131,8 +131,8 @@ class TestBuildOptimizer:
             init_value=0.0, peak_value=1.0, warmup_steps=10, decay_steps=100, end_value=0.0
         )
         # The peak (step 10) exceeds both the warmup start (step 0) and the tail.
-        assert float(schedule(0)) < float(schedule(10))
-        assert float(schedule(99)) < float(schedule(10))
+        assert float(jnp.asarray(schedule(0))) < float(jnp.asarray(schedule(10)))
+        assert float(jnp.asarray(schedule(99))) < float(jnp.asarray(schedule(10)))
         # build_optimizer returns a usable transformation.
         tx = build_optimizer(config)
         params = jnp.ones((3,))

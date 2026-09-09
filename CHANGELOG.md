@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The Avitai siblings install from PyPI at `datarax>=0.1.6`, `avitai-artifex>=0.1.5`,
+  `opifex>=0.2.2`, `calibrax>=0.1.5` and the new `substrax>=0.1.4`; the git-tag sources
+  and the calibrax override are gone. The runtime floors are jax 0.11.1, flax 0.12.9,
+  orbax-checkpoint 0.11.33, numpy 2.1 and Python 3.12.
+- `DiffAVCheckpointManager` composes substrax's `OrbaxCheckpointStore` directly (the
+  opifex path it imported is a re-export of the same class). Checkpoints written by earlier
+  releases restore unchanged: substrax 0.1.5 places every array on the device of its target
+  leaf, so a run saved on `cuda:0` restores in a CPU-only process. A step whose data cannot
+  be read or does not match the model raises `CheckpointCorruptError` from the store's error
+  instead of relying on the store to report it as missing.
+- Per-step FLOPs are XLA's cost analysis of the lowered step (calibrax 0.1.3); the figures
+  are larger than the parameter-count estimate they replace, and a step containing a custom
+  call with no cost model raises `FlopsUnavailableError`.
+- artifex 0.1.5 builds encoder dropout whenever `dropout_rate > 0`; the named `dropout`
+  rng stream the tokenizer and `scripts/train_wod.py` added to activate it is gone, and the
+  encoder tests assert the behaviour with plain rngs.
+
 ### Added
 
 - **Scenario steering strategies**: ranked-DPO training on reward-ranked,

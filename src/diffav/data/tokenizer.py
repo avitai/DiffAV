@@ -101,9 +101,7 @@ class TokenizerConfig:
         history_steps: History timesteps for temporal stacking.
         crop_radius: Map cropping radius in meters.
         dropout_rate: Global encoder dropout rate (default 0.0). Active only in
-            training mode (``model.train()``) and only when the constructing
-            ``rngs`` carries a named ``dropout`` stream — the artifex attention
-            blocks create their dropout module solely under that condition.
+            training mode (``model.train()``); a rate of 0.0 builds no dropout.
         num_lidar_points: LiDAR subsampling target count.
         max_polylines: Fixed polyline count for MapEncoder.
         feature_fields: Temporal fields to stack for agent encoding.
@@ -356,10 +354,7 @@ class SceneTokenizer(CompositeOperatorModule):
                 :func:`resolve_active_modalities`).
         """
         if rngs is None:
-            # Include a ``dropout`` stream so encoder dropout can activate when
-            # ``dropout_rate > 0`` (artifex attention blocks require it); a no-op
-            # at the default rate of 0.0.
-            rngs = nnx.Rngs(0, dropout=1)
+            rngs = nnx.Rngs(0)
 
         active = resolve_active_modalities(config, element_spec)
 

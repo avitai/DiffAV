@@ -1,6 +1,6 @@
 """Checkpoint management for trajectory model training.
 
-Composes opifex's :class:`OrbaxCheckpointStore` with diffav-specific
+Composes substrax's :class:`OrbaxCheckpointStore` with diffav-specific
 training state: model parameters, optimizer state, step, epoch, and metrics
 are persisted together so training can resume exactly where it stopped.
 """
@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import Any, cast, Self
 
 from flax import nnx
-from opifex.core.training.components.checkpoint_store import OrbaxCheckpointStore
+from substrax.checkpoint import OrbaxCheckpointStore
 
 from diffav.core.config import validate_positive
 
@@ -78,7 +78,7 @@ class TrainingState:
 class DiffAVCheckpointManager:
     """Checkpoint manager for diffav trajectory model training.
 
-    Wraps opifex's :class:`OrbaxCheckpointStore` with periodic-save gating
+    Wraps substrax's :class:`OrbaxCheckpointStore` with periodic-save gating
     and full training-state persistence (model + optimizer + step/epoch).
     Doubles as a context manager so backend resources are released
     deterministically::
@@ -243,11 +243,19 @@ class DiffAVCheckpointManager:
             return None
 
         abstract = self._build_payload(model, optimizer)
-        restored, metadata = self._store.restore(
-            abstract,
-            step=latest,
-            return_original_on_missing=False,
-        )
+        try:
+            restored, metadata = self._store.restore(
+                abstract,
+                step=latest,
+                return_original_on_missing=False,
+            )
+        except (KeyError, ValueError, OSError) as error:
+            # The store surfaces Orbax's read errors: a missing item, an array whose
+            # tree differs from the payload, or unreadable data on disk.
+            raise CheckpointCorruptError(
+                f"Checkpoint at step {latest} in {self.config.checkpoint_dir!r} exists "
+                f"but could not be restored: {error}"
+            ) from error
         if restored is None or not metadata:
             raise CheckpointCorruptError(
                 f"Checkpoint at step {latest} in {self.config.checkpoint_dir!r} exists "

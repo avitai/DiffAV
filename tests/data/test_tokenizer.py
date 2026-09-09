@@ -413,28 +413,25 @@ class TestSceneTokenizer:
 class TestEncoderDropoutWiring:
     """Encoder dropout activation, and its no-op invariance at the default rate."""
 
-    def test_dropout_stream_param_identical_at_default_rate(self) -> None:
-        """Adding a ``dropout`` rng stream must not perturb parameter
-        initialization at the default rate of 0.0 — the demonstrated training
-        path stays bit-identical."""
-        config = _small_config(dropout_rate=0.0)
-        spec = _wod_motion_spec()
-        plain = SceneTokenizer(config, element_spec=spec, rngs=nnx.Rngs(0))
-        with_stream = SceneTokenizer(config, element_spec=spec, rngs=nnx.Rngs(0, dropout=1))
-        plain_params = jax.tree.leaves(nnx.state(plain, nnx.Param))
-        stream_params = jax.tree.leaves(nnx.state(with_stream, nnx.Param))
-        assert len(plain_params) == len(stream_params)
-        assert all(
-            bool(jnp.array_equal(a, b)) for a, b in zip(plain_params, stream_params, strict=True)
+    def test_dropout_is_inert_at_the_default_rate(self) -> None:
+        """At the default rate of 0.0, train and eval modes tokenize identically."""
+        tokenizer = SceneTokenizer(
+            _small_config(dropout_rate=0.0), element_spec=_wod_motion_spec(), rngs=nnx.Rngs(0)
         )
+        data = _wod_motion_data()
+        tokenizer.train()
+        train_out, _, _ = tokenizer.apply(data, {}, {})
+        tokenizer.eval()
+        eval_out, _, _ = tokenizer.apply(data, {}, {})
+        assert jnp.allclose(train_out["scene_embedding"], eval_out["scene_embedding"])
 
-    def test_dropout_active_in_train_mode_with_stream(self) -> None:
-        """With a ``dropout`` stream and rate > 0, tokenization is stochastic in
-        train mode and deterministic in eval mode."""
+    def test_dropout_active_in_train_mode(self) -> None:
+        """With rate > 0 and plain rngs, tokenization is stochastic in train mode
+        and deterministic in eval mode; no named dropout stream is needed."""
         tokenizer = SceneTokenizer(
             _small_config(dropout_rate=0.5),
             element_spec=_wod_motion_spec(),
-            rngs=nnx.Rngs(params=0, dropout=1),
+            rngs=nnx.Rngs(0),
         )
         data = _wod_motion_data()
         tokenizer.train()

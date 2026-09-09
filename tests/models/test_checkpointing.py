@@ -299,6 +299,25 @@ class TestDiffAVCheckpointManager:
         ):
             manager.restore_latest(model)
 
+    def test_restore_latest_raises_on_mismatched_payload(
+        self,
+        config: CheckpointConfig,
+        model: _SimpleModel,
+    ) -> None:
+        """A checkpoint whose arrays do not fit the model raises, naming the step."""
+        with DiffAVCheckpointManager(config) as manager:
+            manager.save(model, step=5, loss=0.1)
+
+        class _WiderModel(nnx.Module):
+            def __init__(self, *, rngs: nnx.Rngs) -> None:
+                self.linear = nnx.Linear(8, 8, rngs=rngs)
+
+        with (
+            DiffAVCheckpointManager(config) as manager,
+            pytest.raises(CheckpointCorruptError, match="step 5"),
+        ):
+            manager.restore_latest(_WiderModel(rngs=nnx.Rngs(0)))
+
     def test_context_manager_closes(self, config: CheckpointConfig, model: _SimpleModel) -> None:
         """The manager works as a context manager and persists on exit."""
         with DiffAVCheckpointManager(config) as manager:

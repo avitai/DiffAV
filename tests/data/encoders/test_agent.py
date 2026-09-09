@@ -93,7 +93,7 @@ class TestAgentEncoder:
         """At the default rate 0.0, train and eval modes are identical."""
         enc = AgentEncoder(
             AgentEncoderConfig(embed_dim=64, num_heads=4, mlp_hidden=128, dropout_rate=0.0),
-            rngs=nnx.Rngs(params=0, dropout=1),
+            rngs=nnx.Rngs(0),
         )
         jnp_data = {k: jnp.array(v) for k, v in sample_data.items()}
         enc.train()
@@ -103,11 +103,11 @@ class TestAgentEncoder:
         assert jnp.allclose(train_out["agent_emb"], eval_out["agent_emb"])
 
     def test_dropout_active_in_train_mode(self, sample_data) -> None:
-        """With a dropout stream and rate > 0, train mode is stochastic and
-        differs from eval mode; eval mode is deterministic."""
+        """With rate > 0 and plain rngs, train mode is stochastic and differs
+        from eval mode; eval mode is deterministic."""
         enc = AgentEncoder(
             AgentEncoderConfig(embed_dim=64, num_heads=4, mlp_hidden=128, dropout_rate=0.5),
-            rngs=nnx.Rngs(params=0, dropout=1),
+            rngs=nnx.Rngs(0),
         )
         jnp_data = {k: jnp.array(v) for k, v in sample_data.items()}
         enc.train()
@@ -122,7 +122,7 @@ class TestAgentEncoder:
         """Gradients flow through the encoder in train mode under ``nnx.jit``."""
         enc = AgentEncoder(
             AgentEncoderConfig(embed_dim=64, num_heads=4, mlp_hidden=128, dropout_rate=0.5),
-            rngs=nnx.Rngs(params=0, dropout=1),
+            rngs=nnx.Rngs(0),
         )
         enc.train()
         jnp_data = {k: jnp.array(v) for k, v in sample_data.items()}

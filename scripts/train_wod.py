@@ -279,11 +279,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     logger.info("Prepared %d train scenarios | %d validation scenes", num_scenes, len(val_scenes))
 
-    # A named ``dropout`` stream is required for encoder dropout to activate when
-    # ``dropout_rate > 0`` (the artifex attention blocks create their dropout only
-    # if the rngs carries a ``dropout`` stream). At the default rate of 0.0 this is
-    # a numerical no-op and leaves parameter initialization unchanged.
-    model = _build_model(args, nnx.Rngs(0, dropout=1))
+    model = _build_model(args, nnx.Rngs(0))
     trainer = MapConditionedTrainer(
         model,
         TrainingConfig(

@@ -14,7 +14,7 @@ for weighted combination used by the preference pair builder.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, TypeAlias
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -251,7 +251,7 @@ class ComfortReward:
         return -jnp.mean(jnp.abs(jerk))
 
 
-_RewardComponent: TypeAlias = CollisionReward | KinematicReward | BoundaryReward | ComfortReward
+type _RewardComponent = CollisionReward | KinematicReward | BoundaryReward | ComfortReward
 
 
 class SafetyReward:
