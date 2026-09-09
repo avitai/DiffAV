@@ -514,7 +514,7 @@ class DPOAlignmentTrainer:
         Compiles :meth:`compute_dpo_step` with ``nnx.jit`` and executes it
         inside a :func:`jax.set_mesh` context.  XLA's SPMD partitioner
         automatically replicates parameters and all-reduces gradients across
-        the mesh — no manual ``shard_batch`` call is needed.
+        the mesh — the batch needs no manual placement.
 
         On a single-device mesh this is functionally identical to
         :meth:`train_step`.
@@ -522,8 +522,8 @@ class DPOAlignmentTrainer:
         Args:
             batch: DPO batch dict from ``PreferenceBatch.to_dpo_batch()``.
             key: JAX random key.
-            mesh: JAX device mesh from
-                :func:`~diffav.core.distributed.create_device_mesh`.
+            mesh: JAX device mesh, for data parallelism
+                ``substrax.mesh.DeviceMeshManager.create_device_mesh({"data": n})``.
 
         Returns:
             DPO alignment metrics for this step.

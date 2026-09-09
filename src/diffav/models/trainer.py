@@ -717,8 +717,8 @@ class TrajectoryTrainer:
             scene_context: Per-agent scene context, shape
                 ``(num_agents, context_dim)`` — one row per agent.
             key: JAX random key for diffusion sampling.
-            mesh: JAX device mesh from
-                :func:`~diffav.core.distributed.create_device_mesh`.
+            mesh: JAX device mesh, for data parallelism
+                ``substrax.mesh.DeviceMeshManager.create_device_mesh({"data": n})``.
             road_edges: Optional oriented road edges for the
                 off-road boundary penalty.
 

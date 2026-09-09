@@ -1,9 +1,9 @@
 # Distributed Training
 
-DiffAV supports data-parallel training across multiple JAX devices via a
-thin mesh-sharding layer in `diffav.core.distributed`.  The same code runs
-on a single CPU, a single GPU, or a multi-GPU pod — single-device behaviour is
-always the silent default.
+DiffAV trains data-parallel across every visible JAX device through
+[substrax](https://pypi.org/project/substrax/), the device, mesh and sharding
+layer the Avitai packages share. The same code runs on a single CPU, a single
+GPU, or a multi-GPU host: a one-device mesh makes every placement a no-op.
 
 ---
 
@@ -12,48 +12,36 @@ always the silent default.
 Use `train_step_distributed()` when:
 
 - You have **multiple GPUs or TPU cores** and want to shard the batch across
-  them with data-parallel replication (DDP).
+  them with data-parallel replication.
 - You want single-program multi-data (SPMD) execution with XLA handling
   parameter replication and gradient all-reduce automatically.
 
 On a single device `train_step_distributed()` is functionally identical to
-`train_step()` — the mesh collapses to a trivial `(1, 1, 1)` configuration.
+`train_step()`.
 
 ---
 
-## DistributedConfig options
+## Building the mesh
+
+`DeviceMeshManager.create_device_mesh` takes the mesh shape as a mapping from
+axis name to size; the product must equal the number of devices it is built
+over (every visible device by default). Its axes are `Auto`, which is what lets
+XLA infer the data-parallel sharding of the backward pass on jax 0.11.
 
 ```python
-from diffav.core import DistributedConfig
+import jax
+from substrax.mesh import DeviceMeshManager
 
-# Default — single-device, data-parallel
-config = DistributedConfig()
-
-# Explicit 8-device data-parallel across a single node
-config = DistributedConfig(mesh_shape=(8, 1, 1))
-
-# 2 nodes × 4 GPUs — shard batch across 8 devices in data dimension
-config = DistributedConfig(mesh_shape=(8, 1, 1))
+# Every visible device on the data axis
+mesh = DeviceMeshManager.create_device_mesh({"data": jax.device_count()})
 ```
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `mesh_shape` | `(1, 1, 1)` | `(data, model, pipeline)` device counts.  Product must equal `jax.device_count()`. |
-| `sharding_strategy` | `"ddp"` | Only `"ddp"` is supported.  `"fsdp"` and `"mp"` raise `NotImplementedError`. |
-| `axis_names` | `("data", "model", "pipeline")` | Labels for the three mesh axes. |
-
----
-
-## Data-parallel (DDP) vs. model-parallel trade-offs
-
-| Strategy | When to use | Limitation |
-|----------|-------------|------------|
-| **DDP** (default) | Batch is large; model fits on one device | Each device holds a full model replica |
-| **FSDP** (future) | Model is too large for one device | Higher communication overhead |
-| **MP / tensor-parallel** (future) | Very deep models requiring layer splitting | Complex partitioning logic |
-
-The distributed layer implements **DDP only**.  The `"fsdp"` and `"mp"` identifiers are
-reserved for future sprints.
+`substrax.spmd.create_data_parallel_sharding(mesh)` is the `NamedSharding`
+that partitions a leading batch axis over `"data"`, and
+`substrax.spmd.place_batch_on_shards(batch, sharding)` places a pytree of
+arrays with it. The trainers accept batches placed this way, and equally a
+batch on the default device: inside `jax.set_mesh(mesh)`, XLA's partitioner
+moves the data as the mesh requires.
 
 ---
 
@@ -63,8 +51,8 @@ reserved for future sprints.
 import jax
 import jax.numpy as jnp
 from flax import nnx
+from substrax.mesh import DeviceMeshManager
 
-from diffav.core import DistributedConfig, create_device_mesh
 from diffav.models.trainer import TrainerConfig, TrajectoryTrainer
 from diffav.models.trajectory_diffusion import (
     TrajectoryDiffusionConfig,
@@ -87,9 +75,8 @@ model_config = TrajectoryDiffusionConfig(
 model = TrajectoryDiffusionModel(model_config, rngs=nnx.Rngs(params=jax.random.key(0)))
 trainer = TrajectoryTrainer(model, TrainerConfig())
 
-# Create mesh once — reuse across steps
-dist_config = DistributedConfig()  # or DistributedConfig(mesh_shape=(8, 1, 1))
-mesh = create_device_mesh(dist_config)
+# Create the mesh once and reuse it across steps
+mesh = DeviceMeshManager.create_device_mesh({"data": jax.device_count()})
 
 # Training loop
 key = jax.random.key(42)
@@ -113,8 +100,8 @@ for step, (trajectories, scene_context) in enumerate(dataloader):
 import jax
 import optax
 from flax import nnx
+from substrax.mesh import DeviceMeshManager
 
-from diffav.core import DistributedConfig, create_device_mesh
 from diffav.alignment.dpo_trainer import DPOAlignmentConfig, DPOAlignmentTrainer
 
 optimizer = nnx.Optimizer(model, optax.adam(1e-5), wrt=nnx.Param)
@@ -124,8 +111,7 @@ dpo_trainer = DPOAlignmentTrainer(
     config=DPOAlignmentConfig(reference_free=True),
 )
 
-dist_config = DistributedConfig()
-mesh = create_device_mesh(dist_config)
+mesh = DeviceMeshManager.create_device_mesh({"data": jax.device_count()})
 
 key = jax.random.key(0)
 for step, batch in enumerate(preference_dataloader):
@@ -136,29 +122,22 @@ for step, batch in enumerate(preference_dataloader):
 
 ---
 
-## Single-device fallback behaviour
+## Beyond data parallelism
 
-When `jax.device_count() == 1`, `create_device_mesh()` always returns a
-`(1, 1, 1)` trivial mesh regardless of `mesh_shape`.  All `shard_batch()`
-calls become `jax.device_put()` calls with a single-device placement — the
-values are unchanged and no data is moved.
-
-This means the exact same training code works in:
-
-- Local CPU development (`jax.device_count() == 1`)
-- Single-GPU cloud instances
-- Multi-GPU pods (sharding takes effect)
-
-No conditional branching is needed in application code.
+substrax also carries the FSDP, tensor-parallel and pipeline-parallel
+strategies (`substrax.mesh.strategies`) and the cross-device collectives
+(`substrax.spmd`). The DiffAV trainers use data parallelism only; a model too
+large for one device is a modelling change, not a mesh change.
 
 ---
 
 ## FLOP counting with calibrax
 
 Enable `TrainerConfig(profile_flops=True)` to measure per-step FLOPs with
-`calibrax.profiling.FlopsCounter`. The step function is traced once on the
-first step, the count is cached, and every `TrainingMetrics.flops_per_step`
-reports it. With profiling off (the default) the field is an honest `0.0`.
+`calibrax.profiling.FlopsCounter`. The step function is lowered once on the
+first step, XLA's cost analysis of it is cached, and every
+`TrainingMetrics.flops_per_step` reports it. With profiling off (the default)
+the field is an honest `0.0`.
 
 ```python
 trainer = TrajectoryTrainer(model, TrainerConfig(profile_flops=True))

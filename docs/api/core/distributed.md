@@ -1,3 +1,0 @@
-# distributed
-
-::: diffav.core.distributed

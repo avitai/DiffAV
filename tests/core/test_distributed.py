@@ -1,13 +1,13 @@
-"""Tests for JAX mesh sharding utilities (distributed execution).
+"""Tests for distributed execution of the trainers on a substrax device mesh.
 
-Covers DistributedConfig defaults/immutability, create_device_mesh(),
-shard_batch() structure/value preservation, and trainer integration for
-both TrajectoryTrainer and DPOAlignmentTrainer on single-device CPU/GPU.
+Covers the trainer integration of ``train_step_distributed`` for both
+TrajectoryTrainer and DPOAlignmentTrainer on a single-device CPU/GPU host, the
+data-parallel batch placement substrax provides, and the once-only compilation
+of the distributed step.
 """
 
 from __future__ import annotations
 
-import dataclasses
 from typing import Any
 
 import jax
@@ -15,16 +15,14 @@ import jax.numpy as jnp
 import optax
 import pytest
 from flax import nnx
+from jax.sharding import NamedSharding, PartitionSpec
+from substrax.mesh import DeviceMeshManager
+from substrax.spmd import create_data_parallel_sharding, place_batch_on_shards
 
 from diffav.alignment.dpo_trainer import (
     DPOAlignmentConfig,
     DPOAlignmentMetrics,
     DPOAlignmentTrainer,
-)
-from diffav.core.distributed import (
-    create_device_mesh,
-    DistributedConfig,
-    shard_batch,
 )
 from diffav.models.trainer import (
     TrainerConfig,
@@ -49,7 +47,11 @@ _STEPS = 10
 _CTX_DIM = 16
 _STATE_DIM = 4
 _BATCH = 2
-_CTX_LEN = 8
+
+
+def _data_mesh() -> jax.sharding.Mesh:
+    """A one-axis data-parallel mesh over every visible device."""
+    return DeviceMeshManager.create_device_mesh({"data": jax.device_count()})
 
 
 def _make_model() -> TrajectoryDiffusionModel:
@@ -94,116 +96,66 @@ def _make_dpo_batch() -> dict[str, jax.Array]:
     return {"chosen": chosen, "rejected": rejected, "scene_contexts": scene_contexts}
 
 
-# ---------------------------------------------------------------------------
-# Core: DistributedConfig
-# ---------------------------------------------------------------------------
-
-
-class TestDistributedConfigDefaults:
-    """DistributedConfig default values and field types."""
-
-    def test_distributed_config_defaults(self) -> None:
-        """Default config has mesh_shape=(1,1,1), sharding_strategy='ddp'."""
-        config = DistributedConfig()
-        assert config.mesh_shape == (1, 1, 1)
-        assert config.sharding_strategy == "ddp"
-        assert config.axis_names == ("data", "model", "pipeline")
-
-    def test_distributed_config_frozen(self) -> None:
-        """FrozenInstanceError is raised on mutation attempt."""
-        config = DistributedConfig()
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            config.mesh_shape = (2, 1, 1)  # type: ignore[misc]
-
-    def test_distributed_config_custom_mesh_shape(self) -> None:
-        """Custom mesh_shape is stored correctly."""
-        config = DistributedConfig(mesh_shape=(1, 1, 1))
-        assert config.mesh_shape == (1, 1, 1)
-
-    def test_distributed_config_unsupported_strategy_fsdp(self) -> None:
-        """fsdp strategy raises NotImplementedError."""
-        config = DistributedConfig(sharding_strategy="fsdp")
-        with pytest.raises(NotImplementedError):
-            create_device_mesh(config)
-
-    def test_distributed_config_unsupported_strategy_mp(self) -> None:
-        """mp strategy raises NotImplementedError."""
-        config = DistributedConfig(sharding_strategy="mp")
-        with pytest.raises(NotImplementedError):
-            create_device_mesh(config)
+def _param_leaves(model: nnx.Module) -> list[jax.Array]:
+    """A snapshot of every parameter array of ``model``."""
+    return [jnp.array(leaf) for leaf in jax.tree.leaves(nnx.state(model, nnx.Param))]
 
 
 # ---------------------------------------------------------------------------
-# Core: create_device_mesh
+# substrax mesh and batch placement
 # ---------------------------------------------------------------------------
 
 
-class TestCreateDeviceMesh:
-    """create_device_mesh() returns a correctly-shaped Mesh."""
+class TestDataParallelPlacement:
+    """The substrax surface the trainers are documented against."""
 
-    def test_create_mesh_single_device(self) -> None:
-        """create_device_mesh(DistributedConfig()) returns a Mesh with total size 1."""
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
-        assert mesh.size == 1
+    def test_data_parallel_sharding_partitions_the_leading_axis(self) -> None:
+        mesh = _data_mesh()
+        sharding = create_data_parallel_sharding(mesh)
+        assert isinstance(sharding, NamedSharding)
+        assert sharding.spec == PartitionSpec("data")
+        assert sharding.mesh.axis_names == ("data",)
+        assert mesh.size == jax.device_count()
 
-    def test_mesh_shape_matches_config(self) -> None:
-        """Mesh axis sizes match config.mesh_shape on single device."""
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
-        # On a single device the mesh collapses to (1, 1, 1) trivially
-        assert mesh.size == 1
-        # The mesh should have exactly the axis names from the config
-        for name in config.axis_names:
-            assert name in mesh.axis_names
-
-    def test_mesh_is_context_manager(self) -> None:
-        """Mesh can be used as a context manager."""
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
-        with mesh:
-            assert mesh.size == 1
-
-
-# ---------------------------------------------------------------------------
-# Core: shard_batch
-# ---------------------------------------------------------------------------
-
-
-class TestShardBatch:
-    """shard_batch() structure and value preservation."""
-
-    def test_shard_batch_returns_pytree(self) -> None:
-        """Output has the same PyTree structure as the dict input."""
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
-        batch = {
-            "chosen": jnp.ones((_BATCH, _AGENTS, _FUTURE, _STATE_DIM)),
-            "rejected": jnp.zeros((_BATCH, _AGENTS, _FUTURE, _STATE_DIM)),
-        }
-        sharded = shard_batch(batch, mesh)
-        assert isinstance(sharded, dict)
-        assert set(sharded.keys()) == set(batch.keys())
-
-    def test_shard_batch_preserves_values(self) -> None:
-        """Sharded values equal original values on single device."""
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
+    def test_place_batch_on_shards_keeps_values_and_shapes(self) -> None:
+        sharding = create_data_parallel_sharding(_data_mesh())
         batch = {
             "x": jnp.array([1.0, 2.0, 3.0]),
-            "y": jnp.array([[4.0, 5.0], [6.0, 7.0]]),
+            "y": jnp.arange(8.0).reshape(_BATCH, 4),
         }
-        sharded = shard_batch(batch, mesh)
-        assert jnp.allclose(sharded["x"], batch["x"])
-        assert jnp.allclose(sharded["y"], batch["y"])
+        placed = place_batch_on_shards(batch, sharding)
+        assert isinstance(placed, dict)
+        assert set(placed) == set(batch)
+        for name, value in batch.items():
+            assert placed[name].shape == value.shape
+            assert jnp.array_equal(placed[name], value)
+            assert placed[name].sharding == sharding
 
-    def test_shard_batch_preserves_shapes(self) -> None:
-        """Sharded arrays have the same shapes as original arrays."""
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
-        batch = {"arr": jnp.ones((_BATCH, _CTX_LEN, _CTX_DIM))}
-        sharded = shard_batch(batch, mesh)
-        assert sharded["arr"].shape == (_BATCH, _CTX_LEN, _CTX_DIM)
+    @pytest.mark.slow
+    def test_trainer_learns_from_a_batch_placed_on_shards(self) -> None:
+        """A backward pass over a data-sharded batch gives a finite loss and moves the weights."""
+        trainer = _make_trajectory_trainer()
+        mesh = _data_mesh()
+        sharding = create_data_parallel_sharding(mesh)
+        placed = place_batch_on_shards(
+            {
+                "trajectories": jnp.ones((_AGENTS, _FUTURE, _STATE_DIM)),
+                "scene_context": jnp.ones((_AGENTS, _CTX_DIM)),
+            },
+            sharding,
+        )
+        before = _param_leaves(trainer.model)
+
+        metrics = trainer.train_step_distributed(
+            placed["trajectories"],
+            placed["scene_context"],
+            key=jax.random.key(3),
+            mesh=mesh,
+        )
+
+        assert jnp.isfinite(metrics.total_loss)
+        after = _param_leaves(trainer.model)
+        assert any(not jnp.array_equal(old, new) for old, new in zip(before, after, strict=True))
 
 
 # ---------------------------------------------------------------------------
@@ -218,8 +170,7 @@ class TestTrajectoryTrainerDistributed:
     def test_trajectory_trainer_distributed_step(self) -> None:
         """train_step_distributed() returns TrainingMetrics."""
         trainer = _make_trajectory_trainer()
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
+        mesh = _data_mesh()
         trajectories = jnp.ones((_AGENTS, _FUTURE, _STATE_DIM))
         scene_context = jnp.ones((_AGENTS, _CTX_DIM))
         key = jax.random.key(0)
@@ -235,8 +186,7 @@ class TestTrajectoryTrainerDistributed:
     def test_trajectory_trainer_distributed_returns_numeric_loss(self) -> None:
         """train_step_distributed() returns a finite loss."""
         trainer = _make_trajectory_trainer()
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
+        mesh = _data_mesh()
         trajectories = jnp.ones((_AGENTS, _FUTURE, _STATE_DIM))
         scene_context = jnp.ones((_AGENTS, _CTX_DIM))
         key = jax.random.key(0)
@@ -270,13 +220,11 @@ class TestTrajectoryTrainerDistributed:
         model2 = _make_model()
         trainer2 = TrajectoryTrainer(model2, config)
 
-        dist_config = DistributedConfig()
-        mesh = create_device_mesh(dist_config)
         dist_metrics = trainer2.train_step_distributed(
             trajectories,
             scene_context,
             key=key,
-            mesh=mesh,
+            mesh=_data_mesh(),
         )
 
         # Losses should be close (same model init, same input, same key)
@@ -285,8 +233,7 @@ class TestTrajectoryTrainerDistributed:
     def test_trajectory_trainer_distributed_has_flops_field(self) -> None:
         """TrainingMetrics returned by distributed step has flops_per_step field."""
         trainer = _make_trajectory_trainer()
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
+        mesh = _data_mesh()
         trajectories = jnp.ones((_AGENTS, _FUTURE, _STATE_DIM))
         scene_context = jnp.ones((_AGENTS, _CTX_DIM))
         key = jax.random.key(0)
@@ -312,8 +259,7 @@ class TestDPOTrainerDistributed:
     def test_dpo_trainer_distributed_step(self) -> None:
         """train_step_distributed() returns DPOAlignmentMetrics."""
         trainer = _make_dpo_trainer()
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
+        mesh = _data_mesh()
         batch = _make_dpo_batch()
         key = jax.random.key(1)
 
@@ -323,8 +269,7 @@ class TestDPOTrainerDistributed:
     def test_dpo_trainer_distributed_returns_finite_loss(self) -> None:
         """train_step_distributed() returns finite dpo_loss."""
         trainer = _make_dpo_trainer()
-        config = DistributedConfig()
-        mesh = create_device_mesh(config)
+        mesh = _data_mesh()
         batch = _make_dpo_batch()
         key = jax.random.key(2)
 
@@ -335,30 +280,6 @@ class TestDPOTrainerDistributed:
 # ---------------------------------------------------------------------------
 # JIT hoisting: the compiled step must be built once, not per call
 # ---------------------------------------------------------------------------
-
-
-@pytest.mark.slow
-class TestShardingContract:
-    """Direct specs for the sharding surface (single-device host)."""
-
-    def test_data_parallel_sharding_partitions_batch_axis(self) -> None:
-        from jax.sharding import PartitionSpec
-
-        from diffav.core.distributed import get_data_parallel_sharding
-
-        mesh = create_device_mesh(DistributedConfig())
-        sharding = get_data_parallel_sharding(mesh)
-        assert sharding.spec == PartitionSpec("data")
-        assert sharding.mesh.axis_names == ("data", "model", "pipeline")
-
-    def test_oversized_mesh_shape_degrades_to_trivial_mesh(self) -> None:
-        """On a single-device host, any mesh_shape yields the (1,1,1) mesh.
-
-        This pins the documented contract explicitly; on multi-device
-        hosts a mismatched shape would fail the reshape instead.
-        """
-        mesh = create_device_mesh(DistributedConfig(mesh_shape=(2, 1, 1)))
-        assert mesh.devices.shape == (1, 1, 1)
 
 
 class TestDistributedJitHoisting:
@@ -377,7 +298,7 @@ class TestDistributedJitHoisting:
 
         monkeypatch.setattr(TrajectoryTrainer, "compute_train_step", counted)
         trainer = _make_trajectory_trainer()
-        mesh = create_device_mesh(DistributedConfig())
+        mesh = _data_mesh()
         trajectories = jnp.ones((_AGENTS, _FUTURE, _STATE_DIM))
         scene_context = jnp.ones((_AGENTS, _CTX_DIM))
 
@@ -406,7 +327,7 @@ class TestDistributedJitHoisting:
 
         monkeypatch.setattr(DPOAlignmentTrainer, "compute_dpo_step", counted)
         trainer = _make_dpo_trainer()
-        mesh = create_device_mesh(DistributedConfig())
+        mesh = _data_mesh()
         batch = _make_dpo_batch()
 
         # Two warm-up calls: the first update changes the optimizer

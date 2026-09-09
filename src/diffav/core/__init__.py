@@ -20,11 +20,6 @@ from diffav.core.constants import (
     WOSAC_N_ROLLOUTS,
     WosacMetametricConfig,
 )
-from diffav.core.distributed import (
-    create_device_mesh,
-    DistributedConfig,
-    shard_batch,
-)
 from diffav.core.geometry import (
     mean_offroad_penalty,
     RoadEdges,
@@ -71,10 +66,8 @@ __all__ = [
     "WOSAC_2025_METAMETRIC_CONFIG",
     "WosacMetametricConfig",
     "WOSAC_N_ROLLOUTS",
-    "create_device_mesh",
     "DatasetMode",
     "Density",
-    "DistributedConfig",
     "FusionStrategy",
     "LossType",
     "mean_offroad_penalty",
@@ -86,7 +79,6 @@ __all__ = [
     "signed_distances_to_road_edges",
     "stack_polylines",
     "stack_polylines_fixed",
-    "shard_batch",
     "MapFeature",
     "MapFeatureType",
     "MetricsReport",

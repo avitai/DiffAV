@@ -42,7 +42,6 @@ Domain types, constants, and shared configuration validators.
 | [config](core/config.md) | Shared configuration field validators |
 | [constants](core/constants.md) | WOD/WOSAC constants, scenario-dict keys, and estimator configs |
 | [geometry](core/geometry.md) | Signed road-edge distance, `RoadEdges`, off-road penalties |
-| [distributed](core/distributed.md) | Device mesh creation and data-parallel sharding |
 | [training_utils](core/training_utils.md) | NaN-safe gradient filtering |
 
 ## Data

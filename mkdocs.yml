@@ -211,7 +211,6 @@ nav:
           - config: api/core/config.md
           - geometry: api/core/geometry.md
           - training_utils: api/core/training_utils.md
-          - distributed: api/core/distributed.md
       - Data:
           - wod_source: api/data/wod_source.md
           - tokenizer: api/data/tokenizer.md

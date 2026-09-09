@@ -26,6 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rng stream the tokenizer and `scripts/train_wod.py` added to activate it is gone, and the
   encoder tests assert the behaviour with plain rngs.
 
+### Removed
+
+- `diffav.core.distributed` (`DistributedConfig`, `create_device_mesh`, `shard_batch`,
+  `get_data_parallel_sharding`). The mesh comes from substrax:
+  `DeviceMeshManager.create_device_mesh({"data": jax.device_count()})`, the batch sharding
+  from `substrax.spmd.create_data_parallel_sharding` and the placement from
+  `substrax.spmd.place_batch_on_shards`. The `(data, model, pipeline)` mesh shape, the
+  `"fsdp"`/`"mp"` placeholders that raised `NotImplementedError`, and the single-device
+  collapse of any requested shape are gone with it; the trainers' `train_step_distributed`
+  is unchanged and takes any `jax.sharding.Mesh`.
+
 ### Added
 
 - **Scenario steering strategies**: ranked-DPO training on reward-ranked,
