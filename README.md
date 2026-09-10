@@ -5,7 +5,7 @@
 [![Flax](https://img.shields.io/badge/Flax-NNX-orange)](https://github.com/google/flax)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-## A physics-informed, RL-aligned evaluation engine for autonomous driving
+## Generative stress-testing for autonomous driving: diffusion world models, steered by physics and RL toward the scenarios that break AV stacks
 
 *Diffusion models for autonomous vehicles*
 

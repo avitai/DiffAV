@@ -91,7 +91,7 @@ dependencies = [
   "scipy>=1.10",
   "psutil>=5.9.0"
 ]
-description = "DiffAV: Physics-informed, RL-aligned evaluation engine for autonomous driving"
+description = "Physics-informed, RL-aligned evaluation engine for autonomous driving: trajectory-diffusion world models on the Waymo Open Dataset, DPO and reward-guided adversarial steering, physics feasibility, occupancy flow, WOSAC-style realism metrics and sensor simulation"
 dynamic = ["version"]
 keywords = ["autonomous-driving", "evaluation", "jax", "diffusion", "reinforcement-learning"]
 license = {file = "LICENSE"}
