@@ -77,7 +77,7 @@ dependencies = [
   "chex>=0.1.7",
   # Sister repos, from PyPI. The artifex distribution is published as avitai-artifex;
   # imports stay `artifex`.
-  "datarax>=0.1.6",
+  "datarax>=0.1.7",
   "avitai-artifex>=0.1.5",
   "opifex>=0.2.2",
   "calibrax>=0.1.5",

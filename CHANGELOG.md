@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `resolve_wrapped_indices` is imported from `datarax.sources`, its public home in
+  datarax 0.1.7; the private `datarax.sources._source_base` path this package used is
+  gone there, so the floor is `datarax>=0.1.7`.
+
 ## [0.1.1] - 2026-09-09
 
 ### Changed

@@ -597,7 +597,7 @@ wheels = [
 
 [[package]]
 name = "datarax"
-version = "0.1.6"
+version = "0.1.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "array-record" },
@@ -615,9 +615,9 @@ dependencies = [
     { name = "substrax" },
     { name = "tomli-w" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4b/e7/9b8cd0380b03d5b04940bfedc97ca4d8c51e8148346a98d5ea21cc6db450/datarax-0.1.6.tar.gz", hash = "sha256:f6671221e98aa6c03f727dc998133dad4c7fceab0f5d9aef8158f421315098d2", size = 231676, upload-time = "2026-09-09T04:17:32.011Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7e/ae/2b5c27ab863f67b859fae2549a60047abaf703837ce030a2c1eccf23de24/datarax-0.1.7.tar.gz", hash = "sha256:f7f812f80668fc74f1f918fc59d2096fbedecd0168cc4874595b6c1eb9f68958", size = 231757, upload-time = "2026-09-10T03:02:22.32Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c6/4a/a7b5f71cd254b28f9da24fc8d60c4546aaa1bd601cae7da1e72a61bdc7ae/datarax-0.1.6-py3-none-any.whl", hash = "sha256:ec6904a1b36b1c24a0a4efe49a0b6a490787f86d7f164c00169f2fe680d4b2ca", size = 279624, upload-time = "2026-09-09T04:17:29.776Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/ed/f732770c90afea1fb23ed4a4103af7a69efc364616e2d068f00e623f7fb3/datarax-0.1.7-py3-none-any.whl", hash = "sha256:92fac14a52eff305a627f6f75d78fb9ad5f782f27722393d2844bd7a98102acb", size = 279774, upload-time = "2026-09-10T03:02:19.963Z" },
 ]
 
 [[package]]
@@ -772,7 +772,7 @@ requires-dist = [
     { name = "avitai-artifex", specifier = ">=0.1.5" },
     { name = "calibrax", specifier = ">=0.1.5" },
     { name = "chex", specifier = ">=0.1.7" },
-    { name = "datarax", specifier = ">=0.1.6" },
+    { name = "datarax", specifier = ">=0.1.7" },
     { name = "flax", specifier = ">=0.12.9" },
     { name = "jax", specifier = ">=0.11.1,<0.12" },
     { name = "jax", extras = ["cuda12"], marker = "sys_platform == 'linux' and extra == 'gpu'", specifier = ">=0.11.1,<0.12" },

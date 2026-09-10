@@ -35,7 +35,7 @@ import numpy as np
 from datarax.core.config import StructuralConfig
 from datarax.core.data_source import DataSourceModule
 from datarax.core.spec import array_to_spec
-from datarax.sources._source_base import resolve_wrapped_indices
+from datarax.sources import resolve_wrapped_indices
 from datarax.typing import Element, Metadata
 from flax import nnx
 
