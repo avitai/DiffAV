@@ -332,15 +332,15 @@ python_files = "test_*.py"
 python_functions = "test_*"
 testpaths = ["tests"]
 
-[tool.pytest-env]
+[tool.pytest_env]
 # D: prefix = default only (never overrides values already set in the shell).
 # JAX_PLATFORMS is intentionally unset so JAX picks GPU when available and CPU otherwise.
-"D:JAX_ENABLE_X64" = "0"
-"D:JAX_SKIP_CUDA_CONSTRAINTS_CHECK" = "1"
-"D:TF_CPP_MIN_LOG_LEVEL" = "1"
-"D:TF_FORCE_GPU_ALLOW_GROWTH" = "true"
-"D:XLA_PYTHON_CLIENT_MEM_FRACTION" = "0.75"
-"D:XLA_PYTHON_CLIENT_PREALLOCATE" = "false"
+JAX_ENABLE_X64 = {skip_if_set = true, value = "0"}
+JAX_SKIP_CUDA_CONSTRAINTS_CHECK = {skip_if_set = true, value = "1"}
+TF_CPP_MIN_LOG_LEVEL = {skip_if_set = true, value = "1"}
+TF_FORCE_GPU_ALLOW_GROWTH = {skip_if_set = true, value = "true"}
+XLA_PYTHON_CLIENT_MEM_FRACTION = {skip_if_set = true, value = "0.75"}
+XLA_PYTHON_CLIENT_PREALLOCATE = {skip_if_set = true, value = "false"}
 
 [tool.ruff]
 exclude = ["uv.lock"]
