@@ -11,7 +11,7 @@
 
 ---
 
-> **Early Development — API Unstable**
+> **Early Development: API Unstable**
 >
 > DiffAV is in early development and undergoing rapid iteration.
 > Breaking changes are expected. Pin to specific commits if stability is required.
@@ -24,21 +24,21 @@ DiffAV generates and evaluates adversarial driving scenarios to stress-test auto
 
 ### Why DiffAV?
 
-- **Physics-Informed**: Bicycle model kinematics constraints ensure generated trajectories are physically plausible — no teleporting vehicles or impossible accelerations
+- **Physics-Informed**: Bicycle model kinematics constraints ensure generated trajectories are physically plausible, with no teleporting vehicles or impossible accelerations
 - **RL-Aligned**: Reinforcement learning fine-tuning steers generation toward safety-critical scenarios that expose AV stack weaknesses
 - **JAX-Native**: Built entirely on JAX with Flax NNX modules for JIT compilation, automatic differentiation, and hardware acceleration
 - **WOSAC-Compatible**: Evaluates against standard Waymo challenge metrics (ADE, FDE, collision rate, miss rate), computed as JAX-native Euclidean proxies rather than the official leaderboard implementation
-- **Modular Architecture**: Clean protocol-based design with frozen dataclass configuration — easy to swap generative models, physics validators, and evaluation metrics
+- **Modular Architecture**: Clean protocol-based design with frozen dataclass configuration, which makes generative models, physics validators, and evaluation metrics easy to swap
 
 ## Status & Results
 
-DiffAV is a working research scaffold: every pillar (diffusion world model, DPO/steering alignment, physics feasibility, occupancy flow, evaluation metrics) is built, and its core has been exercised on real Waymo Open Dataset data. It is not a leaderboard-tuned system — results are reported honestly.
+DiffAV is a working research scaffold: every pillar (diffusion world model, DPO/steering alignment, physics feasibility, occupancy flow, evaluation metrics) is built, and its core has been exercised on real Waymo Open Dataset data. It is not a leaderboard-tuned system, and results are reported honestly.
 
-- **Trajectory prediction.** A map-conditioned diffusion baseline trained on real WOD reaches **minADE₆ ≈ 5.6 m** on held-out validation (`tracks_to_predict`, WOMD 2 Hz). That is roughly 9× the ~0.6 m of full-scale WOSAC leaders: the model is **over-dispersed** (best-of-64 ≈ 2.5 m) and **under-fit**, trained on ~1.6% of WOMD. The map is load-bearing — zeroing the scene tokens degrades minADE ~8.6× (4.4 → 38 m).
+- **Trajectory prediction.** A map-conditioned diffusion baseline trained on real WOD reaches **minADE₆ ≈ 5.6 m** on held-out validation (`tracks_to_predict`, WOMD 2 Hz). It is scored with the JAX-native proxies above, so it is not comparable with the official WOSAC leaderboard. The model is **over-dispersed** (best-of-64 ≈ 2.5 m) and **under-fit**, trained on ~1.6% of WOMD. The map is load-bearing: zeroing the scene tokens degrades minADE ~8.6× (4.4 → 38 m).
 - **Adversarial steering (the differentiator).** Test-time reward guidance on the frozen baseline steers a real scene's adversary from **7.30 m → 2.88 m** from its victim while *improving* off-road feasibility (0.21 → 0.08) and holding WOSAC realism (0.673 → 0.653). A map-conditioned Diffusion-DPO fine-tune reproduces this at training time.
 - **Roadmap.** Close the trajectory-quality gap (scale up, fix over-dispersion), then a persistent-WOSAC leaderboard submission and GRPO/R1-style RL fine-tuning (now standard in the winning recipe).
 
-The map-conditioned model (`MapConditionedTrajectoryModel`) and its trainer are driven end-to-end by [`scripts/train_wod.py`](scripts/train_wod.py) — warmup-cosine schedule, EMA, and held-out validation.
+The map-conditioned model (`MapConditionedTrajectoryModel`) and its trainer are driven end-to-end by [`scripts/train_wod.py`](scripts/train_wod.py), with a warmup-cosine schedule, EMA, and held-out validation.
 
 ## Design
 
@@ -46,7 +46,7 @@ The map-conditioned model (`MapConditionedTrajectoryModel`) and its trainer are 
 
 DiffAV models multi-agent future trajectories conditioned on scene context (ego state, surrounding agents, HD map features). The generative backbone is a diffusion model:
 
-- **Diffusion Models** — iterative denoising for high-quality multi-modal trajectory distributions
+- **Diffusion Models**: iterative denoising for high-quality multi-modal trajectory distributions
 
 The protocol-based design leaves room for other families (normalizing flows, score-based models); those are not yet implemented.
 

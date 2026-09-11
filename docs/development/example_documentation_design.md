@@ -817,7 +817,7 @@ print(f"Trajectories: {trajectories.shape}")
 | Model | TrajectoryDiffusionModel with 64d hidden, 2 blocks |
 | Physics | Bicycle model + collision penalty |
 | Training | 20 steps with adaptive physics weighting |
-| JIT | 2-10x speedup with `nnx.jit` |
+| JIT | Compile with `nnx.jit` |
 
 ### What We Achieved
 
@@ -908,7 +908,7 @@ Use admonitions for different information types:
     Accelerations and steering angles are derived via finite differences.
 
 !!! tip "Performance Tip"
-    Wrap `compute_train_step` with `nnx.jit` for 2-10x speedup on GPU/TPU.
+    Wrap `compute_train_step` with `nnx.jit` to compile it with XLA.
     The first call includes compilation overhead; subsequent calls are fast.
 
 !!! note "Traced Epoch"
@@ -1160,7 +1160,7 @@ This example demonstrates ideal Tier 1 structure:
 ## N. JIT-Compiled Training
 
 The `compute_train_step` method is JIT-compatible via `nnx.jit`.
-Wrapping with JIT triggers XLA compilation, yielding **2-10x speedup**.
+Wrapping with JIT triggers XLA compilation; measure the step time before and after.
 """
 
 # %%
@@ -1272,7 +1272,7 @@ graph TD
 
 | Strategy | When to Use | Expected Improvement |
 |----------|-------------|---------------------|
-| `nnx.jit(compute_train_step)` | Standard training | 2-10x speedup |
+| `nnx.jit(compute_train_step)` | Standard training | Compiled training step |
 | Traced `epoch` argument | Physics weight changes | No retracing |
 | Batch size tuning | Memory-constrained | Better GPU utilization |
 
@@ -1488,7 +1488,7 @@ Provide concrete numbers, not vague descriptions.
 <!-- Good -->
 - Runtime: ~5 min on CPU
 - Memory: ~2 GB RAM
-- Speedup: ~5x with JIT on GPU
+- Speedup: measure with and without JIT on the target GPU
 
 <!-- Avoid -->
 - This runs quickly
