@@ -34,7 +34,7 @@ import jax.numpy as jnp
 import numpy as np
 from datarax.core.config import StructuralConfig
 from datarax.core.data_source import DataSourceModule
-from datarax.core.spec import array_to_spec
+from datarax.core.spec import array_to_spec, device_spec
 from datarax.sources import resolve_wrapped_indices
 from datarax.typing import Element, Metadata
 from flax import nnx
@@ -839,7 +839,10 @@ class WODSource(DataSourceModule):
         """Return a per-element shape/dtype contract for downstream consumers.
 
         Derived from the first materialized scenario; covers the numeric
-        keys ``get_batch_at`` emits (string keys are excluded).
+        keys ``get_batch_at`` emits (string keys are excluded). ``get_batch_at``
+        returns JAX arrays, so each dtype is the one JAX holds under the active
+        x64 setting: ``int64`` scenario fields are declared ``int32`` while x64
+        is off.
 
         Returns:
             Dict mapping scenario keys to ``jax.ShapeDtypeStruct``.
@@ -856,7 +859,9 @@ class WODSource(DataSourceModule):
         if not self._scenarios:
             raise ValueError("WODSource is empty; element_spec cannot be inferred.")
         sample = self._scenarios[0]
-        return {key: array_to_spec(sample[key]) for key in self._numeric_scenario_keys()}
+        return device_spec(
+            {key: array_to_spec(sample[key]) for key in self._numeric_scenario_keys()}
+        )
 
     # =========================================================================
     # WOD-Specific Methods

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `WODSource.element_spec` declares the dtypes `get_batch_at` emits. The batches are JAX
+  arrays, so `int64` scenario fields such as `state/all/valid` arrive as `int32` while
+  x64 is off, but the spec described the host arrays and declared `int64`. The spec is now
+  datarax's `device_spec` of the first scenario, which needs `datarax>=0.1.9`: from that
+  release `array_to_spec` describes a value exactly as given.
+
 ## [0.1.2] - 2026-09-09
 
 ### Changed
