@@ -30,7 +30,7 @@ jobs:
           cache-suffix: "benchmark"
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
 
       - name: Restore benchmark baseline
         # The previous run's baseline makes --fail-on-regression a real gate;

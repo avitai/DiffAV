@@ -31,11 +31,13 @@ jobs:
           cache-suffix: "security"
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
 
       - name: Run dependency audit
-        run: uvx pip-audit --skip-editable
-        continue-on-error: true
+        # Audit every locked group and extra; a bare uvx pip-audit audits only its own tool env.
+        run: |
+          uv export --frozen --all-extras --all-groups --no-emit-project -o requirements-audit.txt
+          uvx pip-audit -r requirements-audit.txt --disable-pip --no-deps
 
       - name: Run Bandit security linter
         run: uv run bandit -r src/ -ll

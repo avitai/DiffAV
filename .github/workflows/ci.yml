@@ -30,7 +30,7 @@ jobs:
           cache-suffix: "lint"
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
 
       - name: Run Ruff linter
         run: uv run ruff check --output-format=github
@@ -56,7 +56,7 @@ jobs:
           cache-suffix: "test-fast"
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
 
       - name: Run fast test tier
         env:

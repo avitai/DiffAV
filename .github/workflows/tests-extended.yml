@@ -33,7 +33,7 @@ jobs:
           cache-suffix: "extended"
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
 
       - name: Run full test suite with the coverage gate
         env:
