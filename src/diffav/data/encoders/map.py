@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import jax
 import jax.numpy as jnp
 from artifex.generative_models.core.layers.egnn import EGNNLayer
 from datarax.core.config import OperatorConfig
@@ -118,7 +119,7 @@ class MapEncoder(OperatorModule):
         data: PyTree,
         state: PyTree,
         metadata: dict[str, Any] | None,
-        random_params: Any = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[PyTree, PyTree, dict[str, Any] | None]:
         """Encode map features via VectorNet-style hierarchy.
@@ -131,7 +132,7 @@ class MapEncoder(OperatorModule):
             data: Dict with roadgraph_samples/* arrays.
             state: Passed through.
             metadata: Passed through.
-            random_params: Unused.
+            key: Unused; the operator is deterministic.
             stats: Unused.
 
         Returns:

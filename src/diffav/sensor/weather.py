@@ -55,9 +55,24 @@ from typing import Any
 import jax
 import jax.numpy as jnp
 from datarax.core.modality import ModalityOperator, ModalityOperatorConfig
+from datarax.core.operator import require_key
 from flax import nnx
 
 from diffav.core.constants import FOG_EXTINCTION_COEFFICIENT
+
+
+def _intensity(
+    operator: ModalityOperator, key: jax.Array | None, configured: float
+) -> jax.Array | float:
+    """The record's effect intensity.
+
+    A deterministic operator applies its ``configured`` intensity. A stochastic one draws
+    the record's intensity from ``key``, uniformly in ``[0, configured)``, and refuses to
+    run without a key rather than give every record the same draw.
+    """
+    if not operator.config.stochastic:
+        return configured
+    return jax.random.uniform(require_key(key, operator), (), minval=0.0, maxval=configured)
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +155,7 @@ class RainAugmentation(ModalityOperator):
         data: dict[str, Any],
         state: dict[str, Any],
         metadata: dict[str, Any],
-        random_params: dict[str, Any] | None = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         """Apply rain-streak augmentation to the configured image field.
@@ -149,9 +164,8 @@ class RainAugmentation(ModalityOperator):
             data: Element data dict; must contain ``config.field_key``.
             state: Operator state (passed through unchanged).
             metadata: Element metadata (passed through unchanged).
-            random_params: Optional per-sample random parameters.  When
-                ``stochastic=True`` the ``"intensity"`` key overrides the
-                config intensity.
+            key: The record's PRNG key. In stochastic mode the intensity is drawn
+                from it, uniformly in ``[0, config.intensity)``, and it is required.
             stats: Unused; accepted for datarax ModalityOperator API
                 compatibility (keyword callers must not break).
 
@@ -160,12 +174,7 @@ class RainAugmentation(ModalityOperator):
         """
         del stats
         image = self._extract_field(data, self.config.field_key)
-
-        # Resolve effective intensity.
-        if self.config.stochastic and random_params is not None:
-            intensity = random_params.get("intensity", self.config.intensity)
-        else:
-            intensity = self.config.intensity
+        intensity = _intensity(self, key, self.config.intensity)
 
         height, width = image.shape[0], image.shape[1]
 
@@ -195,26 +204,6 @@ class RainAugmentation(ModalityOperator):
         augmented = image * (1.0 - intensity * mask) + intensity * mask
         clipped = self._apply_clip_range(augmented)
         return self._remap_field(data, clipped), state, metadata
-
-    def generate_random_params(
-        self,
-        rng: jax.Array,
-        data_shapes: dict[str, tuple[int, ...]],
-    ) -> dict[str, Any]:
-        """Generate per-sample intensity values for stochastic mode.
-
-        Args:
-            rng: JAX PRNG key.
-            data_shapes: Dict mapping field keys to array shapes (batch first).
-
-        Returns:
-            ``{"intensity": array of shape (batch_size,)}``
-        """
-        batch_size = data_shapes[self.config.field_key][0]
-        intensity = jax.random.uniform(
-            rng, shape=(batch_size,), minval=0.0, maxval=self.config.intensity
-        )
-        return {"intensity": intensity}
 
 
 # ---------------------------------------------------------------------------
@@ -283,7 +272,7 @@ class FogAugmentation(ModalityOperator):
         data: dict[str, Any],
         state: dict[str, Any],
         metadata: dict[str, Any],
-        random_params: dict[str, Any] | None = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         """Apply fog augmentation to the configured image field.
@@ -292,8 +281,8 @@ class FogAugmentation(ModalityOperator):
             data: Element data dict; must contain ``config.field_key``.
             state: Operator state (passed through unchanged).
             metadata: Element metadata (passed through unchanged).
-            random_params: Optional per-sample random parameters.  When
-                ``stochastic=True`` the ``"intensity"`` key overrides config.
+            key: The record's PRNG key. In stochastic mode the intensity is drawn
+                from it, uniformly in ``[0, config.intensity)``, and it is required.
             stats: Unused; accepted for datarax ModalityOperator API
                 compatibility (keyword callers must not break).
 
@@ -302,11 +291,7 @@ class FogAugmentation(ModalityOperator):
         """
         del stats
         image = self._extract_field(data, self.config.field_key)
-
-        if self.config.stochastic and random_params is not None:
-            intensity = random_params.get("intensity", self.config.intensity)
-        else:
-            intensity = self.config.intensity
+        intensity = _intensity(self, key, self.config.intensity)
 
         # Beer-Lambert transmission factor.
         transmission = jnp.exp(-intensity * FOG_EXTINCTION_COEFFICIENT)
@@ -319,26 +304,6 @@ class FogAugmentation(ModalityOperator):
         augmented = image * transmission + fog_color * (1.0 - transmission)
         clipped = self._apply_clip_range(augmented)
         return self._remap_field(data, clipped), state, metadata
-
-    def generate_random_params(
-        self,
-        rng: jax.Array,
-        data_shapes: dict[str, tuple[int, ...]],
-    ) -> dict[str, Any]:
-        """Generate per-sample intensity values for stochastic mode.
-
-        Args:
-            rng: JAX PRNG key.
-            data_shapes: Dict mapping field keys to array shapes (batch first).
-
-        Returns:
-            ``{"intensity": array of shape (batch_size,)}``
-        """
-        batch_size = data_shapes[self.config.field_key][0]
-        intensity = jax.random.uniform(
-            rng, shape=(batch_size,), minval=0.0, maxval=self.config.intensity
-        )
-        return {"intensity": intensity}
 
 
 # ---------------------------------------------------------------------------
@@ -411,7 +376,7 @@ class GlareAugmentation(ModalityOperator):
         data: dict[str, Any],
         state: dict[str, Any],
         metadata: dict[str, Any],
-        random_params: dict[str, Any] | None = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         """Apply glare / bloom augmentation to the configured image field.
@@ -420,8 +385,8 @@ class GlareAugmentation(ModalityOperator):
             data: Element data dict; must contain ``config.field_key``.
             state: Operator state (passed through unchanged).
             metadata: Element metadata (passed through unchanged).
-            random_params: Optional per-sample random parameters.  When
-                ``stochastic=True`` the ``"intensity"`` key overrides config.
+            key: The record's PRNG key. In stochastic mode the intensity is drawn
+                from it, uniformly in ``[0, config.intensity)``, and it is required.
             stats: Unused; accepted for datarax ModalityOperator API
                 compatibility (keyword callers must not break).
 
@@ -430,11 +395,7 @@ class GlareAugmentation(ModalityOperator):
         """
         del stats
         image = self._extract_field(data, self.config.field_key)
-
-        if self.config.stochastic and random_params is not None:
-            intensity = random_params.get("intensity", self.config.intensity)
-        else:
-            intensity = self.config.intensity
+        intensity = _intensity(self, key, self.config.intensity)
 
         height, width = image.shape[0], image.shape[1]
         diagonal = math.sqrt(height**2 + width**2)
@@ -461,23 +422,3 @@ class GlareAugmentation(ModalityOperator):
         augmented = image + bloom
         clipped = self._apply_clip_range(augmented)
         return self._remap_field(data, clipped), state, metadata
-
-    def generate_random_params(
-        self,
-        rng: jax.Array,
-        data_shapes: dict[str, tuple[int, ...]],
-    ) -> dict[str, Any]:
-        """Generate per-sample intensity values for stochastic mode.
-
-        Args:
-            rng: JAX PRNG key.
-            data_shapes: Dict mapping field keys to array shapes (batch first).
-
-        Returns:
-            ``{"intensity": array of shape (batch_size,)}``
-        """
-        batch_size = data_shapes[self.config.field_key][0]
-        intensity = jax.random.uniform(
-            rng, shape=(batch_size,), minval=0.0, maxval=self.config.intensity
-        )
-        return {"intensity": intensity}

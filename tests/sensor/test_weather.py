@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import jax
 import jax.numpy as jnp
+import pytest
 from flax import nnx
 
 from diffav.sensor.weather import (
@@ -109,6 +110,39 @@ class TestStreakDensitySemantics:
         dense = self._streak_transitions(20.0)
         assert dense > sparse
         assert sparse > 0
+
+
+class TestStochasticIntensity:
+    """In stochastic mode each record's intensity is drawn from the key its caller passes."""
+
+    @staticmethod
+    def _operators() -> list:
+        stochastic = {"field_key": "image", "stochastic": True, "stream_name": "weather"}
+        rngs = nnx.Rngs(0, weather=1)
+        return [
+            RainAugmentation(RainConfig(**stochastic), rngs=rngs),
+            FogAugmentation(FogConfig(**stochastic), rngs=rngs),
+            GlareAugmentation(GlareConfig(**stochastic), rngs=rngs),
+        ]
+
+    def test_a_stochastic_operator_refuses_a_missing_key(self) -> None:
+        for op in self._operators():
+            with pytest.raises(ValueError, match=type(op).__name__):
+                op.apply({"image": _IMAGE}, {}, {})
+
+    def test_the_draw_follows_the_key(self) -> None:
+        for op in self._operators():
+            first, _, _ = op.apply({"image": _IMAGE}, {}, {}, jax.random.key(1))
+            again, _, _ = op.apply({"image": _IMAGE}, {}, {}, jax.random.key(1))
+            other, _, _ = op.apply({"image": _IMAGE}, {}, {}, jax.random.key(2))
+            assert jnp.array_equal(first["image"], again["image"])
+            assert not jnp.array_equal(first["image"], other["image"])
+
+    def test_a_deterministic_operator_ignores_the_key(self) -> None:
+        op = FogAugmentation(FogConfig(field_key="image", intensity=0.4), rngs=nnx.Rngs(0))
+        keyed, _, _ = op.apply({"image": _IMAGE}, {}, {}, jax.random.key(3))
+        plain, _, _ = op.apply({"image": _IMAGE}, {}, {})
+        assert jnp.array_equal(keyed["image"], plain["image"])
 
 
 class TestStatsKwarg:

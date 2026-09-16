@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Requires `datarax>=0.1.10`, whose operators take the record's PRNG key as the fourth
+  argument of `apply` and draw from it; `generate_random_params` is gone. The rain, fog and
+  glare augmentations draw each record's intensity from that key in stochastic mode,
+  uniformly in `[0, intensity)`, and refuse to run without one rather than give every
+  record the configured value; the deterministic operators name the argument `key` and
+  ignore it. The lock moves datarax from 0.1.9 to 0.1.10 and substrax from 0.1.5 to 0.1.7.
+- A checkpoint of a model that embeds a `SceneTokenizer` written before this release does
+  not restore into a model built after it: datarax 0.1.10 keeps no `rngs` state on an
+  operator and renames its statistics store, and `DiffAVCheckpointManager` restores raw
+  module state. The `wod-physics-tier0` and `wod-physics-showcase` checkpoints carry such a
+  subtree; `wod-mini` does not.
+
 ### Fixed
 
 - `WODSource.element_spec` declares the dtypes `get_batch_at` emits. The batches are JAX

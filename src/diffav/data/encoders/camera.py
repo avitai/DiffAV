@@ -104,7 +104,7 @@ class CameraEncoder(OperatorModule):
         data: PyTree,
         state: PyTree,
         metadata: dict[str, Any] | None,
-        random_params: Any = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[PyTree, PyTree, dict[str, Any] | None]:
         """Encode camera images.
@@ -116,7 +116,7 @@ class CameraEncoder(OperatorModule):
             data: Dict with camera/images.
             state: Passed through.
             metadata: Passed through.
-            random_params: Unused.
+            key: Unused; the operator is deterministic.
             stats: Unused.
 
         Returns:

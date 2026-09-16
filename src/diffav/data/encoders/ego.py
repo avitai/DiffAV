@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import jax
 import jax.numpy as jnp
 from datarax.core.config import OperatorConfig
 from datarax.core.operator import OperatorModule
@@ -65,7 +66,7 @@ class EgoEncoder(OperatorModule):
         data: PyTree,
         state: PyTree,
         metadata: dict[str, Any] | None,
-        random_params: Any = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[PyTree, PyTree, dict[str, Any] | None]:
         """Encode ego state into embedding.
@@ -77,7 +78,7 @@ class EgoEncoder(OperatorModule):
             data: Dict with stacked_history and state/is_sdc.
             state: Passed through.
             metadata: Passed through.
-            random_params: Unused.
+            key: Unused; the operator is deterministic.
             stats: Unused.
 
         Returns:

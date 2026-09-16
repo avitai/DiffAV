@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+import jax
 import jax.numpy as jnp
 from datarax.core.config import OperatorConfig
 from datarax.core.operator import OperatorModule
@@ -85,7 +86,7 @@ class AgentNormalizationOperator(OperatorModule):
         data: PyTree,
         state: PyTree,
         metadata: dict[str, Any] | None,
-        random_params: Any = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[PyTree, PyTree, dict[str, Any] | None]:
         """Apply ego-centric normalization.
@@ -97,7 +98,7 @@ class AgentNormalizationOperator(OperatorModule):
             data: Raw WOD scenario dict with state/all/* arrays.
             state: Pass-through state dict.
             metadata: Pass-through metadata dict.
-            random_params: Unused (deterministic operator).
+            key: Unused; the operator is deterministic.
             stats: Unused.
 
         Returns:
@@ -179,7 +180,7 @@ class MapCroppingOperator(OperatorModule):
         data: PyTree,
         state: PyTree,
         metadata: dict[str, Any] | None,
-        random_params: Any = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[PyTree, PyTree, dict[str, Any] | None]:
         """Crop map to radius around ego.
@@ -191,7 +192,7 @@ class MapCroppingOperator(OperatorModule):
             data: Raw WOD scenario dict with roadgraph_samples/* and state/* arrays.
             state: Pass-through state dict.
             metadata: Pass-through metadata dict.
-            random_params: Unused (deterministic operator).
+            key: Unused; the operator is deterministic.
             stats: Unused.
 
         Returns:
@@ -242,7 +243,7 @@ class TemporalStackingOperator(OperatorModule):
         data: PyTree,
         state: PyTree,
         metadata: dict[str, Any] | None,
-        random_params: Any = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[PyTree, PyTree, dict[str, Any] | None]:
         """Stack history and separate future.
@@ -254,7 +255,7 @@ class TemporalStackingOperator(OperatorModule):
             data: Raw WOD scenario dict with temporal feature arrays.
             state: Pass-through state dict.
             metadata: Pass-through metadata dict.
-            random_params: Unused (deterministic operator).
+            key: Unused; the operator is deterministic.
             stats: Unused.
 
         Returns:

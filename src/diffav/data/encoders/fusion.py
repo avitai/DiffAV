@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import jax
 import jax.numpy as jnp
 from artifex.generative_models.core.layers.transformers import TransformerEncoderBlock
 from artifex.generative_models.modalities.multi_modal.representations import (
@@ -157,7 +158,7 @@ class SceneFusionOperator(CrossModalOperator):
         data: PyTree,
         state: PyTree,
         metadata: dict[str, Any] | None,
-        random_params: Any = None,
+        key: jax.Array | None = None,
         stats: dict[str, Any] | None = None,
     ) -> tuple[PyTree, PyTree, dict[str, Any] | None]:
         """Fuse modality embeddings into unified scene embedding.
@@ -169,7 +170,7 @@ class SceneFusionOperator(CrossModalOperator):
             data: Dict with modality embeddings.
             state: Passed through.
             metadata: Passed through.
-            random_params: Unused.
+            key: Unused; the operator is deterministic.
             stats: Unused.
 
         Returns:
