@@ -104,7 +104,7 @@ total_loss, aux = jit_step(trainer.model, trainer.optimizer, traj, ctx, key)
 # Level 4: Production pipeline with checkpointing and adaptive physics
 trainer = TrajectoryTrainer(model, TrainerConfig(
     physics_config=physics_config,
-    checkpoint_config=CheckpointConfig(save_interval_steps=1000),
+    checkpoint_config=CheckpointConfig(checkpoint_dir="checkpoints/run", save_interval_steps=1000),
 ))
 all_metrics = trainer.train(data_fn, key=key, road_edges=road_edges)
 ```
@@ -924,8 +924,8 @@ Use admonitions for different information types:
     Modify the `physics_config` parameters and observe how loss curves change.
 
 !!! info "Sister Repository"
-    The optimizer is created via opifex's `create_optimizer`. See the
-    [opifex documentation](https://github.com/avitai/opifex) for advanced options.
+    The optimizer is created via substrax's `create_optimizer`. See the
+    [substrax documentation](https://github.com/avitai/substrax) for advanced options.
 ```
 
 ### Code Blocks
@@ -968,7 +968,7 @@ graph TD
     end
 
     subgraph SisterRepos["Sister Repositories"]
-        OP[opifex: create_optimizer]
+        OP[substrax: create_optimizer]
         CAL[calibrax: FlopsCounter]
         ERR[opifex: ErrorRecoveryManager]
     end
@@ -1574,7 +1574,7 @@ from collections.abc import Iterator
 import jax
 import jax.numpy as jnp
 from flax import nnx
-from opifex.core.training.optimizers import OptimizerConfig
+from substrax.optim import OptimizerConfig
 
 # DiffAV (alphabetical by submodule)
 from diffav.models import TrajectoryDiffusionModel, TrajectoryDiffusionConfig
@@ -1604,7 +1604,7 @@ trainer_config = TrainerConfig(
     optimizer_config=OptimizerConfig(
         optimizer_type="adam",
         learning_rate=1e-3,
-        gradient_clip=1.0,
+        gradient_clip_norm=1.0,
     ),
     physics_config=DiffAVPhysicsConfig(
         kinematic_weight=1.0,
@@ -1627,8 +1627,8 @@ When using components from sister repositories, always note their origin:
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `OptimizerConfig` | opifex | Optimizer + gradient clipping config |
-| `create_optimizer` | opifex | Build optax optimizer from config |
+| `OptimizerConfig` | substrax | Optimizer + gradient clipping config |
+| `create_optimizer` | substrax | Build the NNX optimizer from config |
 | `ErrorRecoveryManager` | opifex | NaN/instability detection |
 | `FlopsCounter` | calibrax | FLOPs profiling per training step |
 | `DiffAVPhysicsLoss` | diffav | Bicycle model + collision penalties |

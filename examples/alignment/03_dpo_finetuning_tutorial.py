@@ -44,7 +44,7 @@ build_batch_from_scenes → 64 preference pairs (+ real scene contexts)
         |
 200 × DPOAlignmentTrainer.train_step on 16-pair shuffled minibatches
         |
-margin / win-rate curves → docs/assets/images/examples/
+margin / win-rate curves → the resolved output directory
         |
 reference-free contrast (simpo_gamma)      steering: sample_and_score
         |                                     → build_steering_pairs
@@ -101,14 +101,14 @@ from pathlib import Path
 import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
+from substrax.artifacts import resolve_output_dir
 
 
-PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
-PLOT_DIR.mkdir(parents=True, exist_ok=True)
+PLOT_DIR = resolve_output_dir("examples").path
 import numpy as np
 from dotenv import load_dotenv
 from flax import nnx
-from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
+from substrax.optim import create_optimizer, OptimizerConfig
 
 from diffav.alignment import (
     compute_scenario_reward,
@@ -399,10 +399,10 @@ log-ratios) is built into the trainer.
 
 # %%
 reference = create_reference_model(model)
-tx = create_optimizer(
-    OptimizerConfig(optimizer_type="adam", learning_rate=DPO_LEARNING_RATE, gradient_clip=1.0)
+optimizer = create_optimizer(
+    model,
+    OptimizerConfig(optimizer_type="adam", learning_rate=DPO_LEARNING_RATE, gradient_clip_norm=1.0),
 )
-optimizer = nnx.Optimizer(model, tx, wrt=nnx.Param)
 
 dpo_config = DPOAlignmentConfig(
     beta=DPO_BETA,
@@ -531,7 +531,7 @@ plt.savefig(PLOT_DIR / "dpo_alignment_curves.png", dpi=100, bbox_inches="tight")
 plt.show()
 print(f"Alignment curves saved to {PLOT_DIR / 'dpo_alignment_curves.png'}")
 # Expected output:
-# Alignment curves saved to docs/assets/images/examples/dpo_alignment_curves.png
+# Alignment curves saved to <output dir>/dpo_alignment_curves.png
 
 # %% [markdown]
 """
@@ -553,10 +553,10 @@ trajectory content.
 
 # %%
 contrast_model = create_reference_model(reference)  # fresh SFT copy, untouched by the DPO run
-contrast_tx = create_optimizer(
-    OptimizerConfig(optimizer_type="adam", learning_rate=DPO_LEARNING_RATE, gradient_clip=1.0)
+contrast_optimizer = create_optimizer(
+    contrast_model,
+    OptimizerConfig(optimizer_type="adam", learning_rate=DPO_LEARNING_RATE, gradient_clip_norm=1.0),
 )
-contrast_optimizer = nnx.Optimizer(contrast_model, contrast_tx, wrt=nnx.Param)
 contrast_trainer = DPOAlignmentTrainer(
     model=contrast_model,
     optimizer=contrast_optimizer,
@@ -710,10 +710,10 @@ self-generated rather than anchored to demonstrations.
 
 # %%
 steer_model = create_reference_model(reference)  # fresh SFT copy for the steering demo
-steer_tx = create_optimizer(
-    OptimizerConfig(optimizer_type="adam", learning_rate=DPO_LEARNING_RATE, gradient_clip=1.0)
+steer_optimizer = create_optimizer(
+    steer_model,
+    OptimizerConfig(optimizer_type="adam", learning_rate=DPO_LEARNING_RATE, gradient_clip_norm=1.0),
 )
-steer_optimizer = nnx.Optimizer(steer_model, steer_tx, wrt=nnx.Param)
 steer_dpo_trainer = DPOAlignmentTrainer(
     model=steer_model,
     optimizer=steer_optimizer,
@@ -802,7 +802,7 @@ plt.savefig(PLOT_DIR / "steered_trajectory_comparison.png", dpi=100, bbox_inches
 plt.show()
 print(f"Trajectory comparison saved to {PLOT_DIR / 'steered_trajectory_comparison.png'}")
 # Expected output:
-# Trajectory comparison saved to docs/assets/images/examples/steered_trajectory_comparison.png
+# Trajectory comparison saved to <output dir>/steered_trajectory_comparison.png
 
 # %% [markdown]
 """

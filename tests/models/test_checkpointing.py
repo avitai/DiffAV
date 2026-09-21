@@ -11,6 +11,8 @@ import jax.numpy as jnp
 import optax
 import pytest
 from flax import nnx
+from substrax.checkpoint import OrbaxCheckpointStore
+from substrax.checkpoint.metadata import JsonValue
 
 from diffav.models.checkpointing import (
     CheckpointConfig,
@@ -72,31 +74,36 @@ def _states_equal(a: object, b: object) -> bool:
 class TestCheckpointConfig:
     """Tests for CheckpointConfig validation and defaults."""
 
-    def test_defaults(self) -> None:
-        """Default config has expected values."""
-        cfg = CheckpointConfig()
-        assert cfg.checkpoint_dir == "checkpoints"
+    def test_defaults(self, tmp_path: Path) -> None:
+        """The cadence and retention have defaults; the directory is the caller's."""
+        cfg = CheckpointConfig(checkpoint_dir=str(tmp_path))
+        assert cfg.checkpoint_dir == str(tmp_path)
         assert cfg.save_interval_steps == 1000
         assert cfg.max_to_keep == 5
 
-    def test_invalid_save_interval(self) -> None:
+    def test_the_directory_is_required(self) -> None:
+        """No default under the working directory, where two runs would collide."""
+        with pytest.raises(TypeError, match="checkpoint_dir"):
+            CheckpointConfig()  # type: ignore[call-arg]
+
+    def test_invalid_save_interval(self, tmp_path: Path) -> None:
         """save_interval_steps=0 raises ValueError."""
         with pytest.raises(ValueError, match="save_interval_steps"):
-            CheckpointConfig(save_interval_steps=0)
+            CheckpointConfig(checkpoint_dir=str(tmp_path), save_interval_steps=0)
 
-    def test_invalid_max_to_keep(self) -> None:
+    def test_invalid_max_to_keep(self, tmp_path: Path) -> None:
         """max_to_keep=0 raises ValueError."""
         with pytest.raises(ValueError, match="max_to_keep"):
-            CheckpointConfig(max_to_keep=0)
+            CheckpointConfig(checkpoint_dir=str(tmp_path), max_to_keep=0)
 
-    def test_custom_values(self) -> None:
+    def test_custom_values(self, tmp_path: Path) -> None:
         """Custom values are stored correctly."""
         cfg = CheckpointConfig(
-            checkpoint_dir="/tmp/my_ckpts",
+            checkpoint_dir=str(tmp_path / "my_ckpts"),
             save_interval_steps=500,
             max_to_keep=3,
         )
-        assert cfg.checkpoint_dir == "/tmp/my_ckpts"
+        assert cfg.checkpoint_dir == str(tmp_path / "my_ckpts")
         assert cfg.save_interval_steps == 500
         assert cfg.max_to_keep == 3
 
@@ -165,6 +172,50 @@ class TestDiffAVCheckpointManager:
         """Create a DiffAVCheckpointManager from the config fixture."""
         with DiffAVCheckpointManager(config) as mgr:
             yield mgr
+
+    def test_save_writes_the_record_substrax_reads(
+        self,
+        manager: DiffAVCheckpointManager,
+        config: CheckpointConfig,
+        model: _SimpleModel,
+    ) -> None:
+        """A save is a format-3 step: the model item, the loss and metrics, the epoch, the
+        producer and the architecture version, readable without DiffAV."""
+        optimizer = _make_optimizer(model)
+        path = manager.save(
+            model,
+            step=10,
+            loss=0.5,
+            metrics={"ade": 1.5},
+            optimizer=optimizer,
+            epoch=2,
+            architecture_version=3,
+        )
+
+        assert isinstance(path, Path)
+        assert path.is_dir()
+        with OrbaxCheckpointStore(config.checkpoint_dir) as store:
+            record = store.read_metadata(10)
+        assert record.items == ("model", "optimizer")
+        assert record.epoch == 2
+        assert record.metrics == {"ade": 1.5, "loss": 0.5}
+        assert record.extra == {"architecture_version": 3}
+        assert record.producer is not None
+        assert record.producer.name == "diffav"
+
+    def test_a_save_without_optimizer_or_version_writes_the_model_alone(
+        self,
+        manager: DiffAVCheckpointManager,
+        config: CheckpointConfig,
+        model: _SimpleModel,
+    ) -> None:
+        manager.save(model, step=4, loss=0.25)
+
+        with OrbaxCheckpointStore(config.checkpoint_dir) as store:
+            record = store.read_metadata(4)
+        assert record.items == ("model",)
+        assert record.epoch == 0
+        assert "architecture_version" not in record.extra
 
     def test_save_and_restore_round_trip(
         self,
@@ -260,6 +311,32 @@ class TestDiffAVCheckpointManager:
         fresh_model = _make_model(99)
         with pytest.raises(CheckpointCorruptError, match="architecture version"):
             manager.restore_latest(fresh_model, expected_architecture_version=1)
+
+    @pytest.mark.parametrize("stored", ["1", 1.5, True, [1]])
+    def test_restore_rejects_a_version_that_is_not_an_integer(
+        self,
+        config: CheckpointConfig,
+        model: _SimpleModel,
+        stored: JsonValue,
+    ) -> None:
+        """A record whose architecture version is not an integer is corrupt, and nothing
+        loads, whether or not a version is expected."""
+        with OrbaxCheckpointStore(config.checkpoint_dir) as store:
+            store.save(
+                10,
+                {"model": nnx.state(model)},
+                metrics={"loss": 0.5},
+                extra={"architecture_version": stored},
+            )
+
+        fresh_model = _make_model(99)
+        before = nnx.state(fresh_model, nnx.Param)
+        with (
+            DiffAVCheckpointManager(config) as manager,
+            pytest.raises(CheckpointCorruptError, match="architecture version"),
+        ):
+            manager.restore_latest(fresh_model)
+        assert _states_equal(before, nnx.state(fresh_model, nnx.Param))
 
     def test_restore_skips_version_check_by_default(
         self,

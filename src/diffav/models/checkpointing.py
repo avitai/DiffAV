@@ -1,8 +1,10 @@
 """Checkpoint management for trajectory model training.
 
-Composes substrax's :class:`OrbaxCheckpointStore` with diffav-specific
-training state: model parameters, optimizer state, step, epoch, and metrics
-are persisted together so training can resume exactly where it stopped.
+Composes substrax's :class:`OrbaxCheckpointStore` (checkpoint format 3: named items beside a
+JSON record) with diffav-specific training state. The model and, when given, the optimizer
+are the ``model`` and ``optimizer`` items; the loss and metrics, the epoch, diffav as the
+producer and the backbone architecture version go into the record, so training can resume
+exactly where it stopped and a restore can refuse incompatible weights before loading any.
 """
 
 from __future__ import annotations
@@ -10,15 +12,32 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, cast, Self
+from importlib.metadata import version
+from typing import Any, Self, TYPE_CHECKING
 
 from flax import nnx
-from substrax.checkpoint import OrbaxCheckpointStore
+from substrax.checkpoint import (
+    CheckpointMetadata,
+    OrbaxCheckpointStore,
+    Producer,
+    UnsupportedCheckpointError,
+)
 
 from diffav.core.config import validate_positive
 
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
+
 logger = logging.getLogger(__name__)
+
+MODEL_ITEM = "model"
+OPTIMIZER_ITEM = "optimizer"
+LOSS_METRIC = "loss"
+ARCHITECTURE_VERSION_KEY = "architecture_version"
+
+_PRODUCER = Producer(name="diffav", version=version("diffav"))
 
 
 class CheckpointCorruptError(RuntimeError):
@@ -34,12 +53,14 @@ class CheckpointConfig:
     """Configuration for checkpoint management.
 
     Attributes:
-        checkpoint_dir: Directory path for storing checkpoints.
+        checkpoint_dir: Directory path for storing checkpoints, named by the caller: a
+            default under the working directory would let two runs collide at the same
+            steps, which the store refuses to overwrite.
         save_interval_steps: Save a checkpoint every N training steps.
         max_to_keep: Maximum number of recent checkpoints to retain.
     """
 
-    checkpoint_dir: str = "checkpoints"
+    checkpoint_dir: str
     save_interval_steps: int = 1000
     max_to_keep: int = 5
 
@@ -90,8 +111,7 @@ class DiffAVCheckpointManager:
     def __init__(self, config: CheckpointConfig) -> None:
         """Initialize the checkpoint manager.
 
-        Creates the checkpoint directory if it does not exist and
-        instantiates the underlying OrbaxCheckpointStore.
+        The store opens on first use and creates the directory on the first save.
 
         Args:
             config: Checkpoint configuration.
@@ -111,12 +131,12 @@ class DiffAVCheckpointManager:
         self.close()
 
     @staticmethod
-    def _build_payload(model: nnx.Module, optimizer: nnx.Optimizer | None) -> dict[str, Any]:
-        """Build the on-disk payload structure for save and restore."""
-        payload: dict[str, Any] = {"model": nnx.state(model)}
+    def _items(model: nnx.Module, optimizer: nnx.Optimizer | None) -> dict[str, Any]:
+        """The checkpoint items: the model's state, and the optimizer's when given."""
+        items: dict[str, Any] = {MODEL_ITEM: nnx.state(model)}
         if optimizer is not None:
-            payload["optimizer"] = nnx.state(optimizer)
-        return payload
+            items[OPTIMIZER_ITEM] = nnx.state(optimizer)
+        return items
 
     def save(
         self,
@@ -128,35 +148,37 @@ class DiffAVCheckpointManager:
         optimizer: nnx.Optimizer | None = None,
         epoch: int = 0,
         architecture_version: int | None = None,
-    ) -> str:
+    ) -> Path:
         """Save a checkpoint at the given step.
 
         Args:
             model: Flax NNX model to checkpoint.
             step: Current training step number.
-            loss: Current loss value.
+            loss: Current loss value, recorded as the ``loss`` metric.
             metrics: Optional dictionary of additional metrics.
             optimizer: Optional NNX optimizer whose state is persisted
                 alongside the model.
-            epoch: Current training epoch, recorded in metadata.
+            epoch: Current training epoch, recorded in the record.
             architecture_version: Backbone architecture revision to stamp
-                into the checkpoint metadata. Pass the running code's
-                version so a later restore can reject incompatible weights;
-                ``None`` writes an unversioned checkpoint.
+                into the record. Pass the running code's version so a later
+                restore can reject incompatible weights; ``None`` writes an
+                unversioned checkpoint.
 
         Returns:
-            Path string to the saved checkpoint.
+            The directory of the saved checkpoint.
         """
-        payload = self._build_payload(model, optimizer)
+        extra = (
+            None
+            if architecture_version is None
+            else {ARCHITECTURE_VERSION_KEY: architecture_version}
+        )
         checkpoint_path = self._store.save(
-            payload,
             step,
-            loss,
-            additional_metadata={
-                "epoch": epoch,
-                "metrics": dict(metrics or {}),
-                "architecture_version": architecture_version,
-            },
+            self._items(model, optimizer),
+            epoch=epoch,
+            metrics={**(metrics or {}), LOSS_METRIC: loss},
+            producer=_PRODUCER,
+            extra=extra,
         )
         logger.info("Saved checkpoint at step %d: %s", step, checkpoint_path)
         return checkpoint_path
@@ -171,7 +193,7 @@ class DiffAVCheckpointManager:
         optimizer: nnx.Optimizer | None = None,
         epoch: int = 0,
         architecture_version: int | None = None,
-    ) -> str | None:
+    ) -> Path | None:
         """Save a checkpoint only if the step aligns with the save interval.
 
         A checkpoint is saved when ``step > 0`` and ``step`` is a multiple
@@ -184,12 +206,12 @@ class DiffAVCheckpointManager:
             metrics: Optional dictionary of additional metrics.
             optimizer: Optional NNX optimizer whose state is persisted
                 alongside the model.
-            epoch: Current training epoch, recorded in metadata.
+            epoch: Current training epoch, recorded in the record.
             architecture_version: Backbone architecture revision stamped
-                into the checkpoint metadata (see :meth:`save`).
+                into the record (see :meth:`save`).
 
         Returns:
-            Path string if a checkpoint was saved, None otherwise.
+            The checkpoint's directory if one was saved, None otherwise.
         """
         if step > 0 and step % self.config.save_interval_steps == 0:
             return self.save(
@@ -203,6 +225,42 @@ class DiffAVCheckpointManager:
             )
         return None
 
+    def _corrupt(self, step: int, reason: object) -> CheckpointCorruptError:
+        """The error for a checkpoint at ``step`` that exists but cannot be restored."""
+        return CheckpointCorruptError(
+            f"Checkpoint at step {step} in {self.config.checkpoint_dir!r} exists "
+            f"but could not be restored: {reason}"
+        )
+
+    def _record(self, step: int) -> CheckpointMetadata:
+        """Read the record of the checkpoint at ``step``, or raise it as corrupt."""
+        try:
+            return self._store.read_metadata(step)
+        except (KeyError, ValueError, OSError, UnsupportedCheckpointError) as error:
+            raise self._corrupt(step, error) from error
+
+    def _architecture_version(
+        self, step: int, record: CheckpointMetadata, expected: int | None
+    ) -> int | None:
+        """The record's architecture version, refused when malformed or not ``expected``.
+
+        Raises:
+            CheckpointCorruptError: If the stored version is present but not an integer,
+                or ``expected`` is set and the stored version differs from it.
+        """
+        stored = record.extra.get(ARCHITECTURE_VERSION_KEY)
+        # bool is an int subclass, and a JSON true is no architecture version.
+        if stored is not None and (isinstance(stored, bool) or not isinstance(stored, int)):
+            raise self._corrupt(step, f"its architecture version {stored!r} is not an integer")
+        if expected is not None and stored != expected:
+            raise CheckpointCorruptError(
+                f"Checkpoint at step {step} in {self.config.checkpoint_dir!r} was saved "
+                f"under backbone architecture version {stored!r}, but the running "
+                f"code expects {expected!r}. Retrain the checkpoint "
+                "for the current architecture."
+            )
+        return stored
+
     def restore_latest(
         self,
         model: nnx.Module,
@@ -214,13 +272,14 @@ class DiffAVCheckpointManager:
 
         The model and optimizer are updated **in place**; the returned
         :class:`TrainingState` carries the bookkeeping needed to resume
-        training (step, epoch, loss, metrics).
+        training (step, epoch, loss, metrics). The record is read, and the
+        architecture version checked, before any weights are loaded.
 
         Args:
             model: Flax NNX model to restore into.
             optimizer: Optional NNX optimizer to restore into. Must be
                 provided when the checkpoint was saved with an optimizer
-                and vice versa — the payload structures have to match.
+                and vice versa — the items have to match.
             expected_architecture_version: When set, the checkpoint's stored
                 architecture version must equal it or the restore is rejected
                 **before** any weights are loaded. Guards against silently
@@ -233,61 +292,37 @@ class DiffAVCheckpointManager:
 
         Raises:
             CheckpointCorruptError: If the latest checkpoint exists on disk
-                but cannot be restored (unreadable data, a payload whose
-                structure does not match ``model``/``optimizer``, or an
-                architecture version that does not match
-                ``expected_architecture_version``).
+                but cannot be restored (unreadable data, items whose
+                structure does not match ``model``/``optimizer``, an
+                architecture version that is not an integer, or one that
+                does not match ``expected_architecture_version``).
         """
         latest = self._store.latest_step()
         if latest is None:
             return None
 
-        abstract = self._build_payload(model, optimizer)
+        record = self._record(latest)
+        stored_version = self._architecture_version(latest, record, expected_architecture_version)
         try:
-            restored, metadata = self._store.restore(
-                abstract,
-                step=latest,
-                return_original_on_missing=False,
-            )
-        except (KeyError, ValueError, OSError) as error:
-            # The store surfaces Orbax's read errors: a missing item, an array whose
-            # tree differs from the payload, or unreadable data on disk.
-            raise CheckpointCorruptError(
-                f"Checkpoint at step {latest} in {self.config.checkpoint_dir!r} exists "
-                f"but could not be restored: {error}"
-            ) from error
-        if restored is None or not metadata:
-            raise CheckpointCorruptError(
-                f"Checkpoint at step {latest} in {self.config.checkpoint_dir!r} exists "
-                "but could not be restored (corrupt data or mismatched payload structure)"
-            )
+            checkpoint = self._store.restore(latest, templates=self._items(model, optimizer))
+        except (KeyError, ValueError, OSError, UnsupportedCheckpointError) as error:
+            # A missing item, an array whose tree differs from the template, or
+            # unreadable data on disk.
+            raise self._corrupt(latest, error) from error
 
-        stored_version = metadata.get("architecture_version")
-        if (
-            expected_architecture_version is not None
-            and stored_version != expected_architecture_version
-        ):
-            raise CheckpointCorruptError(
-                f"Checkpoint at step {latest} in {self.config.checkpoint_dir!r} was saved "
-                f"under backbone architecture version {stored_version!r}, but the running "
-                f"code expects {expected_architecture_version!r}. Retrain the checkpoint "
-                "for the current architecture."
-            )
+        nnx.update(model, checkpoint.items[MODEL_ITEM])
+        optimizer_state = checkpoint.items.get(OPTIMIZER_ITEM)
+        if optimizer is not None and optimizer_state is not None:
+            nnx.update(optimizer, optimizer_state)
 
-        restored_payload = cast(dict[str, Any], restored)
-        nnx.update(model, restored_payload["model"])
-        optimizer_state = None
-        if optimizer is not None and "optimizer" in restored_payload:
-            nnx.update(optimizer, restored_payload["optimizer"])
-            optimizer_state = restored_payload["optimizer"]
-
+        metrics = {name: value for name, value in record.metrics.items() if name != LOSS_METRIC}
         return TrainingState(
-            step=int(metadata.get("step", latest)),
-            epoch=int(metadata.get("epoch", 0)),
-            model_state=restored_payload["model"],
+            step=checkpoint.step,
+            epoch=record.epoch or 0,
+            model_state=checkpoint.items[MODEL_ITEM],
             optimizer_state=optimizer_state,
-            best_loss=float(metadata.get("loss", float("inf"))),
-            metrics=metadata.get("metrics", {}),
+            best_loss=float(record.metrics.get(LOSS_METRIC, float("inf"))),
+            metrics=metrics,
             architecture_version=stored_version,
         )
 

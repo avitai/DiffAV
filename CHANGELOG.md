@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- The lock moves anyio from 4.12.1 to 4.14.2 for CVE-2026-63374 and CVE-2026-64847; nothing else moves. 4.14.2 is the first fixed release; 4.15.1 needs typing-extensions 4.16.0, which a single-package upgrade does not allow to move.
+
+### Changed
+
+- Requires `substrax>=0.1.11`, `datarax>=0.1.14`, `avitai-artifex>=0.1.12`, `opifex>=0.2.8`
+  and `calibrax>=0.1.9`, the latest releases. substrax 0.1.11 caps jax below 0.11.2, whose
+  renamed `HiPrimitive` breaks `import flax.nnx` on flax 0.12.9.
+- Optimizers come from `substrax.optim`: opifex 0.2.7 removed its `OptimizerConfig` and
+  `create_optimizer`. `create_optimizer(model, config)` returns the `nnx.Optimizer`
+  directly, gradient clipping is `gradient_clip_norm`, and a learning-rate schedule is an
+  optax schedule passed as `learning_rate` (`schedule_type`, `peak_value` and the step
+  counts are gone). The physics-informed tutorial's warmup-cosine is now
+  `optax.warmup_cosine_decay_schedule` peaking at 2e-4. The trainer reports the learning
+  rate read from the optimizer state inside the jitted step, and `nan` for an optimizer
+  that carries none.
+- Checkpoints are written in substrax's format 3: the model and optimizer are separate
+  items beside a record holding the epoch, the metrics with `loss`, diffav as the producer
+  and the architecture version. A root written by an earlier release still restores,
+  through `DIFFAV_FORMAT2`, and `substrax.checkpoint.upgrade_checkpoints(src, dst,
+  legacy_layout=DIFFAV_FORMAT2)` rewrites it in format 3. `CheckpointConfig.checkpoint_dir`
+  is required: a shared default let two runs collide at the same steps.
+- `scripts/train_wod.py` refuses a `--checkpoint-dir` that already holds checkpoints,
+  before reading any data: a run trains from step 0 and the store refuses a step that
+  exists or lies below the latest, so the first save would otherwise fail after
+  `--checkpoint-every` steps. The Modal launcher's `--checkpoint` names the root on the
+  Volume for every task, defaulting to the staged `wod-physics-tier0`; a training run
+  passes an unused one.
+- The five examples that save figures resolve their directory through
+  `substrax.artifacts.resolve_output_dir("examples")`: with `AVITAI_OUTPUT_DIR` set the
+  figures land in `examples` under it (`AVITAI_OUTPUT_DIR="$PWD/docs/assets/images"`
+  regenerates the documentation figures in place), otherwise in a per-process temporary
+  directory. `DIFFAV_EXAMPLES_OUTPUT_DIR` is gone. The example tests run each example in
+  its own interpreter through `substrax.testing.run_example`, on the CPU backend, and skip
+  only on the WOD-not-configured message; a run over `DIFFAV_EXAMPLE_TIMEOUT_SECONDS`
+  fails, naming the budget. Requires `substrax>=0.1.7`, the locked release.
+
+### Added
+
+- The Modal launcher runs examples on a GPU (`--task examples`, an L4 by default) with
+  deterministic kernels and WOD from the data Volume, writing each script's log and
+  figures to the `diffav-example-outputs` volume and fetching them into `--out`;
+  `--task fetch` downloads a run whose client detached.
+- The Modal launcher runs the test-time guidance sweep (`--task guidance`) against the
+  staged checkpoint, as it already ran the DPO ablation; both benchmarks write their CSV
+  under the checkpoints Volume. The deploy guide stages only the training shards a run
+  reads: `train_wod.py` streams shards in name order and stops at `--max-scenarios`, so
+  the recorded `wod-physics-tier0` run needs the first 17 shards, not the full split.
+
 ### Changed
 
 - Requires `datarax>=0.1.10`, whose operators take the record's PRNG key as the fourth
@@ -15,14 +65,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   uniformly in `[0, intensity)`, and refuse to run without one rather than give every
   record the configured value; the deterministic operators name the argument `key` and
   ignore it. The lock moves datarax from 0.1.9 to 0.1.10 and substrax from 0.1.5 to 0.1.7.
-- A checkpoint of a model that embeds a `SceneTokenizer` written before this release does
-  not restore into a model built after it: datarax 0.1.10 keeps no `rngs` state on an
-  operator and renames its statistics store, and `DiffAVCheckpointManager` restores raw
-  module state. The `wod-physics-tier0` and `wod-physics-showcase` checkpoints carry such a
-  subtree; `wod-mini` does not.
+- No stored checkpoint restores into a model built by this release, for two reasons.
+  artifex 0.1.3 (2026-08-01) added `one_minus_alphas_cumprod` and
+  `one_minus_alphas_cumprod_prev` to the noise schedule's state, and every checkpoint
+  written before it (`wod-mini`, `wod-physics-tier0`, `wod-physics-showcase`) lacks the two
+  leaves, so `DiffAVCheckpointManager`, which restores raw module state, has refused them
+  since the lock took artifex 0.1.5. A checkpoint of a model that embeds a `SceneTokenizer`
+  (`wod-physics-tier0`, `wod-physics-showcase`) additionally carries operator `rngs` and
+  statistics leaves that datarax 0.1.10 no longer keeps. The examples that restore
+  `wod-mini` fall back to an untrained model only when the directory is absent, as it is in
+  CI; with the directory present they raise `CheckpointCorruptError`.
 
 ### Fixed
 
+- A checkpoint is labelled with the updates it holds. `TrajectoryTrainer` saved under the
+  index of the step it had just run, so the checkpoint at step 1000 held 1001 updates, and a
+  resumed run restored step 1000, ran it again and saved step 1000 a second time, which
+  format 3 refuses. It now saves after counting the step, and a resumed run continues at
+  the next one. `scripts/train_wod.py` labels its periodic saves the same way and leaves a
+  multiple of `--checkpoint-every` that equals `--steps` to its final save, which it used to
+  collide with. A root written before this release holds one more update than its label.
+- Training on Modal failed before the first step with `No module named 'IPython'`: the
+  trainer reaches `fastprogress` through opifex, artifex and blackjax, and fastprogress
+  1.1.5 imports IPython at module level without declaring it, which the image, installed
+  without development tools, does not have. The lock takes fastprogress 1.1.6, where that
+  import happens only when a notebook display is requested, and a test imports the trainer
+  in a child interpreter with IPython blocked.
 - `WODSource.element_spec` declares the dtypes `get_batch_at` emits. The batches are JAX
   arrays, so `int64` scenario fields such as `state/all/valid` arrive as `int32` while
   x64 is off, but the spec described the host arrays and declared `int64`. The spec is now

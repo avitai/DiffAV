@@ -45,6 +45,8 @@ test = [
   "pytest-json-report>=1.5.0",
   "pytest-randomly>=3.16.0",
   "pytest-timeout>=2.1",
+  # The workflow contracts read the CI workflows and the fixture action.
+  "pyyaml>=6",
   "pytest-xdist>=3.6"
 ]
 
@@ -77,11 +79,12 @@ dependencies = [
   "chex>=0.1.7",
   # Sister repos, from PyPI. The artifex distribution is published as avitai-artifex;
   # imports stay `artifex`.
-  "datarax>=0.1.10",
-  "avitai-artifex>=0.1.5",
-  "opifex>=0.2.2",
-  "calibrax>=0.1.5",
-  "substrax>=0.1.5",
+  "datarax>=0.1.14",
+  "avitai-artifex>=0.1.12",
+  "opifex>=0.2.8",
+  "calibrax>=0.1.9",
+  # 0.1.6 adds substrax.runtime, substrax.artifacts and substrax.testing.
+  "substrax>=0.1.11",
   # WOD dependencies (TF used CPU-only for proto parsing)
   "tensorflow>=2.20.0",
   "tensorflow-datasets>=4.9.2",

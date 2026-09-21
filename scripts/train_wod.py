@@ -170,6 +170,35 @@ def _train_batch_stream(
         )
 
 
+def _refuse_an_occupied_root(config: CheckpointConfig) -> None:
+    """Refuse a checkpoint root that already holds checkpoints.
+
+    A run trains from step 0, and the checkpoint store refuses a step that exists or lies
+    below the latest, so into an occupied root the first save would fail only after
+    ``--checkpoint-every`` steps of training.
+
+    Raises:
+        FileExistsError: If the root holds a checkpoint.
+    """
+    with DiffAVCheckpointManager(config) as manager:
+        latest = manager.latest_step()
+    if latest is not None:
+        raise FileExistsError(
+            f"{config.checkpoint_dir} already holds checkpoints up to step {latest}; "
+            "pass a new --checkpoint-dir for this run"
+        )
+
+
+def is_periodic_checkpoint(completed: int, *, every: int, total_steps: int) -> bool:
+    """Whether the run saves a periodic checkpoint after ``completed`` updates.
+
+    A checkpoint is labelled with the updates it holds. The run saves every ``every``
+    updates and once more at ``total_steps``, so a multiple of ``every`` that is the total
+    is left to that final save instead of being written twice.
+    """
+    return completed % every == 0 and completed < total_steps
+
+
 def main(argv: list[str] | None = None) -> int:
     """Train the map-conditioned model on WOD with warmup-cosine, EMA, and val-eval."""
     parser = argparse.ArgumentParser(description="Train the map-conditioned model on WOD data.")
@@ -240,6 +269,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--checkpoint-every", type=int, default=2_000)
     parser.add_argument("--log-every", type=int, default=500)
     args = parser.parse_args(argv)
+    manager_config = CheckpointConfig(
+        checkpoint_dir=str(args.checkpoint_dir),
+        save_interval_steps=args.checkpoint_every,
+        max_to_keep=3,
+    )
+    _refuse_an_occupied_root(manager_config)
 
     logging.basicConfig(level=logging.INFO, force=True)
     load_dotenv()
@@ -307,11 +342,6 @@ def main(argv: list[str] | None = None) -> int:
             "val_kinematic": result.kinematic_residual,
         }
 
-    manager_config = CheckpointConfig(
-        checkpoint_dir=str(args.checkpoint_dir),
-        save_interval_steps=args.checkpoint_every,
-        max_to_keep=3,
-    )
     # Record the run configuration beside the checkpoints so a restored model can
     # be rebuilt with the exact architecture/normalization it was trained under
     # (the earlier checkpoints carried no config and became unrestorable).
@@ -328,7 +358,10 @@ def main(argv: list[str] | None = None) -> int:
             # so log whenever the record carries val metrics, else they are lost.
             has_validation = any(name.startswith("val_") for name in record)
             log_step = step % args.log_every == 0
-            checkpoint_step = step > 0 and step % args.checkpoint_every == 0
+            completed = step + 1
+            checkpoint_step = is_periodic_checkpoint(
+                completed, every=args.checkpoint_every, total_steps=args.steps
+            )
             if not (log_step or checkpoint_step or has_validation):
                 return
             # Realize the on-device loss only here (the loop's periodic sync).
@@ -346,7 +379,7 @@ def main(argv: list[str] | None = None) -> int:
                 with trainer.ema.swap_in(model):
                     manager.save(
                         model,
-                        step=step,
+                        step=completed,
                         loss=loss_value,
                         architecture_version=SCENE_BACKBONE_ARCHITECTURE_VERSION,
                     )

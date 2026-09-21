@@ -50,39 +50,75 @@ modal volume put simulacrax-checkpoints \
 
 The volume persists across runs, so staging is a one-time cost.
 
-**Only for fresh training** (`--task train`, not the ablation) do you also need
-the ~104 GB `training/` split. Upload it separately — and if a large-shard upload
-stalls, just re-run the `put` (Modal skips files already present, resuming):
+**Only for fresh training** (`--task train`, not the benchmarks) do you also need
+the `training/` split. `train_wod.py` streams the shards in name order and stops
+at `--max-scenarios`, so a run needs only the leading shards that hold that many
+records: the recorded `wod-physics-tier0` run (`--max-scenarios 8000`) reads
+shards `00000` to `00016` (8,126 records, about 14.5 GB), not the full ~104 GB
+split. Upload them one at a time — and if a large-shard upload stalls, just re-run
+the `put` (`--force` replaces a partial file):
 
 ```bash
-modal volume put simulacrax-wod-data \
-  /mnt/ssd2/Data/waymo/motion_v1.2.1/tf_example/training tf_example/training
+for i in $(seq -f "%05g" 0 16); do
+  f="training_tfexample.tfrecord-${i}-of-01000"
+  modal volume put simulacrax-wod-data \
+    "/mnt/ssd2/Data/waymo/motion_v1.2.1/tf_example/training/$f" "tf_example/training/$f"
+done
 ```
 
 ## Launch
 
 ```bash
-# Train the map-conditioned diffusion model (checkpoints land on the Volume).
-modal run deploy/modal_app.py --task train --extra "--steps 20000 --batch-size 8"
+# Train the map-conditioned diffusion model into a new root on the Volume.
+modal run deploy/modal_app.py --task train --checkpoint wod-physics-run2 \
+  --extra "--steps 20000 --batch-size 8"
 
 # Bigger card:
-modal run deploy/modal_app.py --task train --gpu H100 --extra "--batch-size 16"
+modal run deploy/modal_app.py --task train --gpu H100 --checkpoint wod-physics-run3 \
+  --extra "--batch-size 16"
 
 # Frozen-vs-learnable DPO ablation against the staged checkpoint.
 modal run deploy/modal_app.py --task ablation \
   --extra "--num-scenes 12 --num-dpo-steps 20"
+
+# Test-time guidance sweep against the staged checkpoint (the results/ table).
+modal run deploy/modal_app.py --task guidance \
+  --extra "--num-scenes 6 --num-rollouts 6 --guidance-scales 0 2 5"
+
+# Run examples on the GPU (every example when --paths is empty) and fetch their
+# logs and figures into temp/modal_examples/<run>/.
+modal run deploy/modal_app.py --task examples --gpu L4 \
+  --paths "examples/models/02_physics_informed_training_tutorial.py"
+
+# Download an examples run whose client detached or lost its connection.
+modal run deploy/modal_app.py --task fetch --run <run name>
 ```
 
+The examples default to an L4 (24 GB), the smallest card the WOD-scale ones are sized
+for; the DPO tutorial, the largest, trains one pair per step. They read WOD from the data Volume, run with deterministic GPU kernels so a
+quoted number reproduces, and write each script's log plus everything under
+`AVITAI_OUTPUT_DIR` to the `diffav-example-outputs` volume, committed after every script.
+The image excludes `checkpoints/`, so an example that restores `checkpoints/wod-mini`
+runs its untrained fallback there.
+
+`--checkpoint` names the checkpoint root on the Volume and defaults to the staged
+`wod-physics-tier0`. The benchmarks read it; a training run writes it and needs an
+unused one, since `train_wod.py` refuses a root that already holds checkpoints rather
+than fail at its first save. Pass `--checkpoint <root>` to the benchmarks to evaluate a
+new run.
+
 `--extra` forwards its contents verbatim to the entrypoint's argparse, so every
-flag `scripts/train_wod.py` and `benchmarks/steer_wod_dpo_ablation.py` accept is
-available (steps, batch size, beta, learning rate, scene counts, …).
+flag `scripts/train_wod.py`, `benchmarks/steer_wod_dpo_ablation.py` and
+`benchmarks/steer_wod_guidance.py` accept is available (steps, batch size, beta,
+learning rate, scene counts, guidance scales, …).
 
 ## Retrieve results
 
 ```bash
-# Trained checkpoint / ablation CSV written under the checkpoints Volume.
-modal volume get simulacrax-checkpoints wod-physics-tier0 ./checkpoints/
+# A trained checkpoint root (the --checkpoint a run wrote) and the benchmark CSVs.
+modal volume get simulacrax-checkpoints wod-physics-run2 ./checkpoints/
 modal volume get simulacrax-checkpoints ablation ./temp/steering/
+modal volume get simulacrax-checkpoints guidance ./temp/steering/
 ```
 
 ## Notes

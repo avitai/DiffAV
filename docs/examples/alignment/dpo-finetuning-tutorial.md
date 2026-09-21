@@ -97,11 +97,10 @@ from diffav.alignment import (
     ScenarioSteeringTrainer,
     create_reference_model,
 )
-from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
+from substrax.optim import create_optimizer, OptimizerConfig
 
 # Build DPO trainer
-tx = create_optimizer(OptimizerConfig(learning_rate=1e-3, gradient_clip=1.0))
-optimizer = nnx.Optimizer(model, tx, wrt=nnx.Param)
+optimizer = create_optimizer(model, OptimizerConfig(learning_rate=1e-3, gradient_clip_norm=1.0))
 dpo_trainer = DPOAlignmentTrainer(
     model=model,
     optimizer=optimizer,
@@ -156,6 +155,65 @@ steered = miner.steer(
 - [DPOAlignmentTrainer API](../../api/alignment/dpo_trainer.md)
 - [ScenarioMiner API](../../api/api/scenario_miner.md)
 - [Alignment User Guide](../../user-guide/alignment.md)
+
+## Terminal Output
+
+The output below is from a run on a Modal L4 GPU (`modal run deploy/modal_app.py --task examples`), with deterministic GPU kernels and WOD read from the data volume. Without a checkpoint the tutorial runs a 300-step synthetic warm-up instead. The steering spine's warning that no road edges were passed repeats 30 times in the log and is shown once.
+
+```text
+JAX devices: [CudaDevice(id=0)]
+Future steps: 80, Agents: 8
+No checkpoint found — running a 300-step jitted synthetic warm-up instead.
+Warm-up complete — diffusion loss: 0.017
+Prepared 32 scenes from 45 records
+Preference pool: 64 pairs, chosen shape (64, 8, 80, 4)
+Scene contexts:  (64, 8, 128)
+DPO step   0: loss=0.6931  win-rate=50.00%  margin=0.0000
+DPO step  20: loss=0.6633  win-rate=100.00%  margin=0.0611
+DPO step  40: loss=0.6042  win-rate=100.00%  margin=0.1910
+DPO step  60: loss=0.5892  win-rate=100.00%  margin=0.2240
+DPO step  80: loss=0.5599  win-rate=100.00%  margin=0.2975
+DPO step 100: loss=0.5217  win-rate=100.00%  margin=0.3963
+DPO step 120: loss=0.5216  win-rate=100.00%  margin=0.3925
+DPO step 140: loss=0.4529  win-rate=100.00%  margin=0.6117
+DPO step 160: loss=0.4016  win-rate=100.00%  margin=0.7790
+DPO step 180: loss=0.4080  win-rate=100.00%  margin=0.7418
+DPO step 199: loss=0.4008  win-rate=100.00%  margin=0.7783
+Alignment curves saved to $AVITAI_OUTPUT_DIR/examples/dpo_alignment_curves.png
+Reference-free step  0: loss=0.3193  win-rate=100.00%  margin=1.7123
+Reference-free step 10: loss=0.3345  win-rate=100.00%  margin=1.5647
+Reference-free step 20: loss=0.3144  win-rate=100.00%  margin=1.7788
+Reference-free step 30: loss=0.3763  win-rate=100.00%  margin=1.3598
+Reference-free step 40: loss=0.3405  win-rate=100.00%  margin=1.5037
+Reference-free step 49: loss=0.3632  win-rate=100.00%  margin=1.5208
+Standard-DPO final margin (reference-anchored): 0.7783
+Reference-free final margin (policy-only):      1.5208
+Target scenario:    forward
+Steering strength:  0.3
+Steering steps:     1
+Mutation blocked: cannot assign to field 'steering_strength'
+Invalid strength: steering_strength must be in [0.0, 1.0]; got 1.5
+Scenario reward matrix:
+  forward traj   → 'forward'     reward: +0.9875
+  forward traj   → 'lane_change' reward: -1.0000
+  lane_change traj → 'forward'     reward: +0.4938
+  lane_change traj → 'lane_change' reward: +1.0000
+All rewards in [-1, 1]: True
+Steer step  0: loss=0.6930  win-rate=100.00%  margin=0.0003
+Steer step  3: loss=0.6921  win-rate=100.00%  margin=0.0022
+Steer step  6: loss=0.6938  win-rate=0.00%  margin=-0.0013
+Steer step  9: loss=0.6932  win-rate=50.00%  margin=-0.0001
+Steer step 11: loss=0.6932  win-rate=50.00%  margin=-0.0000
+DPO-aligned mean x-displacement: 33.2633
+Steered     mean x-displacement: 33.7977
+Steered model trajectories shape: (8, 80, 4)
+Trajectory comparison saved to $AVITAI_OUTPUT_DIR/examples/steered_trajectory_comparison.png
+Generated 3 steered scenarios
+  Scenario 0: trajectories=(2, 80, 4), tags=(<ScenarioType.FORWARD: 'forward'>, <Density.LOW: 'low'>, 'steered_forward')
+  Scenario 1: trajectories=(2, 80, 4), tags=(<ScenarioType.FORWARD: 'forward'>, <Density.LOW: 'low'>, 'steered_forward')
+  Scenario 2: trajectories=(2, 80, 4), tags=(<ScenarioType.FORWARD: 'forward'>, <Density.LOW: 'low'>, 'steered_forward')
+WARNING:diffav.alignment.steering_spine:sample_and_score called without road_edges; feasibility gate is inactive.
+```
 
 ## Example Output
 

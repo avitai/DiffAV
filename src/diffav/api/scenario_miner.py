@@ -12,7 +12,7 @@ import jax
 import jax.numpy as jnp
 import optax
 from flax import nnx
-from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
+from substrax.optim import create_optimizer, OptimizerConfig
 
 from diffav.alignment.scenario_steering import (
     ScenarioSteeringConfig,
@@ -493,10 +493,10 @@ class ScenarioMiner:
         )
 
         expert = nnx.clone(self.model)
-        tx = create_optimizer(
-            OptimizerConfig(optimizer_type="adam", learning_rate=1e-4, gradient_clip=1.0)
+        optimizer = create_optimizer(
+            expert,
+            OptimizerConfig(optimizer_type="adam", learning_rate=1e-4, gradient_clip_norm=1.0),
         )
-        optimizer = nnx.Optimizer(expert, tx, wrt=nnx.Param)
         dpo_trainer = DPOAlignmentTrainer(
             model=expert,
             optimizer=optimizer,
@@ -522,7 +522,7 @@ class ScenarioMiner:
         """Find adversarial scenarios using gradient-based context perturbation.
 
         Explores exactly ``budget`` candidate scenes. For each, Adam gradient
-        ascent (via ``opifex.core.training.optimizers``) perturbs the scene
+        ascent (``optax.adam`` over the perturbation) perturbs the scene
         context embedding to maximise the physics violation score of the
         internal model's predictions; the perturbed context is then passed to
         ``planner_fn`` and its output scored by ``DiffAVPhysicsLoss``. A
@@ -568,8 +568,9 @@ class ScenarioMiner:
         candidate_key, perturb_key = jax.random.split(rng)
 
         physics = DiffAVPhysicsLoss()
-        opt_cfg = OptimizerConfig(optimizer_type="adam", learning_rate=step_size)
-        tx = create_optimizer(opt_cfg)
+        # Plain Adam over the scenario perturbation ``delta``, not over model
+        # parameters, so no model-shaped builder applies.
+        tx = optax.adam(step_size)
 
         candidates = self.generate(
             scenario_type=ScenarioType.ADVERSARIAL,

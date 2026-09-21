@@ -62,7 +62,7 @@ ScenarioMiner (frozen dataclass)
 
 | Component | Source | Role |
 |-----------|--------|------|
-| `create_optimizer`, `OptimizerConfig` | `opifex.core.training.optimizers` | Adam ascent |
+| `optax.adam` | optax | Adam ascent over the scenario perturbation |
 | `nan_safe_gradients` | `diffav.core.training_utils` | NaN-safe gradient filtering |
 | `ade`, `fde` | `diffav.evaluation.metrics` | Per-agent displacement errors |
 | `DiffAVPhysicsLoss` | `diffav.physics.losses` | Physics violation scoring |

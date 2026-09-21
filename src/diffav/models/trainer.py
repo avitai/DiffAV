@@ -1,6 +1,6 @@
 """Physics-informed training loop for trajectory diffusion models.
 
-Composes opifex's optimizer creation and error recovery with calibrax's
+Composes substrax's optimizer creation, opifex's error recovery and calibrax's
 timing infrastructure to implement a training coordinator that combines
 diffusion loss with physics-informed penalties.
 
@@ -26,6 +26,7 @@ For distributed training across multiple devices, use
 from __future__ import annotations
 
 import logging
+import math
 import time
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -36,7 +37,7 @@ import jax.numpy as jnp
 import optax
 from flax import nnx
 from opifex.core.training.components.recovery import ErrorRecoveryManager
-from opifex.core.training.optimizers import create_optimizer, create_schedule, OptimizerConfig
+from substrax.optim import create_optimizer, current_learning_rate, OptimizerConfig
 
 from diffav.core.config import validate_positive
 from diffav.core.constants import SCENE_BACKBONE_ARCHITECTURE_VERSION
@@ -54,12 +55,25 @@ from diffav.physics.losses import DiffAVPhysicsConfig, DiffAVPhysicsLoss
 logger = logging.getLogger(__name__)
 
 
+def _carries_learning_rate(optimizer: nnx.Optimizer) -> bool:
+    """Whether ``optimizer``'s state holds the learning rate its updates apply.
+
+    substrax's transformation injects the rate; a caller-supplied optax transformation
+    usually does not, and then the rate is unknown to the trainer.
+    """
+    try:
+        current_learning_rate(optimizer)
+    except ValueError:
+        return False
+    return True
+
+
 def _default_optimizer_config() -> OptimizerConfig:
     """Create default optimizer config for trajectory training."""
     return OptimizerConfig(
         optimizer_type="adam",
         learning_rate=1e-4,
-        gradient_clip=1.0,
+        gradient_clip_norm=1.0,
     )
 
 
@@ -68,7 +82,8 @@ class TrainerConfig:
     """Configuration for the trajectory training loop.
 
     Attributes:
-        optimizer_config: Opifex optimizer configuration for optimizer creation.
+        optimizer_config: substrax's optimizer specification; a learning-rate schedule is
+            an ``optax.Schedule`` passed as its ``learning_rate``.
         num_epochs: Number of training epochs.
         physics_config: Optional physics loss configuration. If ``None``,
             no physics penalty is applied.
@@ -86,7 +101,7 @@ class TrainerConfig:
             considered unstable (checked by the recovery manager).
         gradient_explosion_threshold: Global gradient norm above which
             training is considered unstable. A sanity bound, not a clip —
-            per-step clipping stays with the optimizer's ``gradient_clip``
+            per-step clipping stays with the optimizer's ``gradient_clip_norm``
             chain. Raw gradient norms on metre-scale WOD data routinely
             exceed small bounds early in training.
         profile_flops: Measure per-step FLOPs once via calibrax's
@@ -141,10 +156,9 @@ class TrainingMetrics:
         physics_loss: Physics constraint loss (zero if disabled).
         physics_weight: Adaptive physics weight for this epoch.
         grad_norm: Global gradient norm before optimizer update.
-        learning_rate: Effective learning rate at this step — the
-            configured rate times the schedule value when a schedule is
-            set, or NaN when a caller-supplied optimizer makes the rate
-            unknown.
+        learning_rate: The learning rate the step's update applied, read from the
+            optimizer's state (the schedule's value when the configured rate is a
+            schedule), or NaN when a caller-supplied optimizer carries no rate.
         has_nan: Whether NaN was detected in loss or gradients.
         wall_clock_sec: Wall-clock time for this step in seconds.
         flops_per_step: Per-step FLOPs, XLA's cost analysis of the step as
@@ -189,8 +203,8 @@ class _StableTrainingState:
 class TrajectoryTrainer:
     """Physics-informed trainer for trajectory diffusion models.
 
-    Composes :class:`TrajectoryDiffusionModel` with opifex's
-    :func:`create_optimizer` and :class:`ErrorRecoveryManager`, calibrax's
+    Composes :class:`TrajectoryDiffusionModel` with substrax's
+    :func:`create_optimizer`, opifex's :class:`ErrorRecoveryManager`, calibrax's
     :class:`TimingCollector`, and diffav's :class:`DiffAVPhysicsLoss`
     and :class:`DiffAVCheckpointManager` to implement a training loop
     that combines diffusion loss with physics-informed penalties.
@@ -223,14 +237,21 @@ class TrajectoryTrainer:
             model: Trajectory diffusion model to train.
             config: Trainer configuration.
             optimizer: Optional custom optax optimizer. If ``None``,
-                creates one from ``config.optimizer_config`` via opifex.
+                creates one from ``config.optimizer_config`` via substrax.
         """
         self.config = config
         self.model = model
 
-        # Build optimizer from opifex config, or use custom one
-        tx = optimizer if optimizer is not None else create_optimizer(config.optimizer_config)
-        self.optimizer = nnx.Optimizer(model, tx, wrt=nnx.Param)
+        # Build the optimizer from substrax's specification, or wrap a custom one
+        self.optimizer = (
+            create_optimizer(model, config.optimizer_config)
+            if optimizer is None
+            else nnx.Optimizer(model, optimizer, wrt=nnx.Param)
+        )
+        # substrax's transformation injects its learning rate into the optimizer state,
+        # so the step reads the applied rate on device; a caller-supplied optax
+        # transformation carries none, and its rate is reported as NaN.
+        self._reports_learning_rate = _carries_learning_rate(self.optimizer)
 
         # Physics loss (optional)
         self._physics: DiffAVPhysicsLoss | None = None
@@ -255,18 +276,6 @@ class TrajectoryTrainer:
         # Compiled distributed step, built once (a fresh nnx.jit wrapper
         # per call would retrace and recompile on every step)
         self._jitted_step = nnx.jit(self.compute_train_step)
-
-        # Effective learning rate per step: schedule-aware, honest about
-        # caller-supplied optimizers whose rate the trainer cannot know
-        self._lr_schedule: Callable[[int], float] | None = None
-        if optimizer is not None:
-            self._lr_schedule = lambda step: float("nan")
-        elif config.optimizer_config.schedule_type is not None:
-            schedule = create_schedule(config.optimizer_config)
-            base_rate = config.optimizer_config.learning_rate
-            # opifex chains scale_by_schedule(schedule) with the base
-            # optimizer's learning rate, so both factors apply
-            self._lr_schedule = lambda step: float(base_rate * jnp.asarray(schedule(step)))
 
         # Lazily measured per-step FLOPs (profile_flops)
         self._flops_per_step: float | None = None
@@ -379,7 +388,8 @@ class TrajectoryTrainer:
         Returns:
             Tuple of ``(total_loss, aux_dict)`` where ``aux_dict``
             contains ``diffusion_loss``, ``physics_loss``,
-            ``physics_weight``, ``grad_norm``, and ``has_nan``.
+            ``physics_weight``, ``grad_norm``, ``has_nan`` and, when the optimizer
+            carries one, the applied ``learning_rate``.
         """
         # Physics config comes from self (static in JIT); epoch is traced.
         physics = self._physics
@@ -463,22 +473,11 @@ class TrajectoryTrainer:
 
         aux["grad_norm"] = grad_norm
         aux["has_nan"] = has_nan
+        if self._reports_learning_rate:
+            # Static under JIT: read with the loss, no extra transfer per step.
+            aux["learning_rate"] = current_learning_rate(optimizer)
 
         return total_loss, aux
-
-    def _learning_rate_for_step(self, step: int) -> float:
-        """Return the effective learning rate at a step.
-
-        Args:
-            step: Trainer step number.
-
-        Returns:
-            The scheduled rate, the constant configured rate, or NaN for a
-            caller-supplied optimizer.
-        """
-        if self._lr_schedule is not None:
-            return self._lr_schedule(step)
-        return self.config.optimizer_config.learning_rate
 
     def _snapshot(self) -> _StableTrainingState:
         """Capture the current model/optimizer state for rollback.
@@ -659,7 +658,12 @@ class TrajectoryTrainer:
                 ", grads zeroed" if self.config.nan_detection else "",
             )
 
-        # Checkpoint if due (Python-level I/O, outside JIT)
+        step = self._step
+        self._step += 1
+
+        # Checkpoint if due (Python-level I/O, outside JIT). A checkpoint is labelled with
+        # the updates it holds, so a resumed run continues at the next step and never
+        # saves over the one it restored.
         if self._checkpoint is not None:
             self._checkpoint.save_if_due(
                 self.model,
@@ -671,8 +675,6 @@ class TrajectoryTrainer:
             )
 
         wall_clock = time.perf_counter() - start
-        step = self._step
-        self._step += 1
 
         metrics = TrainingMetrics(
             step=step,
@@ -682,7 +684,7 @@ class TrajectoryTrainer:
             physics_loss=float(aux["physics_loss"]),
             physics_weight=float(aux["physics_weight"]),
             grad_norm=grad_norm,
-            learning_rate=self._learning_rate_for_step(step),
+            learning_rate=float(aux["learning_rate"]) if "learning_rate" in aux else math.nan,
             has_nan=has_nan,
             wall_clock_sec=wall_clock,
             flops_per_step=flops,

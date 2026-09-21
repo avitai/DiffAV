@@ -157,7 +157,7 @@ repository:
 | Component | From | Purpose |
 |-----------|------|---------|
 | `AdaptiveWeightScheduler` | `opifex.core.physics.losses` | Weight scheduling |
-| `create_optimizer` | `opifex.core.training.optimizers` | Optimizer creation |
+| `create_optimizer` | `substrax.optim` | Optimizer creation |
 | `ErrorRecoveryManager` | `opifex.core.training.components.recovery` | NaN detection |
 
 The trainer can also profile step FLOPs via calibrax's `FlopsCounter`

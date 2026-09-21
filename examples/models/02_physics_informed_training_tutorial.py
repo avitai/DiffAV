@@ -81,7 +81,7 @@ of the *samples* — the outcome the loss is a proxy for.
 
 | Component | Source | Purpose |
 |-----------|--------|---------|
-| `OptimizerConfig` / `create_optimizer` | opifex | Optimizer + warmup-cosine schedule |
+| `OptimizerConfig` / `create_optimizer` | substrax | Optimizer over an optax warmup-cosine |
 | `GaussianNormalizer` | opifex | Add/div standardization of context rows |
 | `ErrorRecoveryManager` | opifex | Stability checks + stable-state rollback |
 | `TimingCollector` | calibrax | Wall-clock timing |
@@ -121,7 +121,6 @@ uv sync
 # Imports
 
 import os
-from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -131,15 +130,16 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from substrax.artifacts import resolve_output_dir
 
 
-PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
-PLOT_DIR.mkdir(parents=True, exist_ok=True)
+PLOT_DIR = resolve_output_dir("examples").path
 
+import optax
 from dotenv import load_dotenv
 from flax import nnx
 from opifex.core.normalization import GaussianNormalizer
-from opifex.core.training.optimizers import OptimizerConfig
+from substrax.optim import OptimizerConfig
 
 from diffav.core.constants import MINER_STATE_OFFSETS, MINER_STATE_SCALES
 from diffav.data import prepare_full_horizon_scene, resolve_wod_tfrecord_path
@@ -297,9 +297,9 @@ library, keeping the plain objective bit-identical):
 - `physics_x0_annealing=True` — the physics penalty on x̂₀ is scaled by ᾱ_t.
 
 The optimizer follows score-based diffusion reference practice: Adam at
-2e-4 with linear warmup, then a near-constant rate (the opifex schedule
-acts as a multiplier on the base rate, so `peak_value=1.0` peaks at 2e-4;
-the cosine horizon is 3x the run so the rate barely decays in-run).
+2e-4 with linear warmup from zero, then a near-constant rate (the optax
+schedule is the learning rate itself, peaking at 2e-4; the cosine horizon
+is 3x the run so the rate barely decays in-run).
 """
 
 # %%
@@ -333,20 +333,21 @@ print(f"Diffusion timesteps: {model_config.num_timesteps}")
 trainer_config = TrainerConfig(
     optimizer_config=OptimizerConfig(
         optimizer_type="adam",
-        learning_rate=2e-4,
-        gradient_clip=1.0,
-        # The schedule multiplies the base rate (peak 1.0 → peak lr 2e-4)
-        # and is defined over a horizon 3x the run: linear warmup for 10%
-        # of the horizon, then a cosine so shallow the run sits in its flat
-        # region. Score-based references warm up and then hold the rate
-        # constant (diffusionjax's optimizer builds the warmup schedule
-        # with end value == peak); decaying to zero within the run
-        # measurably halts conditioning learning — the cross-attention
-        # needs the late steps to anchor samples to the scene context.
-        schedule_type="warmup_cosine",
-        peak_value=1.0,
-        warmup_steps=max(3 * NUM_TRAIN_STEPS // 10, 1),
-        decay_steps=3 * NUM_TRAIN_STEPS,
+        # The rate is a schedule over a horizon 3x the run: linear warmup
+        # from zero for 10% of the horizon to the 2e-4 peak, then a cosine
+        # so shallow the run sits in its flat region. Score-based references
+        # warm up and then hold the rate constant (diffusionjax's optimizer
+        # builds the warmup schedule with end value == peak); decaying to
+        # zero within the run measurably halts conditioning learning — the
+        # cross-attention needs the late steps to anchor samples to the
+        # scene context.
+        learning_rate=optax.warmup_cosine_decay_schedule(
+            init_value=0.0,
+            peak_value=2e-4,
+            warmup_steps=max(3 * NUM_TRAIN_STEPS // 10, 1),
+            decay_steps=3 * NUM_TRAIN_STEPS,
+        ),
+        gradient_clip_norm=1.0,
     ),
     physics_config=DiffAVPhysicsConfig(
         kinematic_weight=1.0,

@@ -23,7 +23,7 @@ from typing import Any
 import jax
 import jax.numpy as jnp
 from flax import nnx
-from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
+from substrax.optim import create_optimizer, OptimizerConfig
 
 from diffav.alignment.dpo_trainer import dpo_loss_from_log_probs, DPOAlignmentConfig
 from diffav.api.map_conditioned import MapConditionedTrajectoryModel
@@ -253,12 +253,12 @@ def build_dpo_arm(
     """
     policy = nnx.clone(model)
     reference = nnx.clone(model)
-    tx = create_optimizer(
+    optimizer = create_optimizer(
+        policy,
         OptimizerConfig(
-            optimizer_type="adam", learning_rate=learning_rate, gradient_clip=gradient_clip
-        )
+            optimizer_type="adam", learning_rate=learning_rate, gradient_clip_norm=gradient_clip
+        ),
     )
-    optimizer = nnx.Optimizer(policy, tx, wrt=nnx.Param)
     return policy, reference, optimizer
 
 

@@ -115,13 +115,12 @@ import matplotlib
 
 
 matplotlib.use("Agg")
-from pathlib import Path
 
 import matplotlib.pyplot as plt
+from substrax.artifacts import resolve_output_dir
 
 
-PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
-PLOT_DIR.mkdir(parents=True, exist_ok=True)
+PLOT_DIR = resolve_output_dir("examples").path
 from flax import nnx
 
 from diffav.sensor.nerf_renderer import (

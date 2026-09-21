@@ -110,8 +110,6 @@ uv sync
 # %%
 # Imports
 
-import os
-from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -120,10 +118,10 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from substrax.artifacts import resolve_output_dir
 
 
-PLOT_DIR = Path(os.environ.get("DIFFAV_EXAMPLES_OUTPUT_DIR", "docs/assets/images/examples"))
-PLOT_DIR.mkdir(parents=True, exist_ok=True)
+PLOT_DIR = resolve_output_dir("examples").path
 
 import numpy as np
 import optax

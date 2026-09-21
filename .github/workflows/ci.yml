@@ -58,6 +58,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
+
       - name: Run fast test tier
         env:
           JAX_PLATFORMS: cpu

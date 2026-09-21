@@ -223,7 +223,7 @@ pipeline, applied to chosen trajectories via `jax.vmap`.
 ```python
 import jax
 from flax import nnx
-from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
+from substrax.optim import create_optimizer, OptimizerConfig
 
 from diffav.alignment import (
     DPOAlignmentConfig,
@@ -242,8 +242,7 @@ model = TrajectoryDiffusionModel(
     TrajectoryDiffusionConfig(hidden_dim=128, num_blocks=2, num_heads=4),
     rngs=nnx.Rngs(params=jax.random.key(0)),
 )
-tx = create_optimizer(OptimizerConfig(learning_rate=1e-5, gradient_clip=1.0))
-optimizer = nnx.Optimizer(model, tx, wrt=nnx.Param)
+optimizer = create_optimizer(model, OptimizerConfig(learning_rate=1e-5, gradient_clip_norm=1.0))
 
 # 2. Create reference model (frozen copy)
 reference = create_reference_model(model)

@@ -66,11 +66,10 @@ from diffav.alignment import (
     DPOAlignmentTrainer,
     create_reference_model,
 )
-from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
+from substrax.optim import create_optimizer, OptimizerConfig
 
 # Create optimizer and reference model
-tx = create_optimizer(OptimizerConfig(learning_rate=1e-3, gradient_clip=1.0))
-optimizer = nnx.Optimizer(model, tx, wrt=nnx.Param)
+optimizer = create_optimizer(model, OptimizerConfig(learning_rate=1e-3, gradient_clip_norm=1.0))
 reference = create_reference_model(model)
 
 # Train
@@ -94,12 +93,16 @@ metrics = trainer.train_step(dpo_batch, jax.random.key(0))
 
 ## Terminal Output
 
-```
-Restored WOD-trained policy from checkpoints/wod-mini
-Loaded 333 validation scenarios
+The output below is from a run on a Modal L4 GPU (`modal run deploy/modal_app.py --task examples`), with deterministic GPU kernels and WOD read from the data volume. The image carries no `checkpoints/wod-mini`, so the example ran its untrained fallback, as it does anywhere that checkpoint is absent.
+
+```text
+WARNING: no checkpoint at checkpoints/wod-mini — using an untrained model.
+A random reference makes DPO's implicit reward meaningless; train one with
+`python scripts/train_wod.py` for real results.
+Loaded 4815 validation scenarios
 Ground truth: (8, 80, 4), scene context: (8, 128)
-GT score (noise=0):           <highest of the eight>
-Corrupted score (noise=3.5m): <lowest of the eight>
+GT score (noise=0):           -10.4618  ← should be highest
+Corrupted score (noise=3.5m): -59.9994  ← should be lowest
 GT outperforms corrupted:     True
 DPO batch keys: ['chosen', 'rejected', 'scene_contexts']
 Chosen shape:   (2, 8, 80, 4)
@@ -107,17 +110,18 @@ Rejected shape: (2, 8, 80, 4)
 Reference model created (frozen copy of the restored policy)
 DPO beta=1000.0, K=8 MC samples
 DPO trainer ready
-Step 0: loss=0.6931 acc=100.00% margin=0.0000 grad=x.xxxxxx
-Step 1: loss=0.69xx acc=100.00% margin=0.00xx grad=x.xxxxxx
-...
-Step 4: loss=0.69xx acc=100.00% margin=0.00xx grad=x.xxxxxx
+Step 0: loss=0.6931 acc=0.00% margin=0.0000 grad=5.763288
+Step 1: loss=0.6909 acc=100.00% margin=0.0044 grad=4.763657
+Step 2: loss=0.6933 acc=50.00% margin=-0.0003 grad=5.041406
+Step 3: loss=0.6793 acc=100.00% margin=0.0280 grad=5.373095
+Step 4: loss=0.6834 acc=100.00% margin=0.0195 grad=5.409656
 --- Final Metrics ---
-DPO loss:               0.69xx
-Policy chosen log-p:    -x.xxxx
-Policy rejected log-p:  -x.xxxx
+DPO loss:               0.6834
+Policy chosen log-p:    -1.9310
+Policy rejected log-p:  -1.9310
 Implicit-reward acc:    100.00%
-Implicit-reward margin: 0.00xx
-Gradient norm:          x.xxxxxx
+Implicit-reward margin: 0.0195
+Gradient norm:          5.409656
 ```
 
 ## Sister Repo Components
@@ -125,7 +129,7 @@ Gradient norm:          x.xxxxxx
 | Component | Source | Purpose |
 |-----------|--------|---------|
 | `NoiseSchedule` | artifex | Forward diffusion for log-prob estimation |
-| `create_optimizer` | opifex | Gradient-clipped optimizer creation |
+| `create_optimizer` | substrax | Gradient-clipped optimizer creation |
 | `nnx.clone` | Flax NNX | Deep-copy for frozen reference model |
 
 ## Related

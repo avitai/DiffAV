@@ -61,7 +61,7 @@ DPOAlignmentTrainer.train_step(batch, key) → implicit-reward metrics
 | `WODSource` | diffav.data | Real WOD TFRecord loading |
 | `create_scenario_miner` | diffav.api | Checkpoint restore into the SDK model |
 | `NoiseSchedule` | artifex | Forward diffusion for log-prob estimation |
-| `create_optimizer` | opifex | Gradient-clipped optimizer creation |
+| `create_optimizer` | substrax | Gradient-clipped optimizer creation |
 | `nnx.clone` | Flax NNX | Deep-copy for frozen reference model |
 """
 
@@ -102,7 +102,7 @@ import jax
 import jax.numpy as jnp
 from dotenv import load_dotenv
 from flax import nnx
-from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
+from substrax.optim import create_optimizer, OptimizerConfig
 
 from diffav.alignment import (
     create_reference_model,
@@ -302,8 +302,9 @@ print("Reference model created (frozen copy of the restored policy)")
 # Expected output:
 # Reference model created (frozen copy of the restored policy)
 
-tx = create_optimizer(OptimizerConfig(optimizer_type="adam", learning_rate=1e-5, gradient_clip=1.0))
-optimizer = nnx.Optimizer(model, tx, wrt=nnx.Param)
+optimizer = create_optimizer(
+    model, OptimizerConfig(optimizer_type="adam", learning_rate=1e-5, gradient_clip_norm=1.0)
+)
 
 dpo_config = DPOAlignmentConfig(
     beta=1000.0,  # MSE-scale log-prob proxy needs a large temperature

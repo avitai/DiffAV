@@ -14,7 +14,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 from flax import nnx
-from opifex.core.training.optimizers import create_optimizer, OptimizerConfig
+from substrax.optim import create_optimizer, OptimizerConfig
 
 from diffav.models.factorized_backbone import FactorizedSceneBackbone
 from diffav.models.trajectory_diffusion import (
@@ -101,12 +101,12 @@ def make_adam_optimizer(
     Returns:
         The configured optimizer.
     """
-    tx = create_optimizer(
+    return create_optimizer(
+        model,
         OptimizerConfig(
-            optimizer_type="adam", learning_rate=learning_rate, gradient_clip=gradient_clip
-        )
+            optimizer_type="adam", learning_rate=learning_rate, gradient_clip_norm=gradient_clip
+        ),
     )
-    return nnx.Optimizer(model, tx, wrt=nnx.Param)
 
 
 def straight_line_trajectory(

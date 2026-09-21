@@ -9,7 +9,7 @@ import jax.numpy as jnp
 import optax
 import pytest
 from flax import nnx
-from opifex.core.training.optimizers import OptimizerConfig
+from substrax.optim import OptimizerConfig
 
 from diffav.core.constants import SCENE_BACKBONE_ARCHITECTURE_VERSION
 from diffav.models.checkpointing import CheckpointConfig, CheckpointCorruptError
@@ -42,12 +42,13 @@ class TestTrainerConfig:
         assert cfg.physics_config is None
         assert cfg.checkpoint_config is None
 
-    def test_uses_opifex_optimizer_config(self) -> None:
-        """Default config uses OptimizerConfig from opifex."""
+    def test_uses_substrax_optimizer_config(self) -> None:
+        """Default config is substrax's OptimizerConfig: Adam at 1e-4, global-norm clip 1.0."""
         cfg = TrainerConfig()
         assert isinstance(cfg.optimizer_config, OptimizerConfig)
         assert cfg.optimizer_config.optimizer_type == "adam"
         assert cfg.optimizer_config.learning_rate == 1e-4
+        assert cfg.optimizer_config.gradient_clip_norm == 1.0
 
     def test_custom_optimizer_config(self) -> None:
         """Custom OptimizerConfig is accepted."""
@@ -55,7 +56,7 @@ class TestTrainerConfig:
             optimizer_type="adamw",
             learning_rate=3e-4,
             weight_decay=0.01,
-            gradient_clip=0.5,
+            gradient_clip_norm=0.5,
         )
         cfg = TrainerConfig(optimizer_config=opt_cfg)
         assert cfg.optimizer_config.optimizer_type == "adamw"
@@ -83,9 +84,9 @@ class TestTrainerConfig:
         assert cfg.physics_config is not None
         assert cfg.physics_config.kinematic_weight == 2.0
 
-    def test_with_checkpoint_config(self) -> None:
+    def test_with_checkpoint_config(self, tmp_path: object) -> None:
         """Checkpoint config can be set."""
-        ckpt = CheckpointConfig(save_interval_steps=500)
+        ckpt = CheckpointConfig(checkpoint_dir=str(tmp_path), save_interval_steps=500)
         cfg = TrainerConfig(checkpoint_config=ckpt)
         assert cfg.checkpoint_config is not None
         assert cfg.checkpoint_config.save_interval_steps == 500
@@ -374,6 +375,56 @@ class TestTrajectoryTrainer:
         )
         assert restored is not None
 
+    def test_a_checkpoint_is_labelled_with_the_updates_it_holds(self, tmp_path: object) -> None:
+        """The checkpoint at step 2 holds the model after exactly two updates."""
+        cfg = TrainerConfig(
+            checkpoint_config=CheckpointConfig(
+                checkpoint_dir=str(tmp_path), save_interval_steps=2, max_to_keep=3
+            ),
+        )
+        traj, ctx = _sample_data()
+        saving = TrajectoryTrainer(_make_model(), cfg)
+        for i in range(3):
+            saving.train_step(traj, ctx, key=jax.random.key(i))
+        two_updates = TrajectoryTrainer(_make_model(), TrainerConfig())
+        for i in range(2):
+            two_updates.train_step(traj, ctx, key=jax.random.key(i))
+
+        resumed = TrajectoryTrainer(_make_model(), cfg)
+        state = resumed.restore_latest()
+
+        assert state is not None
+        assert state.step == 2
+        assert all(
+            bool(jnp.array_equal(a, b))
+            for a, b in zip(
+                jax.tree.leaves(nnx.state(resumed.model, nnx.Param)),
+                jax.tree.leaves(nnx.state(two_updates.model, nnx.Param)),
+                strict=True,
+            )
+        )
+
+    def test_a_resumed_run_continues_after_the_saved_step(self, tmp_path: object) -> None:
+        """Resuming runs the next update and saves the next due step, never the restored one."""
+        cfg = TrainerConfig(
+            checkpoint_config=CheckpointConfig(
+                checkpoint_dir=str(tmp_path), save_interval_steps=2, max_to_keep=3
+            ),
+        )
+        traj, ctx = _sample_data()
+        first = TrajectoryTrainer(_make_model(), cfg)
+        for i in range(3):
+            first.train_step(traj, ctx, key=jax.random.key(i))
+        first.close()
+
+        resumed = TrajectoryTrainer(_make_model(), cfg)
+        resumed.restore_latest()
+        metrics = [resumed.train_step(traj, ctx, key=jax.random.key(i)) for i in (2, 3)]
+
+        assert [m.step for m in metrics] == [2, 3]
+        assert resumed.checkpoint_manager is not None
+        assert resumed.checkpoint_manager.list_steps() == [2, 4]
+
     def test_train_epoch_returns_list(self) -> None:
         """train_epoch returns a list of TrainingMetrics."""
         model = _make_model()
@@ -414,10 +465,10 @@ class TestTrajectoryTrainer:
         assert metrics.learning_rate == pytest.approx(5e-4)
 
     def test_gradient_clipping_via_optimizer_config(self) -> None:
-        """OptimizerConfig gradient_clip is respected."""
+        """OptimizerConfig gradient_clip_norm is respected."""
         opt_cfg = OptimizerConfig(
             learning_rate=1e-4,
-            gradient_clip=0.01,
+            gradient_clip_norm=0.01,
         )
         cfg = TrainerConfig(optimizer_config=opt_cfg)
         model = _make_model()
@@ -669,13 +720,10 @@ class TestLearningRateReporting:
         assert metrics.learning_rate == pytest.approx(1e-4)
 
     def test_scheduled_lr_advances_with_steps(self) -> None:
-        """With an exponential schedule, the reported rate decays per step."""
+        """With an exponential schedule as the learning rate, the reported rate decays per step."""
         optimizer_config = OptimizerConfig(
             optimizer_type="adam",
-            learning_rate=1e-3,
-            schedule_type="exponential",
-            transition_steps=1,
-            decay_rate=0.5,
+            learning_rate=optax.exponential_decay(1e-3, transition_steps=1, decay_rate=0.5),
         )
         trainer = TrajectoryTrainer(_make_model(), TrainerConfig(optimizer_config=optimizer_config))
         traj, ctx = _sample_data()
