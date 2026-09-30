@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Install uv — pinned for reproducible builds. Update intentionally.
-RUN curl -LsSf https://astral.sh/uv/0.9.28/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+RUN curl -LsSf https://astral.sh/uv/0.12.21/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
 # Use the system interpreter: a uv-managed Python would live under /root,
 # unreadable by the non-root runtime user.
