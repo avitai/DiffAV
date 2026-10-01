@@ -207,3 +207,9 @@ checkpoints/
 # Local editor and tool state
 .claude/
 .import_linter_cache/
+
+# Local working files kept out of this repository
+.cursor/
+AGENTS.md
+CLAUDE.md
+memory-bank/
